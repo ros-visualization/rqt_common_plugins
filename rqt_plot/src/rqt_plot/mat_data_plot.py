@@ -69,12 +69,17 @@ class MatDataPlot(QWidget):
     class Canvas(FigureCanvas):
         """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
         def __init__(self, parent=None):
-            fig = Figure()
-            self.axes = fig.add_subplot(111)
+            self._fig = Figure()
+            self.axes = self._fig.add_subplot(111)
             self.axes.grid(True, color='gray')
-            super(MatDataPlot.Canvas, self).__init__(fig)
+            self._fig.tight_layout()
+            super(MatDataPlot.Canvas, self).__init__(self._fig)
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             self.updateGeometry()
+
+        def resizeEvent(self, event):
+            super(MatDataPlot.Canvas, self).resizeEvent(event)
+            self._fig.tight_layout()
 
     _colors = [Qt.red, Qt.blue, Qt.magenta, Qt.cyan, Qt.green, Qt.darkYellow, Qt.black, Qt.darkRed, Qt.gray, Qt.darkCyan]
 
