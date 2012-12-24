@@ -45,7 +45,6 @@ if QT_BINDING == 'pyside':
 from python_qt_binding.QtCore import Slot, Qt
 from python_qt_binding.QtGui import QWidget, QVBoxLayout, QSizePolicy, QColor
 
-import collections
 import operator
 import matplotlib
 if matplotlib.__version__ < '1.1.0':
@@ -69,17 +68,16 @@ class MatDataPlot(QWidget):
     class Canvas(FigureCanvas):
         """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
         def __init__(self, parent=None):
-            self._fig = Figure()
-            self.axes = self._fig.add_subplot(111)
+            super(MatDataPlot.Canvas, self).__init__(Figure())
+            self.axes = self.figure.add_subplot(111)
             self.axes.grid(True, color='gray')
-            self._fig.tight_layout()
-            super(MatDataPlot.Canvas, self).__init__(self._fig)
+            self.figure.tight_layout()
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
             self.updateGeometry()
 
         def resizeEvent(self, event):
             super(MatDataPlot.Canvas, self).resizeEvent(event)
-            self._fig.tight_layout()
+            self.figure.tight_layout()
 
     _colors = [Qt.red, Qt.blue, Qt.magenta, Qt.cyan, Qt.green, Qt.darkYellow, Qt.black, Qt.darkRed, Qt.gray, Qt.darkCyan]
 
@@ -95,13 +93,12 @@ class MatDataPlot(QWidget):
         self._color_index = 0
         self._curves = {}
 
-    def add_curve(self, curve_id, curve_name, data_x, data_y):
-        data_x = collections.deque(data_x)
-        data_y = collections.deque(data_y)
+    def add_curve(self, curve_id, curve_name, x, y):
         color = QColor(self._colors[self._color_index % len(self._colors)])
         self._color_index += 1
-        plot = self._canvas.axes.plot(data_x, data_y, label=curve_name, linewidth=1, picker=5, color=color.name())[0]
-        self._curves[curve_id] = (data_x, data_y, plot)
+        line = self._canvas.axes.plot([], [], label=curve_name, linewidth=1, picker=5, color=color.name())[0]
+        self._curves[curve_id] = ([], [], line, [None, None])
+        self.update_values(curve_id, x, y)
         self._update_legend()
 
     def remove_curve(self, curve_id):
@@ -120,9 +117,19 @@ class MatDataPlot(QWidget):
 
     @Slot(str, list, list)
     def update_values(self, curve_id, x, y):
-        data_x, data_y, _ = self._curves[curve_id]
+        data_x, data_y, line, range_y = self._curves[curve_id]
         data_x.extend(x)
         data_y.extend(y)
+        line.set_data(data_x, data_y)
+        if y:
+            ymin = min(y)
+            if range_y[0]:
+                ymin = min(ymin, range_y[0])
+            range_y[0] = ymin
+            ymax = max(y)
+            if range_y[1]:
+                ymax = max(ymax, range_y[1])
+            range_y[1] = ymax
 
     def redraw(self):
         self._canvas.axes.grid(True, color='gray')
@@ -130,27 +137,23 @@ class MatDataPlot(QWidget):
         ymin = ymax = None
         xmax = 0
         for curve in self._curves.values():
-            data_x, data_y, plot = curve
-            data_x = numpy.array(data_x)
-            data_y = numpy.array(data_y)
+            data_x, _, _, range_y = curve
             if len(data_x) == 0:
                 continue
 
             xmax = max(xmax, data_x[-1])
 
             if ymin is None:
-                ymin = min(data_y[-100:])
-                ymax = max(data_y[-100:])
+                ymin = range_y[0]
+                ymax = range_y[1]
             else:
-                ymin = min(min(data_y[-100:]), ymin)
-                ymax = max(max(data_y[-100:]), ymax)
+                ymin = min(range_y[0], ymin)
+                ymax = max(range_y[1], ymax)
 
             # pad the min/max
             delta = max(ymax - ymin, 0.1)
             ymin -= .05 * delta
             ymax += .05 * delta
-
-            plot.set_data(data_x, data_y)
 
         if ymin is not None:
             self._canvas.axes.set_xbound(lower=xmax - 5, upper=xmax)
