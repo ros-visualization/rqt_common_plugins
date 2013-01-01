@@ -32,8 +32,10 @@
 
 from __future__ import with_statement, print_function
 
+import os
 import re
 
+from rospkg import MANIFEST_FILE
 from rospkg.common import ResourceNotFound
 from qt_dotgraph.colors import get_color_for_string
 
@@ -187,8 +189,9 @@ class RosPackageGraphDotcodeGenerator:
             for stackname in self.stacks:
                 color = None
                 if self.mark_selected and not '.*' in self.selected_names and matches_any(stackname, self.selected_names):
-                    color = 'red'
+                    color = 'tomato'
                 else:
+                    color = 'gray'
                     if self.colortheme is not None:
                         color = get_color_for_string(stackname)
                 g = dotcode_factory.add_subgraph_to_graph(graph,
@@ -203,17 +206,22 @@ class RosPackageGraphDotcodeGenerator:
                     packages_in_stacks.append(package_name)
                     self._generate_package(dotcode_factory, g, package_name)
 
-        for package_name in self.packages:
+        for package_name, is_catkin in self.packages.iteritems():
             if package_name not in packages_in_stacks:
-                self._generate_package(dotcode_factory, graph, package_name)
+                self._generate_package(dotcode_factory, graph, package_name, is_catkin)
         for name1, name2 in self.edges.keys():
             dotcode_factory.add_edge_to_graph(graph, name1, name2)
         return graph
 
-    def _generate_package(self, dotcode_factory, graph, package_name):
+    def _generate_package(self, dotcode_factory, graph, package_name, is_catkin=False):
         color = None
         if self.mark_selected and not '.*' in self.selected_names and matches_any(package_name, self.selected_names):
-            color = 'red'
+            if is_catkin:
+                color = 'red'
+            else:
+                color = 'tomato'
+        elif not is_catkin:
+            color = 'gray'
         dotcode_factory.add_node_to_graph(graph, package_name, color=color)
 
     def _add_stack(self, stackname):
@@ -228,7 +236,11 @@ class RosPackageGraphDotcodeGenerator:
         """
         if package_name in self.packages:
             return False
-        self.packages[package_name] = {}
+
+        package_path = self.rospack.get_path(package_name)
+        manifest_file = os.path.join(package_path, MANIFEST_FILE)
+        is_catkin = not os.path.exists(manifest_file)
+        self.packages[package_name] = is_catkin
 
         if self.with_stacks:
             try:
