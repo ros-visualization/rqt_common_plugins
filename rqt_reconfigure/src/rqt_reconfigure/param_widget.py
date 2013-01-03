@@ -53,6 +53,10 @@ class ParamWidget(QWidget):
         one on left allows you to choose the node(s) you work on. Right side 
         pane lets you work with the parameters associated with the node(s) you
         select on the left.  
+        
+        (12/27/2012) Despite the pkg name is modified to rqt_reconfigure to 
+        reflect the available functionality, file & class names remain 
+        'param', expecting all the parameters will become handle-able.
         """
         #TODO(Isaac) .ui file needs to replace the GUI components declaration
         #            below. 
@@ -70,6 +74,7 @@ class ParamWidget(QWidget):
         self._splitter.insertWidget(0, nodesel)
         self._splitter.insertWidget(1, reconf_widget)
         
+        # Pass name of node to editor widget
         nodesel.sig_node_selected.connect(reconf_widget.show_reconf)
      
         if node is not None:

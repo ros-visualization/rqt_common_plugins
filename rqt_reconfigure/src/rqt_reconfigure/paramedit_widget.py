@@ -50,7 +50,8 @@ class ParameditWidget(QWidget):
         super(ParameditWidget, self).__init__()
         
         rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'paramedit_pane.ui')
+        ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 
+                               'resource', 'paramedit_pane.ui')
         loadUi(ui_file, self)
                 
         self._dynreconf_client = None
@@ -60,7 +61,9 @@ class ParameditWidget(QWidget):
     def show_reconf(self, node):
         """
         
-        :type node:
+        :param node: GRN (Graph Resource Names, see http://www.ros.org/wiki/Names)  
+                     of node name.
+        :type node: str
         """
         rospy.logdebug('ParameditWidget.show str(node)=%s', str(node))
 

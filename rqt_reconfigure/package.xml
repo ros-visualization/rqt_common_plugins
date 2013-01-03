@@ -1,7 +1,14 @@
 <package>
   <name>rqt_reconfigure</name>
   <version>0.2.7</version>
-  <description>This rqt plugin provides the way to view and edit the dynamic reconfigure parameters, as well as to introspect the parameters.</description>
+  <description>This rqt plugin provides the way to view and edit the dynamic 
+  reconfigure parameters, as well as to introspect the parameters.
+  
+  (12/27/2012) In the future, parameters that are not associated with any nodes 
+  (which are not handled by dynamic_reconfigure) might become handled. However,
+  currently as the name indicates, this pkg solely is dependent on
+  dynamic_reconfigure.  
+  </description>
   <maintainer email="isaito@willowgarage.com">Isaac Saito</maintainer>
 
   <license>BSD</license>
@@ -21,6 +28,7 @@
   <run_depend>rqt_gui_py</run_depend>
   <run_depend>rqt_py_common</run_depend>
 
+  <test_depend>unittest</test_depend>
   <export>
     <rqt_gui plugin="${prefix}/plugin.xml"/>
   </export>
