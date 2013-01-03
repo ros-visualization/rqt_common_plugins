@@ -32,12 +32,12 @@
 
 from __future__ import with_statement, print_function
 
+import os
 import re
 
+from rospkg import MANIFEST_FILE
 from rospkg.common import ResourceNotFound
 from qt_dotgraph.colors import get_color_for_string
-
-MAX_EDGES = 1500
 
 
 def matches_any(name, patternlist):
@@ -61,7 +61,9 @@ class RosPackageGraphDotcodeGenerator:
         self.rosstack = rosstack
         self.stacks = {}
         self.packages = {}
-        self.edges = []
+        self.edges = {}
+        self.traversed_ancestors = {}
+        self.traversed_descendants = {}
         self.last_drawargs = None
         self.last_selection = None
 
@@ -126,7 +128,9 @@ class RosPackageGraphDotcodeGenerator:
         if force_refresh or selection_changed:
             self.stacks = {}
             self.packages = {}
-            self.edges = []
+            self.edges = {}
+            self.traversed_ancestors = {}
+            self.traversed_descendants = {}
             # update internal graph structure
             for name in self.rospack.list():
                 if matches_any(name, self.selected_names):
@@ -185,8 +189,9 @@ class RosPackageGraphDotcodeGenerator:
             for stackname in self.stacks:
                 color = None
                 if self.mark_selected and not '.*' in self.selected_names and matches_any(stackname, self.selected_names):
-                    color = 'red'
+                    color = 'tomato'
                 else:
+                    color = 'gray'
                     if self.colortheme is not None:
                         color = get_color_for_string(stackname)
                 g = dotcode_factory.add_subgraph_to_graph(graph,
@@ -201,20 +206,22 @@ class RosPackageGraphDotcodeGenerator:
                     packages_in_stacks.append(package_name)
                     self._generate_package(dotcode_factory, g, package_name)
 
-        for package_name in self.packages:
+        for package_name, is_catkin in self.packages.iteritems():
             if package_name not in packages_in_stacks:
-                self._generate_package(dotcode_factory, graph, package_name)
-        if (len(self.edges) < MAX_EDGES):
-            for edge_tupel in self.edges:
-                dotcode_factory.add_edge_to_graph(graph, edge_tupel[0], edge_tupel[1])
-        else:
-            print("Too many edges %s > %s, abandoning generation of edge display" % (len(self.edges), MAX_EDGES))
+                self._generate_package(dotcode_factory, graph, package_name, is_catkin)
+        for name1, name2 in self.edges.keys():
+            dotcode_factory.add_edge_to_graph(graph, name1, name2)
         return graph
 
-    def _generate_package(self, dotcode_factory, graph, package_name):
+    def _generate_package(self, dotcode_factory, graph, package_name, is_catkin=False):
         color = None
         if self.mark_selected and not '.*' in self.selected_names and matches_any(package_name, self.selected_names):
-            color = 'red'
+            if is_catkin:
+                color = 'red'
+            else:
+                color = 'tomato'
+        elif not is_catkin:
+            color = 'gray'
         dotcode_factory.add_node_to_graph(graph, package_name, color=color)
 
     def _add_stack(self, stackname):
@@ -229,7 +236,11 @@ class RosPackageGraphDotcodeGenerator:
         """
         if package_name in self.packages:
             return False
-        self.packages[package_name] = {}
+
+        package_path = self.rospack.get_path(package_name)
+        manifest_file = os.path.join(package_path, MANIFEST_FILE)
+        is_catkin = not os.path.exists(manifest_file)
+        self.packages[package_name] = is_catkin
 
         if self.with_stacks:
             try:
@@ -244,7 +255,7 @@ class RosPackageGraphDotcodeGenerator:
         return True
 
     def _add_edge(self, name1, name2, attributes=None):
-        self.edges.append((name1, name2, attributes))
+        self.edges[(name1, name2)] = attributes
 
     def add_package_ancestors_recursively(self, package_name, expanded_up=None, depth=None, implicit=False, parent=None):
         """
@@ -254,6 +265,14 @@ class RosPackageGraphDotcodeGenerator:
         :param implicit: arg to rospack
         :param parent: package that referenced package_name for error message only
         """
+        if package_name in self.traversed_ancestors:
+            traversed_depth = self.traversed_ancestors[package_name]
+            if traversed_depth is None:
+                return
+            if depth is not None and traversed_depth >= depth:
+                return
+        self.traversed_ancestors[package_name] = depth
+
         if matches_any(package_name, self.excludes):
             return False
         if (depth == 0):
@@ -285,10 +304,18 @@ class RosPackageGraphDotcodeGenerator:
                                                        parent=package_name)
 
     def add_package_descendants_recursively(self, package_name, expanded=None, depth=None, implicit=False, parent=None):
+        if package_name in self.traversed_descendants:
+            traversed_depth = self.traversed_descendants[package_name]
+            if traversed_depth is None:
+                return
+            if depth is not None and traversed_depth >= depth:
+                return
+        self.traversed_descendants[package_name] = depth
+
         if matches_any(package_name, self.excludes):
-            return False
+            return
         if (depth == 0):
-            return False
+            return
         if (depth == None):
             depth = self.depth
         self._add_package(package_name, parent=parent)
