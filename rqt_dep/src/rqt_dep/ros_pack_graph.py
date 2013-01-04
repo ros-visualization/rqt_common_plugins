@@ -94,8 +94,8 @@ class RosPackGraph(Plugin):
         self.initialized = False
         self._current_dotcode = None
         self._update_thread = WorkerThread(self._update_thread_run, self._update_finished)
-        self._nodes = []
-        self._edges = []
+        self._nodes = {}
+        self._edges = {}
         self._options = {}
         self._options_serialized = ''
 
