@@ -37,6 +37,8 @@ from python_qt_binding.QtGui import QFormLayout, QGroupBox, QLabel, QPushButton,
 import rospy
 
 from .param_editors import BooleanEditor, DoubleEditor, EditorWidget, EDITOR_TYPES, EnumEditor, IntegerEditor, StringEditor
+# *Editor classes that are not explicitly used within this .py file still need 
+# to be imported. Otherwise runtime error might occur. 
 
 _GROUP_TYPES = {
     '': 'BoxGroup',
@@ -80,8 +82,12 @@ class GroupWidget(QWidget):
     def __init__(self, updater, config):
         """
         :param config: defined in dynamic_reconfigure.client.Client
-        :type config: Dictionary?
+        :type config: Dictionary? 
         """
+        
+        #TODO figure out what data type 'config' is. It is afterall returned 
+        #     from dynamic_reconfigure.client.get_parameter_descriptions()
+        #     http://ros.org/doc/api/dynamic_reconfigure/html/dynamic_reconfigure.client-pysrc.html#Client
 
         super(GroupWidget, self).__init__()
         self.state = config['state']
@@ -111,11 +117,14 @@ class GroupWidget(QWidget):
             if param['edit_method']:
                 widget = EnumEditor(self.updater, param)
             elif param['type'] in EDITOR_TYPES:
+                rospy.logdebug('GroupWidget i_debug=%d param type =%s', 
+                              i_debug,
+                              param['type'])
                 widget = eval(EDITOR_TYPES[param['type']])(self.updater, param)
 
             self.editor_widgets.append(widget)
             rospy.logdebug('groups.add_widgets num editors=%d', i_debug)
-            i_debug += 1
+            #i_debug += 1
 
         g_debug = 0
         for name, group in config['groups'].items():
@@ -126,7 +135,7 @@ class GroupWidget(QWidget):
 
             self.editor_widgets.append(widget)
             rospy.logdebug('groups.add_widgets num groups=%d', g_debug)
-            g_debug += 1
+            #g_debug += 1
 
         for i, ed in enumerate(self.editor_widgets):
             ed.display(self.grid, i)

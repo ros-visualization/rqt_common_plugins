@@ -56,7 +56,7 @@
       <widget class="QLineEdit" name="_paramval_lineEdit">
        <property name="minimumSize">
         <size>
-         <width>40</width>
+         <width>50</width>
          <height>20</height>
         </size>
        </property>

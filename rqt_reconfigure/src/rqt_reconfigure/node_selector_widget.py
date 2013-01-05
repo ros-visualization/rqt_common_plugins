@@ -68,18 +68,18 @@ class NodeSelectorWidget(QWidget):
 
         self._nodes_previous = None
 
-        # Calling this method updates the list of the node. 
+        # Calling this method updates the list of the node.
         # Initially done only once.
         self._update_nodetree()
-        
-        # Setting slot for when user clickes on QTreeView.
+
+        # Setting slot for when user clicks on QTreeView.
         selectionModel = self._node_selector_view.selectionModel()
         selectionModel.selectionChanged.connect(self._selection_changed_slot)
 
-        #TODO(Isaac): Needs auto-update function enabled, once another function
+        # TODO(Isaac): Needs auto-update function enabled, once another function
         #             that updates node tree with maintaining collapse/expansion
         #             state. http://goo.gl/GuwYp can be a help.
-        
+
 #        self.timer = QTimer()
 #        self.timer.timeout.connect(self._refresh_nodes)
 #        self.timer.start(5000) #  5sec interval is fast enough.
@@ -105,9 +105,9 @@ class NodeSelectorWidget(QWidget):
                        index_current.child(0, 0).data(Qt.DisplayRole))
 
         if not index_current.child(0, 0).data(Qt.DisplayRole) == None:
-            return #  Meaning the tree has no nodes.
+            return  #  Meaning the tree has no nodes.
 
-        #  get the text of the selected item
+        # get the text of the selected item
         node_name_selected = self.get_full_grn_recur(index_current, '')
         rospy.logdebug('_selection_changed_slot node_name_selected=%s',
                        node_name_selected)
@@ -132,7 +132,7 @@ class NodeSelectorWidget(QWidget):
         :type str_grn: str
         :param str_grn: This could be an incomplete or a complete GRN format.         
         """
-        #TODO(Isaac) Consider moving this to rqt_py_common. 
+        # TODO(Isaac) Consider moving this to rqt_py_common.
 
         rospy.logdebug('get_full_grn_recur in str=%s', str_grn)
         if model_index.data(Qt.DisplayRole) == None:
@@ -145,14 +145,14 @@ class NodeSelectorWidget(QWidget):
         """
         """
 
-        #TODO(Isaac): 11/25/2012 dynamic_reconfigure only returns params that 
+        # TODO(Isaac): 11/25/2012 dynamic_reconfigure only returns params that
         #             are associated with nodes. In order to handle independent
         #             params, different approach needs taken.
         try:
             nodes = dyn_reconf.find_reconfigure_services()
         except rosservice.ROSServiceIOException as e:
             rospy.logerr("Reconfigure GUI cannot connect to master.")
-            raise e  #TODO Make sure 'raise' here returns or finalizes this func.
+            raise e  # TODO Make sure 'raise' here returns or finalizes this func.
 
         if not nodes == self._nodes_previous:
             paramname_prev = ''
@@ -183,7 +183,7 @@ class NodeSelectorWidget(QWidget):
         :param child_names_left: List of strings that is sorted in hierarchical 
                                  order of params.
         """
-        #TODO(Isaac): Consider moving to rqt_py_common. 
+        # TODO(Isaac): Consider moving to rqt_py_common.
 
         name_curr = child_names_left.pop(0)
         stditem_curr = ParameterItem(param_item_full.get_raw_param_name())
@@ -211,13 +211,13 @@ class NodeSelectorWidget(QWidget):
                        name_curr, name_prev, row_index_parent)
 
         if len(child_names_left) != 0:
-            #TODO: View & Model are closely bound here. Ideally isolate this 2.
+            # TODO: View & Model are closely bound here. Ideally isolate this 2.
             #       Maybe we should split into 2 classs, 1 handles view,
             #       the other does model.
             self._add_tree_node(param_item_full, stditem, child_names_left)
 
     def _refresh_nodes(self):
-        #TODO(Isaac) In the future, do NOT remove all nodes. Instead,
+        # TODO(Isaac) In the future, do NOT remove all nodes. Instead,
         #            remove only the ones that are gone. And add new ones too.
 
         model = self._rootitem
@@ -229,4 +229,4 @@ class NodeSelectorWidget(QWidget):
 
     def close_node(self):
         rospy.logdebug(" in close_node")
-        #TODO(Isaac) Figure out if dynamic_reconfigure needs to be closed.
+        # TODO(Isaac) Figure out if dynamic_reconfigure needs to be closed.

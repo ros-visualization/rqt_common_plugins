@@ -35,7 +35,7 @@
 import dynamic_reconfigure.client
 import rospy
 
-from .param_editors import EditorWidget, BooleanEditor, DoubleEditor, EnumEditor, IntegerEditor, StringEditor
+from .param_editors import EditorWidget
 from .param_groups import GroupWidget
 from .param_updater import ParamUpdater
 

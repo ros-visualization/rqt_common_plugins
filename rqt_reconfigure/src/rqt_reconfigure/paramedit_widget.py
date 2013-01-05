@@ -46,6 +46,12 @@ from .param_groups import GroupWidget
 from .param_updater import ParamUpdater
 
 class ParameditWidget(QWidget):
+    '''
+    This class represents a pane where parameter editor widgets of multiple nodes
+    are shown. In rqt_reconfigure, this pane occupies right half of the entire 
+    visible area.    
+    '''
+    
     def __init__(self):
         super(ParameditWidget, self).__init__()
         
