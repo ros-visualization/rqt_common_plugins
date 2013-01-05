@@ -38,7 +38,7 @@ import os
 from dynamic_reconfigure.msg import Config as ConfigMsg
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, Signal
-from python_qt_binding.QtGui import QCheckBox, QComboBox, QDoubleValidator, QIntValidator, QHBoxLayout, QLabel, QLineEdit, QPainter, QSlider, QWidget 
+from python_qt_binding.QtGui import QCheckBox, QComboBox, QDoubleValidator, QIntValidator, QHBoxLayout, QLabel, QLineEdit, QPainter, QSlider, QWidget
 import rospkg
 import rospy
 
@@ -58,13 +58,14 @@ class EditorWidget(QWidget):
         :param updater: 
         :type updater: rqt_reconfigure.ParamUpdater
         """
-        
+
         super(EditorWidget, self).__init__()
-        
+
         self.updater = updater
         self.name = config['name']
 
         self.old_value = None
+        self.rp = rospkg.RosPack()
 
     def _update(self, value):
         if value != self.old_value:
@@ -81,9 +82,9 @@ class EditorWidget(QWidget):
         """
         Should be overridden in subclass.
     
-        :type grid: ???
+        :type grid: QFormLayout
         :type row: ???
-        """  
+        """
         pass
 
     def close(self):
@@ -93,51 +94,46 @@ class EditorWidget(QWidget):
         pass
 
 class BooleanEditor(EditorWidget):
-    def __init__(self, updater, config): 
+    def __init__(self, updater, config):
         super(BooleanEditor, self).__init__(updater, config)
+        ui_file = os.path.join(self.rp.get_path('rqt_reconfigure'), 'resource',
+                               'editor_bool.ui')
+        loadUi(ui_file, self)
 
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'editor_bool.ui')
-        loadUi(ui_file, self)  
-        
         self.update_value(config['default'])
         self._checkbox.clicked.connect(self._update)
-
+                
     def update_value(self, value):
         self._checkbox.setChecked(value)
 
     def display(self, grid, row):
-#        grid.addWidget(QLabel(self.name), row, 0, Qt.AlignRight)
-#        grid.addWidget(self, row, 1)
-        grid.addRow(QLabel(self.name, self))
+        grid.addRow(QLabel(self.name), self)
 
 class StringEditor(EditorWidget):
     def __init__(self, updater, config):
         super(StringEditor, self).__init__(updater, config)
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'editor_string.ui')
-        loadUi(ui_file, self) 
-                
-        self._paramval_lineedit.editingFinished.connect(self.edit_finished)
+        ui_file = os.path.join(self.rp.get_path('rqt_reconfigure'), 'resource',
+                               'editor_string.ui')
+        loadUi(ui_file, self)
 
+        self._paramval_lineedit.editingFinished.connect(self.edit_finished) 
+        
     def update_value(self, value):
         self._paramval_lineedit.setText(value)
 
     def edit_finished(self):
         self._update(self._paramval_lineedit.text())
-    
+
     def display(self, grid, row):
-#        grid.addWidget(QLabel(self.name), row, 0, Qt.AlignRight)
-#        grid.addWidget(self, row, 1)
         grid.addRow(QLabel(self.name), self)
 
 class IntegerEditor(EditorWidget):
     def __init__(self, updater, config):
         super(IntegerEditor, self).__init__(updater, config)
-        
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'editor_number.ui')
-        loadUi(ui_file, self) 
+
+        ui_file = os.path.join(self.rp.get_path('rqt_reconfigure'), 'resource', 
+                               'editor_number.ui')
+        loadUi(ui_file, self)
 
         self.min = int(config['min'])
         self.max = int(config['max'])
@@ -147,9 +143,9 @@ class IntegerEditor(EditorWidget):
         self._slider_horizontal.setRange(self.min, self.max)
         self._slider_horizontal.sliderReleased.connect(self.slider_released)
         self._slider_horizontal.sliderMoved.connect(self.update_text)
-        
-        #TODO(Isaac) Fix that the naming of _paramval_lineEdit instance is not 
-        #            consistent among Editor's subclasses. 
+
+        # TODO(Isaac) Fix that the naming of _paramval_lineEdit instance is not
+        #            consistent among Editor's subclasses.
         self._paramval_lineEdit.setValidator(QIntValidator(self.min,
                                                            self.max, self))
         self._paramval_lineEdit.editingFinished.connect(self.editing_finished)
@@ -183,10 +179,10 @@ class IntegerEditor(EditorWidget):
 class DoubleEditor(EditorWidget):
     def __init__(self, updater, config):
         super(DoubleEditor, self).__init__(updater, config)
-        
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'editor_number.ui')
-        loadUi(ui_file, self) 
+
+        ui_file = os.path.join(self.rp.get_path('rqt_reconfigure'), 'resource', 
+                               'editor_number.ui')
+        loadUi(ui_file, self)
 
         # Handle unbounded doubles nicely
         if config['min'] != -float('inf'):
@@ -195,7 +191,7 @@ class DoubleEditor(EditorWidget):
             self.func = lambda x: x
             self.ifunc = self.func
         else:
-            self.min = -1e10000 
+            self.min = -1e10000
             self._min_val_label.setText('-inf')
             self.func = lambda x: math.atan(x)
             self.ifunc = lambda x: math.tan(x)
@@ -252,17 +248,17 @@ class DoubleEditor(EditorWidget):
         self._paramval_lineEdit.setText(str(val))
 
     def display(self, grid, row):
-        #grid.addWidget(QLabel(self.name), row, 0, Qt.AlignRight)
+        # grid.addWidget(QLabel(self.name), row, 0, Qt.AlignRight)
         grid.addRow(QLabel(self.name), self)
 
 class EnumEditor(EditorWidget):
     def __init__(self, updater, config):
         super(EnumEditor, self).__init__(updater, config)
 
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'editor_enum.ui')
-        loadUi(ui_file, self) 
-        
+        ui_file = os.path.join(self.rp.get_path('rqt_reconfigure'), 'resource', 
+                               'editor_enum.ui')
+        loadUi(ui_file, self)
+
         try:
             enum = eval(config['edit_method'])['enum']
         except:
@@ -272,7 +268,7 @@ class EnumEditor(EditorWidget):
         self.names = [item['name'] for item in enum]
         self.values = [item['value'] for item in enum]
 
-        items = ["%s (%s)" % (self.names[i], self.values[i]) 
+        items = ["%s (%s)" % (self.names[i], self.values[i])
                  for i in range(0, len(self.names))]
 
         self._combobox.addItems(items)
@@ -288,4 +284,3 @@ class EnumEditor(EditorWidget):
 #        grid.addWidget(QLabel(self.name), row, 0, Qt.AlignRight)
 #        grid.addWidget(self, row, 1)
         grid.addRow(QLabel(self.name), self)
-        
