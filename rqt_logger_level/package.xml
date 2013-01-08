@@ -14,10 +14,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <test_depend>rospy</test_depend>
-  <test_depend>rqt_gui</test_depend>
-  <test_depend>rqt_gui_py</test_depend>
-
   <run_depend>python-rospkg</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>rqt_gui</run_depend>
