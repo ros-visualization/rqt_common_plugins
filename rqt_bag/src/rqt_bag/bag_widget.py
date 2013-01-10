@@ -181,9 +181,13 @@ class BagWidget(QWidget):
 
     def _handle_faster_clicked(self):
         self._timeline.navigate_fastforward()
+        self.play_button.setChecked(True)
+        self.play_button.setIcon(self.pause_icon)
 
     def _handle_slower_clicked(self):
         self._timeline.navigate_rewind()
+        self.play_button.setChecked(True)
+        self.play_button.setIcon(self.pause_icon)
 
     def _handle_begin_clicked(self):
         self._timeline.navigate_start()

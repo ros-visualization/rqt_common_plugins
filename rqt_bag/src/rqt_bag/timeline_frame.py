@@ -809,7 +809,7 @@ class TimelineFrame(QGraphicsItem):
         elif division >= 5 * 60:  # >5m divisions: show minutes
             return '%dm' % mins
         elif division >= 1:  # >1s divisions: show minutes:seconds
-            return '%d:%02dm' % (mins, secs)
+            return '%dm%02ds' % (mins, secs)
         elif division >= 0.1:  # >0.1s divisions: show seconds.0
             return '%d.%ss' % (secs, str(int(10.0 * (elapsed - int(elapsed)))))
         elif division >= 0.01:  # >0.1s divisions: show seconds.0
