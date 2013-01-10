@@ -264,7 +264,11 @@
     </layout>
    </item>
    <item>
-    <widget class="BagGraphicsView" name="graphics_view"/>
+    <widget class="BagGraphicsView" name="graphics_view">
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="status_bar_layout">

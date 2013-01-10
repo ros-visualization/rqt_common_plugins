@@ -82,8 +82,8 @@ class TimelineFrame(QGraphicsItem):
         self._history_bottom = 0
         self._history_bounds = {}
         self._margin_left = 4
-        self._margin_right = 8
-        self._margin_bottom = 6
+        self._margin_right = 20
+        self._margin_bottom = 20
         self._history_top = 30
 
         # Background Rendering
@@ -257,7 +257,7 @@ class TimelineFrame(QGraphicsItem):
 
     # QGraphicsItem implementation
     def boundingRect(self):
-        return QRectF(0, 0, 100, 100)
+        return QRectF(0, 0, self._history_left + self._history_width + self._margin_right, self._history_bottom + self._margin_bottom)
 
     def paint(self, painter, option, widget):
         if self._start_stamp is None:
