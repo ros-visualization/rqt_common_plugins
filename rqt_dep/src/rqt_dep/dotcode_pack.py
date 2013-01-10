@@ -206,22 +206,25 @@ class RosPackageGraphDotcodeGenerator:
                     packages_in_stacks.append(package_name)
                     self._generate_package(dotcode_factory, g, package_name)
 
-        for package_name, is_catkin in self.packages.iteritems():
+        for package_name, attributes in self.packages.iteritems():
             if package_name not in packages_in_stacks:
-                self._generate_package(dotcode_factory, graph, package_name, is_catkin)
+                self._generate_package(dotcode_factory, graph, package_name, attributes)
         for name1, name2 in self.edges.keys():
             dotcode_factory.add_edge_to_graph(graph, name1, name2)
         return graph
 
-    def _generate_package(self, dotcode_factory, graph, package_name, is_catkin=False):
+    def _generate_package(self, dotcode_factory, graph, package_name, attributes=None):
         color = None
         if self.mark_selected and not '.*' in self.selected_names and matches_any(package_name, self.selected_names):
-            if is_catkin:
+            if attributes and attributes['is_catkin']:
                 color = 'red'
             else:
                 color = 'tomato'
-        elif not is_catkin:
+        elif attributes and not attributes['is_catkin']:
             color = 'gray'
+        if attributes and 'not_found' in attributes and attributes['not_found']:
+            color = 'orange'
+            package_name += ' ?'
         dotcode_factory.add_node_to_graph(graph, package_name, color=color)
 
     def _add_stack(self, stackname):
@@ -237,10 +240,14 @@ class RosPackageGraphDotcodeGenerator:
         if package_name in self.packages:
             return False
 
-        package_path = self.rospack.get_path(package_name)
+        try:
+            package_path = self.rospack.get_path(package_name)
+        except ResourceNotFound:
+            self.packages[package_name] = {'is_catkin': True, 'not_found': True}
+            return False
         manifest_file = os.path.join(package_path, MANIFEST_FILE)
         is_catkin = not os.path.exists(manifest_file)
-        self.packages[package_name] = is_catkin
+        self.packages[package_name] = {'is_catkin': is_catkin}
 
         if self.with_stacks:
             try:

@@ -181,9 +181,13 @@ class BagWidget(QWidget):
 
     def _handle_faster_clicked(self):
         self._timeline.navigate_fastforward()
+        self.play_button.setChecked(True)
+        self.play_button.setIcon(self.pause_icon)
 
     def _handle_slower_clicked(self):
         self._timeline.navigate_rewind()
+        self.play_button.setChecked(True)
+        self.play_button.setIcon(self.pause_icon)
 
     def _handle_begin_clicked(self):
         self._timeline.navigate_start()
@@ -229,19 +233,22 @@ class BagWidget(QWidget):
     def _handle_load_clicked(self):
         filename = QFileDialog.getOpenFileName(self, self.tr('Load from File'), '.', self.tr('Bag files {.bag} (*.bag)'))
         if filename[0] != '':
-            bag = rosbag.Bag(filename[0])
-            self.play_button.setEnabled(True)
-            self.thumbs_button.setEnabled(True)
-            self.zoom_in_button.setEnabled(True)
-            self.zoom_out_button.setEnabled(True)
-            self.zoom_all_button.setEnabled(True)
-            self.faster_button.setEnabled(True)
-            self.slower_button.setEnabled(True)
-            self.begin_button.setEnabled(True)
-            self.end_button.setEnabled(True)
-            self.save_button.setEnabled(True)
-            self.record_button.setEnabled(False)
-            self._timeline.add_bag(bag)
+            self.load_bag(filename[0])
+
+    def load_bag(self, filename):
+        bag = rosbag.Bag(filename)
+        self.play_button.setEnabled(True)
+        self.thumbs_button.setEnabled(True)
+        self.zoom_in_button.setEnabled(True)
+        self.zoom_out_button.setEnabled(True)
+        self.zoom_all_button.setEnabled(True)
+        self.faster_button.setEnabled(True)
+        self.slower_button.setEnabled(True)
+        self.begin_button.setEnabled(True)
+        self.end_button.setEnabled(True)
+        self.save_button.setEnabled(True)
+        self.record_button.setEnabled(False)
+        self._timeline.add_bag(bag)
 
     def _handle_save_clicked(self):
         filename = QFileDialog.getSaveFileName(self, self.tr('Save selected region to file...'), '.', self.tr('Bag files {.bag} (*.bag)'))

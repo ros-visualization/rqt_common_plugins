@@ -307,6 +307,9 @@ class RosPackGraph(Plugin):
         return url
 
     def _redraw_graph_scene(self):
+        # remove items in order to not garbage nodes which will be continued to be used
+        for item in self._scene.items():
+            self._scene.removeItem(item)
         self._scene.clear()
         for node_item in self._nodes.itervalues():
             self._scene.addItem(node_item)
