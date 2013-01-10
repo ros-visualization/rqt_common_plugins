@@ -30,6 +30,8 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import argparse
+
 from qt_gui.plugin import Plugin
 
 from .bag_widget import BagWidget
@@ -49,6 +51,16 @@ class Bag(Plugin):
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
         context.add_widget(self._widget)
+
+        args = self._parse_args(context.argv())
+        for bagfile in args.bagfiles:
+            self._widget.load_bag(bagfile)
+
+    def _parse_args(self, argv):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('bagfiles', type=argparse.FileType('r'), nargs='*', default=[], help='Bagfiles to load')
+        args, _ = parser.parse_known_args(argv)
+        return args
 
     def shutdown_plugin(self):
         pass
