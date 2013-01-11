@@ -57,10 +57,14 @@ class Bag(Plugin):
             self._widget.load_bag(bagfile)
 
     def _parse_args(self, argv):
-        parser = argparse.ArgumentParser()
-        parser.add_argument('bagfiles', type=argparse.FileType('r'), nargs='*', default=[], help='Bagfiles to load')
-        args, _ = parser.parse_known_args(argv)
-        return args
+        parser = argparse.ArgumentParser(prog='rqt_bag', add_help=False)
+        Bag.add_arguments(parser)
+        return parser.parse_args(argv)
+
+    @staticmethod
+    def add_arguments(parser):
+        group = parser.add_argument_group('Options for rqt_bag plugin')
+        group.add_argument('bagfiles', type=argparse.FileType('r'), nargs='*', default=[], help='Bagfiles to load')
 
     def shutdown_plugin(self):
         pass

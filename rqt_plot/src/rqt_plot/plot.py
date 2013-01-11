@@ -30,6 +30,8 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import argparse
+
 from python_qt_binding import QT_BINDING
 from python_qt_binding.QtCore import qDebug
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
@@ -96,28 +98,20 @@ class Plot(Plugin):
         self._plot_type_index = 0
         self._context = context
 
-        self._args, self._initial_topics = self._process_arguments(context.argv())
-        self._widget = PlotWidget(self._args, self._initial_topics)
+        self._args = self._parse_args(context.argv())
+        self._widget = PlotWidget(initial_topics=self._args.topics, start_paused=self._args.start_paused)
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
         context.add_widget(self._widget)
 
-    def _process_arguments(self, argv):
-        from argparse import ArgumentParser
-        parser = ArgumentParser()
+    def _parse_args(self, argv):
+        parser = argparse.ArgumentParser(prog='rqt_plot', add_help=False)
+        Plot.add_arguments(parser)
+        args = parser.parse_args(argv)
 
-        # TODO add more configuration arguments here
-        parser.add_argument("-P", "--pause", action="store_true",
-                      dest="start_paused",
-                      help="start in paused state")
-        parser.add_argument("-e", "--empty", action="store_true",
-                            dest="start_empty",
-                            help="Ignore data in ini file at startup")
-        args, topics = parser.parse_known_args(argv)
-
-        # Process topic arguments into topic names
+        # convert topic arguments into topic names
         topic_list = []
-        for t in topics:
+        for t in args.topics:
             # c_topics is the list of topics to plot
             c_topics = []
             # compute combined topic list, t == '/foo/bar1,/baz/bar2'
@@ -143,16 +137,18 @@ class Plot(Plugin):
                 topic_list.extend(c_topics)
             else:
                 topic_list.append(c_topics)
+        args.topics = topic_list
 
-        #flatten for printing
-        print_topic_list = []
-        for l in topic_list:
-            if type(l) == list:
-                print_topic_list.extend(l)
-            else:
-                print_topic_list.append(l)
+        return args
 
-        return (args, topic_list)
+    @staticmethod
+    def add_arguments(parser):
+        group = parser.add_argument_group('Options for rqt_plot plugin')
+        group.add_argument('-P', '--pause', action='store_true', dest='start_paused',
+            help='Start in paused state')
+        group.add_argument('-e', '--empty', action='store_true', dest='start_empty',
+            help='Start without restoring previous topics')
+        group.add_argument('topics', nargs='*', default=[], help='Topics to plot')
 
     def _switch_data_plot_widget(self, plot_type_index):
         # check if selected plot type is available
