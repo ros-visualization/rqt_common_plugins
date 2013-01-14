@@ -521,8 +521,7 @@ class BagTimeline(QGraphicsScene):
 
     ### Playing
     def on_idle(self):
-        if self.play_speed != 0.0:
-            self._step_playhead()
+        self._step_playhead()
 
     def _step_playhead(self):
         """
