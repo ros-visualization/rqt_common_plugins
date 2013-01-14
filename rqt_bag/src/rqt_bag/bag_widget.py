@@ -264,7 +264,7 @@ class BagWidget(QWidget):
             self.progress_bar.setValue(self._timeline.background_progress)
 
             # Raw timestamp
-            self.stamp_label.setText('%d.%s' % (self._timeline._timeline_frame.playhead.secs, str(self._timeline._timeline_frame.playhead.nsecs)[:3]))
+            self.stamp_label.setText('%.3fs' % self._timeline._timeline_frame.playhead.to_sec())
 
             # Human-readable time
             self.date_label.setText(bag_helper.stamp_to_str(self._timeline._timeline_frame.playhead))
