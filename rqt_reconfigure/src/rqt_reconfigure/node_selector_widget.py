@@ -132,7 +132,7 @@ class NodeSelectorWidget(QWidget):
         self.sig_node_selected.emit(node_name_selected)
         
         # Show the node as selected.
-        selmodel.select(index_current, QItemSelectionModel.SelectCurrent)
+        #selmodel.select(index_current, QItemSelectionModel.SelectCurrent)
 
     def get_full_grn_recur(self, model_index, str_grn):
         """
@@ -190,7 +190,7 @@ class NodeSelectorWidget(QWidget):
             for node_name_grn in nodes:
 
                 ####(Begin) For DEBUG ONLY; skip some dynreconf creation
-#                if i_node_curr % 32 != 0:
+#                if i_node_curr % 18 != 0:
 #                    i_node_curr += 1
 #                    continue
                 # (End) For DEBUG ONLY.

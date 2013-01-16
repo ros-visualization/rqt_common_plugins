@@ -38,7 +38,8 @@ from collections import OrderedDict
 import dynamic_reconfigure.client
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QStandardItemModel, QVBoxLayout, QWidget
+from python_qt_binding.QtGui import QSpacerItem, QStandardItemModel, QVBoxLayout, QWidget, QWidgetItem
+from rqt_py_common.qlayout_util import LayoutUtil
 import rospkg
 import rospy
 
@@ -84,7 +85,7 @@ class ParameditWidget(QWidget):
         #self._set_index_widgets(self.listview, paramitems_dict) #causes error        
 
         self.destroyed.connect(self.close)  # func in mercurial?
-        
+                
     def _set_index_widgets(self, view, paramitems_dict):
         '''
         :deprecated: Causes error  
@@ -99,42 +100,72 @@ class ParameditWidget(QWidget):
         Callback when user chooses a node.
         
         :deprecated: move_to_node should be used due to the enhancement
-                     request https://github.com/ros-visualization/rqt_common_plugins/issues/4
+                    request https://github.com/ros-visualization/rqt_common_plugins/issues/4
         :param node_grn: GRN (Graph Resource Names, see http://www.ros.org/wiki/Names)  
-                     of node name.
+                         of node name.
         :type node_grn: str
         """
         rospy.logdebug('ParameditWidget.show str(node_grn)=%s', str(node_grn))
 
         dynreconf_client = None
-        try:
-            dynreconf_client = dynamic_reconfigure.client.Client(str(node_grn),
-                                                                 timeout=5.0)
-        except rospy.exceptions.ROSException:
-            rospy.logerr("Could not connect to %s" % node_grn)
-            #TODO(Isaac) Needs to show err msg on GUI too. 
-            return
-         # Comment these lines out, since closing dyn_reconf client
-         # doesn't make sense now that multiple clients can exits simultaneously.
-         # TODO (Isaac) Better to figure out why closing at this point.
-#        finally: 
-#            if self._dynreconf_client:
-#                self._dynreconf_client.close() #Close old GUI client.
-
-        _dynreconf_client = DynreconfClientWidget(dynreconf_client, node_grn)
-        # Client gets renewed every time different node_grn was clicked.
-
+        
         if not node_grn in self._dynreconf_clients.keys():
+            # Add dynreconf widget if there hasn't one existed.
+
+            try:
+                dynreconf_client = dynamic_reconfigure.client.Client(
+                                               str(node_grn), timeout=5.0)
+            except rospy.exceptions.ROSException:
+                rospy.logerr("Could not connect to %s" % node_grn)
+                #TODO(Isaac) Needs to show err msg on GUI too. 
+                return
+         
+            #Comment these lines out, since closing dyn_reconf client
+            #doesn't make sense now that multiple clients can exits simultaneously.
+            #TODO (Isaac) Better to figure out why closing at this point.
+            #        finally: 
+            #            if self._dynreconf_client:
+            #               self._dynreconf_client.close() #Close old GUI client.
+
+            _dynreconf_client = DynreconfClientWidget(dynreconf_client, 
+                                                      node_grn)
+            # Client gets renewed every time different node_grn was clicked.
+            
             self._dynreconf_clients.__setitem__(node_grn, _dynreconf_client)
             
             # Add color to alternate the rim of the widget.
-            if len(self._dynreconf_clients) % 2 == 0:
-                _dynreconf_client.setAutoFillBackground(True)
-                p = _dynreconf_client.palette()
-                p.setColor(_dynreconf_client.backgroundRole(), Qt.gray)
-                _dynreconf_client.setPalette(p)
-            self.vlayout.addWidget(_dynreconf_client)
+            self._alternate_color(self.vlayout, self._dynreconf_clients)
 
+            self.vlayout.addWidget(_dynreconf_client)
+        else:
+            # If there has one already existed, remove it.
+            i = self._dynreconf_clients.keys().index(node_grn)
+            item = self.vlayout.itemAt(i)
+            if isinstance(item, QWidgetItem):
+                #print "widget" + str(item)
+                item.widget().close()
+            w = self._dynreconf_clients.pop(node_grn)
+            
+            rospy.logdebug('popped={} Len of left clients={}'.format( 
+                                              w, len(self._dynreconf_clients)))
+            #LayoutUtil.clear_layout(self.vlayout)
+
+            # Re-add the rest of existing items to layout.  
+            #for k, v in self._dynreconf_clients.iteritems():
+            #    rospy.loginfo('added to layout k={} v={}'.format(k, v))
+            #    self.vlayout.addWidget(v)
+                      
+    def _alternate_color(self, layout, list_widget):
+#        if self._bgcolor_nodewidget_white:
+#            _dynreconf_client.setAutoFillBackground(True)
+#            p = _dynreconf_client.palette()
+#            p.setColor(_dynreconf_client.backgroundRole(), Qt.gray)
+#            _dynreconf_client.setPalette(p)
+#            self._bgcolor_nodewidget_white = False
+#        else:
+#            self._bgcolor_nodewidget_white = True
+        pass   
+        
     def close(self):
         for dc in self._dynreconf_clients:
             # Clear out the old widget
