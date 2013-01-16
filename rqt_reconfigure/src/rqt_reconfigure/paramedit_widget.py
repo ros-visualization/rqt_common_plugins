@@ -68,8 +68,6 @@ class ParameditWidget(QWidget):
                                'resource', 'paramedit_pane.ui')
         loadUi(ui_file, self)
         
-        #self._dynreconf_clients = []
-        #self._nodenames_displayed = []
         self._dynreconf_clients = OrderedDict()
        
         #self.node_delegate = NodeDelegate(self, paramitems_dict)
@@ -82,22 +80,7 @@ class ParameditWidget(QWidget):
         # Adding the list of Items 
         #self.std_model.insertColumn(0, paramitems_dict.values())
         self.vlayout = QVBoxLayout(self.scrollarea_holder_widget)
-        
-        # Alternate background color 
-#        count_node = 0
-#        for v in paramitems_dict.itervalues():
-#            w = v.get_widget()
-#            item = self.std_model.item(count_node, 0)
-#            if count_node % 2 != 0:
-#                w.setAutoFillBackground(True)
-#                p = w.palette()
-#                p.setColor(w.backgroundRole(), Qt.gray)
-#                w.setPalette(p)
-#
-#            self.listview.setIndexWidget(item.index(), w)
-##            self.vlayout.addWidget(w)
-#            count_node += 1
-        
+                
         #self._set_index_widgets(self.listview, paramitems_dict) #causes error        
 
         self.destroyed.connect(self.close)  # func in mercurial?
@@ -141,11 +124,15 @@ class ParameditWidget(QWidget):
         _dynreconf_client = DynreconfClientWidget(dynreconf_client, node_grn)
         # Client gets renewed every time different node_grn was clicked.
 
-        #TODO Commented in.
-        #self._paramedit_scrollarea.setWidget(self._dynreconf_client)
-        #self._paramedit_scrollarea.setWidgetResizable(True)
         if not node_grn in self._dynreconf_clients.keys():
             self._dynreconf_clients.__setitem__(node_grn, _dynreconf_client)
+            
+            # Add color to alternate the rim of the widget.
+            if len(self._dynreconf_clients) % 2 == 0:
+                _dynreconf_client.setAutoFillBackground(True)
+                p = _dynreconf_client.palette()
+                p.setColor(_dynreconf_client.backgroundRole(), Qt.gray)
+                _dynreconf_client.setPalette(p)
             self.vlayout.addWidget(_dynreconf_client)
 
     def close(self):
