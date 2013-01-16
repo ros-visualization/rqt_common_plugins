@@ -192,11 +192,9 @@ class ConsoleWidget(QWidget):
         rowlist = []
         indexes = self.table_view.selectionModel().selectedIndexes()
 
-        if len(indexes) != 0:
-            for current in indexes:
-                rowlist.append(self._proxymodel.mapToSource(current).row())
-            rowlist = list(set(rowlist))
-            rowlist.sort()
+        if indexes:
+            rowlist = [self._proxymodel.mapToSource(current).row() for current in indexes]
+            rowlist = sorted(list(set(rowlist)))
 
             mintime, maxtime = self._datamodel.get_time_range(rowlist)
             return (mintime, maxtime)
