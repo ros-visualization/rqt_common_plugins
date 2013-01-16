@@ -39,7 +39,7 @@ import dynamic_reconfigure.client
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtGui import QSpacerItem, QStandardItemModel, QVBoxLayout, QWidget, QWidgetItem
-from rqt_py_common.qlayout_util import LayoutUtil
+from rqt_py_common.layout_util import LayoutUtil
 import rospkg
 import rospy
 
@@ -133,12 +133,8 @@ class ParameditWidget(QWidget):
             
             self._dynreconf_clients.__setitem__(node_grn, _dynreconf_client)
             
-            # Add color to alternate the rim of the widget.
-            self._alternate_color(self.vlayout, self._dynreconf_clients)
-
             self.vlayout.addWidget(_dynreconf_client)
-        else:
-            # If there has one already existed, remove it.
+        else: # If there has one already existed, remove it.
             i = self._dynreconf_clients.keys().index(node_grn)
             item = self.vlayout.itemAt(i)
             if isinstance(item, QWidgetItem):
@@ -154,18 +150,11 @@ class ParameditWidget(QWidget):
             #for k, v in self._dynreconf_clients.iteritems():
             #    rospy.loginfo('added to layout k={} v={}'.format(k, v))
             #    self.vlayout.addWidget(v)
+
+        # Add color to alternate the rim of the widget.
+        LayoutUtil.alternate_color(self._dynreconf_clients.itervalues(),
+                                   [Qt.white, Qt.lightGray, Qt.gray])
                       
-    def _alternate_color(self, layout, list_widget):
-#        if self._bgcolor_nodewidget_white:
-#            _dynreconf_client.setAutoFillBackground(True)
-#            p = _dynreconf_client.palette()
-#            p.setColor(_dynreconf_client.backgroundRole(), Qt.gray)
-#            _dynreconf_client.setPalette(p)
-#            self._bgcolor_nodewidget_white = False
-#        else:
-#            self._bgcolor_nodewidget_white = True
-        pass   
-        
     def close(self):
         for dc in self._dynreconf_clients:
             # Clear out the old widget
