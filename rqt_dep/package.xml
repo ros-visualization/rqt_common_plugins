@@ -20,10 +20,6 @@
   <run_depend>rqt_graph</run_depend>
   <run_depend>rqt_gui</run_depend>
   <run_depend>rqt_gui_py</run_depend>
-  <test_depend>qt_dotgraph</test_depend>
-  <test_depend>qt_gui_py_common</test_depend>
-  <test_depend>rqt_graph</test_depend>
-  <test_depend>rqt_gui</test_depend>
 
   <export>
     <rqt_gui plugin="${prefix}/plugin.xml"/>
