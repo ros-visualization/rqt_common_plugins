@@ -54,6 +54,8 @@ class ParamUpdater(threading.Thread):
     def run(self):
         last_commit = None
 
+
+        begin_loop = time.time() * 1000
         while not self._stop_flag:
             if last_commit >= self._last_pending:
                     with self._cv:
@@ -72,7 +74,13 @@ class ParamUpdater(threading.Thread):
                 rospy.logdebug('Could not update configuration')
             except Exception as exc:
                 raise exc
-
+    
+        end_loop = time.time() * 1000
+        time_elap_loop = end_loop - begin_loop
+        rospy.logdebug('ParamUpdater #loops={} Time taken ={} sec. ' +
+                      'Avg time per dynClient={} sec.'.format(i, time_elap_loop, 
+                                                              time_elap_loop/i))
+    
     def update(self, config):
         with self._cv:
             for name, value in config.items():

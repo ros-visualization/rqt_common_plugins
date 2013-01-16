@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2012, Willow Garage, Inc.
@@ -34,37 +36,32 @@
 
 import unittest
 
-from rqt_reconfigure.ros_param import Parameter
+from rqt_reconfigure.parameter_item import ParameterItem
 
-'''
-@author: Isaac Saito
-'''
-class MyTest(unittest.TestCase):
-    
-    # All following vars need to be modified accordingly whenever you give
-    # different raw param name.
-    # <here>
-    _param_name_raw = '/param_top/sub/subsub'
-    _param_name_toplv = 'param_top'
-    _len_param_name = 3
-    # </here>
-            
+class TestParameterItem(unittest.TestCase):
+    """
+    :author: Isaac Saito
+    """
+
+    _nodename = '/base_hokuyo_node'
+               
     def setUp(self):
         unittest.TestCase.setUp(self)
-        
-        self._param = Parameter(self._param_name_raw)
+        #self._item = ParameterItem(self._nodename, 0) # For unknown reason this
+                                                       # stops operation.
+        self._item = ParameterItem(self._nodename)
  
     def tearDown(self):
         unittest.TestCase.tearDown(self)
-        del self._param
+        del self._item
                 
-    def test_get_param_name_toplv(self):
-        self.assertEqual(self._param.get_param_name_toplv(),
-                         self._param_name_toplv)
-        
-    def test_get_param_names(self):
-        self.assertEqual(len(self._param.get_param_names()),
-                         self._len_param_name - 1)
+    def test_get_node_name(self):
+        self.assertEqual(self._item.get_node_name(),
+                         self._nodename)
+
+    def test_get_node_name(self):
+        self.assertEqual(self._item.get_widget().show())
+
 
 if __name__ == '__main__':
     unittest.main()

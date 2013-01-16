@@ -36,65 +36,156 @@ import os
 
 import dynamic_reconfigure.client
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QWidget
+from python_qt_binding.QtCore import Qt
+from python_qt_binding.QtGui import QStandardItemModel, QVBoxLayout, QWidget
 import rospkg
 import rospy
 
 from .dynreconf_client_widget import DynreconfClientWidget
+from .node_delegate import NodeDelegate
 from .param_editors import EditorWidget, BooleanEditor, DoubleEditor, EnumEditor, IntegerEditor, StringEditor
 from .param_groups import GroupWidget
 from .param_updater import ParamUpdater
 
 class ParameditWidget(QWidget):
-    '''
+    """
     This class represents a pane where parameter editor widgets of multiple nodes
     are shown. In rqt_reconfigure, this pane occupies right half of the entire 
     visible area.    
-    '''
+    """
     
-    def __init__(self):
+    def __init__(self, paramitems_dict):
+        """
+        :type paramitems_dict: OrderedDict. 1st elem is node's GRN name,
+                          2nd is ParameterItem instance (that extends 
+                          QStandardItem)
+        """
         super(ParameditWidget, self).__init__()
         
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 
                                'resource', 'paramedit_pane.ui')
         loadUi(ui_file, self)
-                
-        self._dynreconf_client = None
+        
+        self._dynreconf_clients = []
+       
+        #self.node_delegate = NodeDelegate(self, paramitems_dict)
+        #self.listview.setItemDelegate(self.node_delegate)
+
+        #self.set_nodes(paramitems_dict)
+        #self.std_model = QStandardItemModel()
+        #self.listview.setModel(self.std_model) # QListView
+        
+        # Adding the list of Items 
+        #self.std_model.insertColumn(0, paramitems_dict.values())
+        self.vlayout = QVBoxLayout(self.scrollarea_holder_widget)
+        
+        # Alternate background color 
+#        count_node = 0
+#        for v in paramitems_dict.itervalues():
+#            w = v.get_widget()
+#            item = self.std_model.item(count_node, 0)
+#            if count_node % 2 != 0:
+#                w.setAutoFillBackground(True)
+#                p = w.palette()
+#                p.setColor(w.backgroundRole(), Qt.gray)
+#                w.setPalette(p)
+#
+#            self.listview.setIndexWidget(item.index(), w)
+##            self.vlayout.addWidget(w)
+#            count_node += 1
+        
+        #self._set_index_widgets(self.listview, paramitems_dict) #causes error        
 
         self.destroyed.connect(self.close)  # func in mercurial?
-
-    def show_reconf(self, node):
-        """
         
-        :param node: GRN (Graph Resource Names, see http://www.ros.org/wiki/Names)  
+    def _set_index_widgets(self, view, paramitems_dict):
+        '''
+        :deprecated: Causes error  
+        '''
+        i = 0
+        for p in paramitems_dict:
+            view.setIndexWidget(i, p)
+            i += 1
+        
+    def show_reconf(self, node_grn):
+        """        
+        Callback when user chooses a node.
+        
+        :deprecated: move_to_node should be used due to the enhancement
+                     request https://github.com/ros-visualization/rqt_common_plugins/issues/4
+        :param node_grn: GRN (Graph Resource Names, see http://www.ros.org/wiki/Names)  
                      of node name.
-        :type node: str
+        :type node_grn: str
         """
-        rospy.logdebug('ParameditWidget.show str(node)=%s', str(node))
+        rospy.logdebug('ParameditWidget.show str(node_grn)=%s', str(node_grn))
 
-        dynreconf_client = None        
+        dynreconf_client = None
         try:
-            dynreconf_client = dynamic_reconfigure.client.Client(str(node), 
-                                                                  timeout=5.0)
+            dynreconf_client = dynamic_reconfigure.client.Client(str(node_grn),
+                                                                 timeout=5.0)
         except rospy.exceptions.ROSException:
-            rospy.logerr("Could not connect to %s" % node)
+            rospy.logerr("Could not connect to %s" % node_grn)
             #TODO(Isaac) Needs to show err msg on GUI too. 
             return
-        finally:
-            if self._dynreconf_client:
-                self._dynreconf_client.close() #Close old GUI client.
+         # Comment these lines out, since closing dyn_reconf client
+         # doesn't make sense now that multiple clients can exits simultaneously.
+         # TODO (Isaac) Better to figure out why closing at this point.
+#        finally: 
+#            if self._dynreconf_client:
+#                self._dynreconf_client.close() #Close old GUI client.
 
-        self._dynreconf_client = DynreconfClientWidget(dynreconf_client) 
-        # Client gets renewed every time different node was clicked.
+        _dynreconf_client = DynreconfClientWidget(dynreconf_client, node_grn)
+        self._dynreconf_clients.append(_dynreconf_client)
+        # Client gets renewed every time different node_grn was clicked.
 
-        self._paramedit_scrollarea.setWidget(self._dynreconf_client)
-        self._paramedit_scrollarea.setWidgetResizable(True)
+        #TODO Commented in.
+        #self._paramedit_scrollarea.setWidget(self._dynreconf_client)
+        #self._paramedit_scrollarea.setWidgetResizable(True)
+        self.vlayout.addWidget(_dynreconf_client)
 
     def close(self):
-        if self._dynreconf_client is not None:
+        for dc in self._dynreconf_clients:
             # Clear out the old widget
-            self._dynreconf_client.close()
-            self._dynreconf_client = None
+            dc.close()
+            dc = None
 
             self._paramedit_scrollarea.deleteLater()
+
+    def set_nodes(self, nodeitems):
+        """
+        :type nodeitems: ParameterItem[] (that extends QStandardItem)
+        """
+        
+        self.node_delegate.set_nodeitems(nodeitems)
+             
+        #TODO Add EditorWidgets
+        #     setIndexWidget() might be it. 
+        #     http://doc.qt.digia.com/qt/qtableview.html
+                
+        self.std_model.insertColumn(0, nodeitems)
+        self.listview.setModel(self.std_model) # QListView
+    
+    def filter_param(self, filter_key):
+        """
+        :type filter_key:
+        """
+        
+        #TODO Pick nodes that match filter_key.
+        
+        #TODO For the nodes that are kept in previous step, call 
+        #     DynreconfWidget.filter_param for all of its existing 
+        #     instances. 
+        pass
+
+    def move_to_node(self, node):
+        """
+        Move the visible region to the widget of correspondent node group.
+        
+        :since : 1/4/2013
+        """
+        rospy.logdebug('ParameditWidget.move_to_node str(node)=%s', str(node))
+        
+        #TODO Figure out the row index from node name.
+         
+        #TODO Move cursor to the corresponding node. Use QTableView.selectRow

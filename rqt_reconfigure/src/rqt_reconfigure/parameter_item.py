@@ -36,25 +36,77 @@ from __future__ import division
 
 import dynamic_reconfigure.client
 from python_qt_binding.QtCore import Qt, QVariant
+from python_qt_binding.QtGui import QWidget
 import rospy
 from rqt_py_common.data_items import ReadonlyItem
+
+from .dynreconf_client_widget import DynreconfClientWidget
 
 class ParameterItem(ReadonlyItem):
     """
     IMPORTANT: set_param_name method must be called right after 
     the constructor is called.
     """
-        
+    
+    NODE_FULLPATH = 1
+            
     def __init__(self, *args):
+        """
+        :param args: 1st elem: str (will become 1st arg of QStandardItem) 
+                     2nd elem: integer value that indicates whether this class 
+                               is node that has GRN (Graph Resource Names, see 
+                               http://www.ros.org/wiki/Names). This can be None.
+        """
+        #super(ParameterItem, self).__init__(*args)
+        node_name = args[0]
+        self._nodename = node_name
+        super(ParameterItem, self).__init__(node_name)
+        
+        self.node_full = False
+        
+        try:
+            if args[1] != None:
+                self.node_full = True
+                rospy.logdebug('ParameterItem now loading node={}'.format(node_name))
+                self._dynreconf_client = self._create_paramclient(node_name) 
+        except IndexError as e: #tuple index out of range etc.
+            rospy.logdebug('ParameterItem fullpath=F')
+            
+    def get_widget(self):
+        """
+        :rtype: DynreconfClientWidget (QWidget)
+        """
+        return self._dynreconf_client
+        
+    def _create_paramclient(self, nodename):
+        """        
+        Callback when user chooses a node.
+        
+        :param nodename: GRN (Graph Resource Names, 
+                         see http://www.ros.org/wiki/Names) of node name.
+        :type node: str
+        :rtype: DynreconfClientWidget
+        """        
+        try:
+            _dynreconf_client = dynamic_reconfigure.client.Client(str(nodename),
+                                                                  timeout=5.0)
+        except rospy.exceptions.ROSException:
+            rospy.logerr("Could not connect to %s" % node)
+            #TODO(Isaac) Needs to show err msg on GUI too. 
+            return
+#        finally:
+#            if self._dynreconf_client:
+#                self._dynreconf_client.close() #Close old GUI client.
+
+        dynreconf_widget = DynreconfClientWidget(_dynreconf_client, nodename)
+        return dynreconf_widget 
+    
+    def set_param_name(self, param_name):
         """
         :param param_name: A string formatted as GRN (Graph Resource Names, see  
                            http://www.ros.org/wiki/Names). 
                            Example: /paramname/subpara/subsubpara/...
         """
-        
-        super(ParameterItem, self).__init__(*args)
-    
-    def set_param_name(self, param_name):
         
         self._param_name_raw = param_name
         

@@ -38,7 +38,7 @@ import os
 import sys
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QHBoxLayout, QSplitter, QWidget
+from python_qt_binding.QtGui import QHBoxLayout, QLineEdit, QSplitter, QVBoxLayout, QWidget
 
 from .node_selector_widget import NodeSelectorWidget
 from .paramedit_widget import ParameditWidget
@@ -47,7 +47,7 @@ class ParamWidget(QWidget):
     _TITLE_PLUGIN = 'Param'
 
     def __init__(self, context, node=None):
-        """
+        '''
         This class is intended to be called by rqt plugin framework class.
         Currently (12/12/2012) the whole widget is splitted into 2 panes:
         one on left allows you to choose the node(s) you work on. Right side 
@@ -57,24 +57,40 @@ class ParamWidget(QWidget):
         (12/27/2012) Despite the pkg name is modified to rqt_reconfigure to 
         reflect the available functionality, file & class names remain 
         'param', expecting all the parameters will become handle-able.
-        """
-        #TODO(Isaac) .ui file needs to replace the GUI components declaration
-        #            below. 
+        '''
         
         super(ParamWidget, self).__init__()
         self.setObjectName(self._TITLE_PLUGIN)
         
+        #TODO(Isaac) .ui file needs to replace the GUI components declaration
+        #            below. For unknown reason, referring to another .ui files
+        #            from a .ui that is used in this class failed. So for now,
+        #            I decided not use .ui in this class. 
+        #            If someone can tackle this I'd appreciate. 
         _hlayout_top = QHBoxLayout(self)
         self._splitter = QSplitter(self)        
         _hlayout_top.addWidget(self._splitter)
 
+        _vlayout_nodesel_widget = QWidget()
+        _vlayout_nodesel_side = QVBoxLayout()
+        self.filter_lineedit = QLineEdit(self)
         nodesel = NodeSelectorWidget()
-        reconf_widget = ParameditWidget()
+        _vlayout_nodesel_side.addWidget(self.filter_lineedit)
+        _vlayout_nodesel_side.addWidget(nodesel)
+        _vlayout_nodesel_side.setSpacing(1)
+        _vlayout_nodesel_widget.setLayout(_vlayout_nodesel_side)
 
-        self._splitter.insertWidget(0, nodesel)
+        paramitems = nodesel.get_paramitems()
+                        
+        reconf_widget = ParameditWidget(paramitems)
+        #reconf_widget.set_nodes(paramitems)
+
+        #self._splitter.insertWidget(0, nodesel)
+        self._splitter.insertWidget(0, _vlayout_nodesel_widget)
         self._splitter.insertWidget(1, reconf_widget)
         
         # Pass name of node to editor widget
+        #nodesel.sig_node_selected.connect(reconf_widget.move_to_node)
         nodesel.sig_node_selected.connect(reconf_widget.show_reconf)
      
         if node is not None:
@@ -82,7 +98,7 @@ class ParamWidget(QWidget):
         else:
             title = self._TITLE_PLUGIN
         self.setObjectName(title)
-                 
+                         
     def shutdown(self):
         #TODO(Isaac) Needs implemented. Trigger dynamic_reconfigure to unlatch
         #            subscriber.

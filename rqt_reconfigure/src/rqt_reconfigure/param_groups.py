@@ -32,8 +32,14 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow
 
+import cProfile
+import os
+import time
+
+from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QFormLayout, QGroupBox, QLabel, QPushButton, QTabWidget, QWidget
+from python_qt_binding.QtGui import QFont, QFormLayout, QGroupBox, QLabel, QPushButton, QTabWidget, QVBoxLayout, QWidget
+import rospkg
 import rospy
 
 from .param_editors import BooleanEditor, DoubleEditor, EditorWidget, EDITOR_TYPES, EnumEditor, IntegerEditor, StringEditor
@@ -79,10 +85,11 @@ class GroupWidget(QWidget):
     a single node as a group. 
     """
 
-    def __init__(self, updater, config):
+    def __init__(self, updater, config, nodename):
         """
-        :param config: defined in dynamic_reconfigure.client.Client
-        :type config: Dictionary? 
+        :param config: 
+        :type config: Dictionary? defined in dynamic_reconfigure.client.Client
+        :type nodename: str 
         """
         
         #TODO figure out what data type 'config' is. It is afterall returned 
@@ -92,39 +99,77 @@ class GroupWidget(QWidget):
         super(GroupWidget, self).__init__()
         self.state = config['state']
         self.name = config['name']
+        
+        #TODO .ui file needs to be back in use in later phase.
+#        rp = rospkg.RosPack()
+#        ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 
+#                               'resource', 'singlenode_parameditor.ui')
+#        loadUi(ui_file, self)
+        verticalLayout = QVBoxLayout(self)
+        self.node_name = QLabel(self)
+        font = QFont('Trebuchet MS, Bold')
+        font.setUnderline(True)
+        font.setBold(True)
+        self.node_name.setAlignment(Qt.AlignCenter)
+        font.setPointSize(10)
+        self.node_name.setFont(font)
+        grid_widget = QWidget(self)
+        self.grid = QFormLayout(grid_widget)
+        verticalLayout.addWidget(self.node_name)
+        verticalLayout.addWidget(grid_widget)
+        # Again, these UI operation above needs to happen in .ui file.
 
         self.tab_bar = None  # Every group can have one tab bar
         self.tab_bar_shown = False
 
-        #self.grid = QGridLayout()
-        self.grid = QFormLayout()
+        #self.grid = QFormLayout()
 
         self.updater = updater
 
         self.editor_widgets = []
+        
+        #cProfile.runctx('self.add_widgets(config)', globals(), locals())  #For debug. Needs to be removed 
         self.add_widgets(config)
+        
+        rospy.logdebug('Groups node name={}'.format(nodename))
+        self.node_name.setText(nodename)
 
         # Labels should not stretch
         #self.grid.setColumnStretch(1, 1)
-        self.setLayout(self.grid)
+        
+        #self.setLayout(self.grid)
 
+    def collect_paramnames(self, config):
+        pass
+    
     def add_widgets(self, config):
         """
         :type config: Dict?
         """
         i_debug = 0
         for param in config['parameters']:
+            
+            begin = time.time() * 1000
+            editor_type = '(none)'
+            
             if param['edit_method']:
                 widget = EnumEditor(self.updater, param)
             elif param['type'] in EDITOR_TYPES:
                 rospy.logdebug('GroupWidget i_debug=%d param type =%s', 
                               i_debug,
                               param['type'])
-                widget = eval(EDITOR_TYPES[param['type']])(self.updater, param)
+                editor_type = EDITOR_TYPES[param['type']]
+                widget = eval(editor_type)(self.updater, param)
 
             self.editor_widgets.append(widget)
+            
             rospy.logdebug('groups.add_widgets num editors=%d', i_debug)
-            #i_debug += 1
+
+            end = time.time() * 1000
+            time_elap = end - begin
+            rospy.logdebug('ParamG editor={} loop=#{} Time taken ={} msec. '.format(
+                                               editor_type, i_debug, time_elap))
+            i_debug += 1
 
         g_debug = 0
         for name, group in config['groups'].items():
@@ -134,7 +179,11 @@ class GroupWidget(QWidget):
                 widget = eval(_GROUP_TYPES[group['type']])(self.updater, group)
 
             self.editor_widgets.append(widget)
-            rospy.logdebug('groups.add_widgets num groups=%d', g_debug)
+            rospy.loginfo('groups.add_widgets ' +
+                          #'num groups=%d' +
+                          'name=%s', 
+                          #g_debug, 
+                          name)
             #g_debug += 1
 
         for i, ed in enumerate(self.editor_widgets):

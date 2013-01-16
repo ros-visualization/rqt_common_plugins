@@ -57,25 +57,6 @@
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QLineEdit" name="_search_lineedit">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>100</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>(Search not working yet)</string>
-       </property>
-      </widget>
-     </item>
     </layout>
    </item>
    <item>

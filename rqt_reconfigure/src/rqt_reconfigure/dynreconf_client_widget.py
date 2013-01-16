@@ -45,25 +45,26 @@ class DynreconfClientWidget(GroupWidget):
     Represents a widget where users can view and modify ROS params.
     """
 
-    def __init__(self, reconf):
+    def __init__(self, reconf, node_name):
         """
-        @type reconf: dynamic_reconfigure.client
+        :type reconf: dynamic_reconfigure.client
+        :type node_name: str
         """
         
         group_desc = reconf.get_group_descriptions()
         rospy.logdebug('DynreconfClientWidget.group_desc=%s', group_desc)
         super(DynreconfClientWidget, self).__init__(ParamUpdater(reconf), 
-                                                    group_desc)
+                                                    group_desc, node_name)
 
         self.setMinimumWidth(150)
 
         self.reconf = reconf
 
         self.updater.start()
+        
         self.reconf.config_callback = self.config_callback
 
     def config_callback(self, config):
-        
         #TODO(Isaac) Think about replacing callback architecture with signals.
          
         if config is not None:
@@ -72,12 +73,14 @@ class DynreconfClientWidget(GroupWidget):
 
             for widget in self.editor_widgets:
                 if isinstance(widget, EditorWidget):
-                    if widget.name in names:
-                        rospy.logdebug('EDITOR widget.name=%s', widget.name)
-                        widget.update_value(config[widget.name])
+                    if widget.param_name in names:
+                        rospy.logdebug('EDITOR widget.param_name=%s', 
+                                       widget.param_name)
+                        widget.update_value(config[widget.param_name])
                 elif isinstance(widget, GroupWidget):
-                    cfg = find_cfg(config, widget.name)
-                    rospy.logdebug('GROUP widget.name=%s', widget.name)
+                    cfg = find_cfg(config, widget.param_name)
+                    rospy.logdebug('GROUP widget.param_name=%s', 
+                                   widget.param_name)
                     widget.update_group(cfg)
 
     def close(self):
@@ -88,3 +91,7 @@ class DynreconfClientWidget(GroupWidget):
             w.close()
 
         self.deleteLater()
+
+    def filter_param(self, filter_key):
+        #TODO impl
+        pass

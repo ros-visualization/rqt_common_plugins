@@ -34,8 +34,10 @@
 
 from __future__ import division
 
+from collections import OrderedDict
 import os
 import sys
+import cProfile
 
 import dynamic_reconfigure as dyn_reconf
 from python_qt_binding import loadUi
@@ -58,18 +60,31 @@ class NodeSelectorWidget(QWidget):
         self.stretch = None
 
         rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'node_selector.ui')
+        ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 'resource',
+                               'node_selector.ui')
         loadUi(ui_file, self)
+
+        # List of the available nodes. Since the list should be updated over
+        # time and we don't want to create node instance per every update cycle,
+        # this list instance should better be capable of keeping track.
+        self._nodeitems = OrderedDict()
+        # self._nodeitems = {}
+        # Dictionary. 1st elem is node's GRN name,
+        # 2nd is ParameterItem instance.
+        # TODO Needs updated when nodes list updated.
 
         #  Setup treeview and models
         self._std_model = QStandardItemModel()
         self._node_selector_view.setModel(self._std_model)
-        self._rootitem = self._std_model.invisibleRootItem()
+        self._rootitem = self._std_model.invisibleRootItem()  # QStandardItem
 
         self._nodes_previous = None
 
         # Calling this method updates the list of the node.
         # Initially done only once.
+#        rospy.loginfo('DEBUG before cprofile')
+#        cProfile.runctx('self._update_nodetree()', globals(), locals())  #For debug. Needs to be removed
+#        rospy.loginfo('DEBUG AFTER cprofile')
         self._update_nodetree()
 
         # Setting slot for when user clicks on QTreeView.
@@ -141,6 +156,13 @@ class NodeSelectorWidget(QWidget):
         rospy.logdebug('get_full_grn_recur out str=%s', str_grn)
         return self.get_full_grn_recur(model_index.parent(), str_grn)
 
+    def get_paramitems(self):
+        '''
+        :rtype: OrderedDict 1st elem is node's GRN name, 
+                2nd is ParameterItem instance
+        '''
+        return self._nodeitems
+
     def _update_nodetree(self):
         """
         """
@@ -157,22 +179,41 @@ class NodeSelectorWidget(QWidget):
         if not nodes == self._nodes_previous:
             paramname_prev = ''
             paramitem_top_prev = None
-            i_debug = 0
+            i_node_curr = 1
+            num_nodes = len(nodes)
             for node_name_grn in nodes:
-                p = ParameterItem(node_name_grn)
-                p.set_param_name(node_name_grn)
-                names = p.get_param_names()
 
-                i_debug += 1
+                ####(Begin) For DEBUG ONLY; skip some dynreconf creation
+                # if i_node_curr % 22 != 0:
+                #    i_node_curr += 1
+                #    continue
+                # (End) For DEBUG ONLY.
+
+                # Please don't remove - this is not a debug print.
+                rospy.loginfo('rqt_reconfigure loading #{}/{} node={}'.format(
+                                        i_node_curr, num_nodes, node_name_grn))
+
+                paramitem_full_nodename = ParameterItem(node_name_grn,
+                                                        ParameterItem.NODE_FULLPATH)
+                paramitem_full_nodename.set_param_name(node_name_grn)
+                names = paramitem_full_nodename.get_param_names()
+
+                # paramitem_full_nodename is the node that represents node.
+                # self._nodeitems.append(paramitem_full_nodename)
+                self._nodeitems[node_name_grn] = paramitem_full_nodename
+
+                i_node_curr += 1
                 rospy.logdebug('_update_nodetree i=%d names=%s',
-                               i_debug, names)
+                               i_node_curr, names)
 
-                self._add_tree_node(p, self._rootitem, names)
+                self._add_tree_node(paramitem_full_nodename,
+                                    self._rootitem,
+                                    names)
 
     def _add_tree_node(self, param_item_full, stditem_parent, child_names_left):
         """
         
-        Evaluate current node and the previous node on the same depth.
+        Evaluate current treenode and the previous treenode at the same depth.
         If the name of both nodes is the same, current node instance is ignored.
         If not, the current node gets added to the same parent node.
         At the end, this function gets called recursively going down 1 level.

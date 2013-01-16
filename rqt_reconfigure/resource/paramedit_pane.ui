@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>_reconf_widget</class>
+ <class>_paramedit_widget</class>
  <widget class="ParameditWidget" name="_paramedit_widget">
   <property name="geometry">
    <rect>
@@ -21,27 +21,25 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QScrollArea" name="_paramedit_scrollarea">
-     <property name="widgetResizable">
-      <bool>true</bool>
-     </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>646</width>
-        <height>535</height>
-       </rect>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>100</height>
-       </size>
-      </property>
-     </widget>
-    </widget>
+    <layout class="QVBoxLayout" name="vlayout">
+     <item>
+      <widget class="QScrollArea" name="scrollarea">
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="scrollarea_holder_widget">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>644</width>
+          <height>533</height>
+         </rect>
+        </property>
+       </widget>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -52,7 +50,7 @@
    <header>rqt_reconfigure.paramedit_widget</header>
    <container>1</container>
   </customwidget>
- </customwidgets> 
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

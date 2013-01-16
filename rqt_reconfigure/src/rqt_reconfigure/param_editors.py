@@ -51,6 +51,15 @@ EDITOR_TYPES = {
     'double': 'DoubleEditor',
 }
 
+# These .ui files are frequently loaded multiple times. Since file access 
+# costs a lot, only load each file once.
+rp = rospkg.RosPack()
+ui_bool = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'editor_bool.ui')
+ui_str = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'editor_string.ui')
+ui_num = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'editor_number.ui')
+ui_int = ui_num 
+ui_enum = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'editor_enum.ui')
+
 class EditorWidget(QWidget):
 
     def __init__(self, updater, config):
@@ -62,10 +71,10 @@ class EditorWidget(QWidget):
         super(EditorWidget, self).__init__()
 
         self.updater = updater
-        self.name = config['name']
+        self.param_name = config['name']
 
         self.old_value = None
-        self.rp = rospkg.RosPack()
+        #self.rp = rospkg.RosPack()
 
     def _update(self, value):
         if value != self.old_value:
@@ -76,7 +85,7 @@ class EditorWidget(QWidget):
         pass
 
     def update_configuration(self, value):
-        self.updater.update({self.name : value})
+        self.updater.update({self.param_name : value})
 
     def display(self, grid, row):
         """
@@ -96,28 +105,24 @@ class EditorWidget(QWidget):
 class BooleanEditor(EditorWidget):
     def __init__(self, updater, config):
         super(BooleanEditor, self).__init__(updater, config)
-        ui_file = os.path.join(self.rp.get_path('rqt_reconfigure'), 'resource',
-                               'editor_bool.ui')
-        loadUi(ui_file, self)
+        loadUi(ui_bool, self)
 
         self.update_value(config['default'])
         self._checkbox.clicked.connect(self._update)
-                
+
     def update_value(self, value):
         self._checkbox.setChecked(value)
 
     def display(self, grid, row):
-        grid.addRow(QLabel(self.name), self)
+        grid.addRow(QLabel(self.param_name), self)
 
 class StringEditor(EditorWidget):
     def __init__(self, updater, config):
         super(StringEditor, self).__init__(updater, config)
-        ui_file = os.path.join(self.rp.get_path('rqt_reconfigure'), 'resource',
-                               'editor_string.ui')
-        loadUi(ui_file, self)
+        loadUi(ui_str, self)
 
-        self._paramval_lineedit.editingFinished.connect(self.edit_finished) 
-        
+        self._paramval_lineedit.editingFinished.connect(self.edit_finished)
+
     def update_value(self, value):
         self._paramval_lineedit.setText(value)
 
@@ -125,15 +130,13 @@ class StringEditor(EditorWidget):
         self._update(self._paramval_lineedit.text())
 
     def display(self, grid, row):
-        grid.addRow(QLabel(self.name), self)
+        grid.addRow(QLabel(self.param_name), self)
 
 class IntegerEditor(EditorWidget):
     def __init__(self, updater, config):
         super(IntegerEditor, self).__init__(updater, config)
 
-        ui_file = os.path.join(self.rp.get_path('rqt_reconfigure'), 'resource', 
-                               'editor_number.ui')
-        loadUi(ui_file, self)
+        loadUi(ui_int, self)
 
         self.min = int(config['min'])
         self.max = int(config['max'])
@@ -172,17 +175,15 @@ class IntegerEditor(EditorWidget):
         self._paramval_lineEdit.setText(str(val))
 
     def display(self, grid, row):
-#        grid.addWidget(QLabel(self.name), row, 0, Qt.AlignRight)
+#        grid.addWidget(QLabel(self.param_name), row, 0, Qt.AlignRight)
 #        grid.addWidget(self, row, 1)
-        grid.addRow(QLabel(self.name), self)
+        grid.addRow(QLabel(self.param_name), self)
 
 class DoubleEditor(EditorWidget):
     def __init__(self, updater, config):
         super(DoubleEditor, self).__init__(updater, config)
 
-        ui_file = os.path.join(self.rp.get_path('rqt_reconfigure'), 'resource', 
-                               'editor_number.ui')
-        loadUi(ui_file, self)
+        loadUi(ui_num, self)
 
         # Handle unbounded doubles nicely
         if config['min'] != -float('inf'):
@@ -203,7 +204,7 @@ class DoubleEditor(EditorWidget):
             self.ifunc = self.func
         else:
             self.max = 1e10000
-            self.max_val_label.setText('inf')
+            self._max_val_label.setText('inf')
             self.func = lambda x: math.atan(x)
             self.ifunc = lambda x: math.tan(x)
 
@@ -239,7 +240,7 @@ class DoubleEditor(EditorWidget):
 
     def editing_finished(self):
         self._slider_horizontal.setSliderPosition(
-                               self.slider_value(float(self._paramval_lineEdit.text())))
+                      self.slider_value(float(self._paramval_lineEdit.text())))
         self._update(float(self._paramval_lineEdit.text()))
 
     def update_value(self, val):
@@ -248,16 +249,13 @@ class DoubleEditor(EditorWidget):
         self._paramval_lineEdit.setText(str(val))
 
     def display(self, grid, row):
-        # grid.addWidget(QLabel(self.name), row, 0, Qt.AlignRight)
-        grid.addRow(QLabel(self.name), self)
+        grid.addRow(QLabel(self.param_name), self)
 
 class EnumEditor(EditorWidget):
     def __init__(self, updater, config):
         super(EnumEditor, self).__init__(updater, config)
 
-        ui_file = os.path.join(self.rp.get_path('rqt_reconfigure'), 'resource', 
-                               'editor_enum.ui')
-        loadUi(ui_file, self)
+        loadUi(ui_enum, self)
 
         try:
             enum = eval(config['edit_method'])['enum']
@@ -281,6 +279,4 @@ class EnumEditor(EditorWidget):
         self._combobox.setCurrentIndex(self.values.index(val))
 
     def display(self, grid, row):
-#        grid.addWidget(QLabel(self.name), row, 0, Qt.AlignRight)
-#        grid.addWidget(self, row, 1)
-        grid.addRow(QLabel(self.name), self)
+        grid.addRow(QLabel(self.param_name), self)
