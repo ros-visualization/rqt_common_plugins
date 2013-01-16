@@ -104,13 +104,15 @@ class NodeSelectorWidget(QWidget):
 
     def _selection_changed_slot(self, selected, deselected):
         """
-        Overriden from QItemSelectionModel.
+        Receives args from signal QItemSelectionModel.selectionChanged.
         
-        :type new_item_select: QItemSelection
-        :type old_item_select: QItemSelection
+        :type selected: QItemSelection
+        :type deselected: QItemSelection
         """
+        
+        selmodel = self._node_selector_view.selectionModel()
 
-        index_current = self._node_selector_view.selectionModel().currentIndex()
+        index_current = selmodel.currentIndex()
         rospy.logdebug('_selection_changed_slot row=%d col=%d data=%s ' +
                        'data.parent=%s child(0, 0)=%s',
                        index_current.row(),
@@ -120,7 +122,8 @@ class NodeSelectorWidget(QWidget):
                        index_current.child(0, 0).data(Qt.DisplayRole))
 
         if not index_current.child(0, 0).data(Qt.DisplayRole) == None:
-            return  #  Meaning the tree has no nodes.
+            selmodel.select(index_current, QItemSelectionModel.Deselect)
+            return  #  Meaning the selected is not the terminal node item. 
 
         # get the text of the selected item
         node_name_selected = self.get_full_grn_recur(index_current, '')
@@ -129,8 +132,7 @@ class NodeSelectorWidget(QWidget):
         self.sig_node_selected.emit(node_name_selected)
         
         # Show the node as selected.
-        self._node_selector_view.selectionModel().select(
-                index_current, QItemSelectionModel.SelectCurrent)
+        selmodel.select(index_current, QItemSelectionModel.SelectCurrent)
 
     def get_full_grn_recur(self, model_index, str_grn):
         """
@@ -138,14 +140,14 @@ class NodeSelectorWidget(QWidget):
         Create full path format of GRN (Graph Resource Names, see  
         http://www.ros.org/wiki/Names). 
         
-        An example: /wide_stereo/left/image_color/compressed
+        A complete example: /wide_stereo/left/image_color/compressed
         
-        Bulid GRN by recursively transcending parents & children of 
-        QModelIndex instance.
+        Build GRN by recursively transcending parents & children of QModelIndex
+        instance.
         
-        Upon its very 1st call, the argument is the index where user clicks on on
-        the view object (here QTreeView is used but should work with other View).
-        str_grn can be 0-length string.           
+        Upon its very 1st call, the argument is the index where user clicks on 
+        on the view object (here QTreeView is used but should work with other 
+        View too. Not tested yet though). str_grn can be 0-length string.           
         
         :type model_index: QModelIndex
         :type str_grn: str
