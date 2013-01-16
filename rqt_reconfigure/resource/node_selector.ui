@@ -67,6 +67,9 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::MultiSelection</enum>
+     </property>
      <property name="headerHidden">
       <bool>true</bool>
      </property>

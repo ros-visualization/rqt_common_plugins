@@ -42,7 +42,7 @@ import cProfile
 import dynamic_reconfigure as dyn_reconf
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, QTimer, Signal
-from python_qt_binding.QtGui import QStandardItemModel, QWidget
+from python_qt_binding.QtGui import QItemSelectionModel, QStandardItemModel, QWidget
 import rospkg
 import rospy
 import rosservice
@@ -127,6 +127,10 @@ class NodeSelectorWidget(QWidget):
         rospy.logdebug('_selection_changed_slot node_name_selected=%s',
                        node_name_selected)
         self.sig_node_selected.emit(node_name_selected)
+        
+        #TODO Show the node as selected.
+        self._node_selector_view.selectionModel().select(
+                index_current, QItemSelectionModel.SelectCurrent)
 
     def get_full_grn_recur(self, model_index, str_grn):
         """
@@ -184,9 +188,9 @@ class NodeSelectorWidget(QWidget):
             for node_name_grn in nodes:
 
                 ####(Begin) For DEBUG ONLY; skip some dynreconf creation
-                # if i_node_curr % 22 != 0:
-                #    i_node_curr += 1
-                #    continue
+                if i_node_curr % 32 != 0:
+                    i_node_curr += 1
+                    continue
                 # (End) For DEBUG ONLY.
 
                 # Please don't remove - this is not a debug print.

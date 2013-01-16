@@ -68,6 +68,7 @@ class ParameditWidget(QWidget):
         loadUi(ui_file, self)
         
         self._dynreconf_clients = []
+        self._nodenames_displayed = []
        
         #self.node_delegate = NodeDelegate(self, paramitems_dict)
         #self.listview.setItemDelegate(self.node_delegate)
@@ -136,13 +137,15 @@ class ParameditWidget(QWidget):
 #                self._dynreconf_client.close() #Close old GUI client.
 
         _dynreconf_client = DynreconfClientWidget(dynreconf_client, node_grn)
-        self._dynreconf_clients.append(_dynreconf_client)
         # Client gets renewed every time different node_grn was clicked.
 
         #TODO Commented in.
         #self._paramedit_scrollarea.setWidget(self._dynreconf_client)
         #self._paramedit_scrollarea.setWidgetResizable(True)
-        self.vlayout.addWidget(_dynreconf_client)
+        if not node_grn in self._nodenames_displayed:
+            self._nodenames_displayed.append(node_grn)
+            self._dynreconf_clients.append(_dynreconf_client)
+            self.vlayout.addWidget(_dynreconf_client)
 
     def close(self):
         for dc in self._dynreconf_clients:
