@@ -128,7 +128,7 @@ class NodeSelectorWidget(QWidget):
                        node_name_selected)
         self.sig_node_selected.emit(node_name_selected)
         
-        #TODO Show the node as selected.
+        # Show the node as selected.
         self._node_selector_view.selectionModel().select(
                 index_current, QItemSelectionModel.SelectCurrent)
 
@@ -188,9 +188,9 @@ class NodeSelectorWidget(QWidget):
             for node_name_grn in nodes:
 
                 ####(Begin) For DEBUG ONLY; skip some dynreconf creation
-                if i_node_curr % 32 != 0:
-                    i_node_curr += 1
-                    continue
+#                if i_node_curr % 32 != 0:
+#                    i_node_curr += 1
+#                    continue
                 # (End) For DEBUG ONLY.
 
                 # Please don't remove - this is not a debug print.

@@ -33,6 +33,7 @@
 # Author: Isaac Saito, Ze'ev Klapow
 
 import os
+from collections import OrderedDict
 
 import dynamic_reconfigure.client
 from python_qt_binding import loadUi
@@ -67,8 +68,9 @@ class ParameditWidget(QWidget):
                                'resource', 'paramedit_pane.ui')
         loadUi(ui_file, self)
         
-        self._dynreconf_clients = []
-        self._nodenames_displayed = []
+        #self._dynreconf_clients = []
+        #self._nodenames_displayed = []
+        self._dynreconf_clients = OrderedDict()
        
         #self.node_delegate = NodeDelegate(self, paramitems_dict)
         #self.listview.setItemDelegate(self.node_delegate)
@@ -142,9 +144,8 @@ class ParameditWidget(QWidget):
         #TODO Commented in.
         #self._paramedit_scrollarea.setWidget(self._dynreconf_client)
         #self._paramedit_scrollarea.setWidgetResizable(True)
-        if not node_grn in self._nodenames_displayed:
-            self._nodenames_displayed.append(node_grn)
-            self._dynreconf_clients.append(_dynreconf_client)
+        if not node_grn in self._dynreconf_clients.keys():
+            self._dynreconf_clients.__setitem__(node_grn, _dynreconf_client)
             self.vlayout.addWidget(_dynreconf_client)
 
     def close(self):
