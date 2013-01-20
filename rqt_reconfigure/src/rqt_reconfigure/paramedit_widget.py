@@ -44,7 +44,7 @@ import rospkg
 import rospy
 
 from .dynreconf_client_widget import DynreconfClientWidget
-from .node_delegate import NodeDelegate
+#from .node_delegate import NodeDelegate
 from .param_editors import EditorWidget, BooleanEditor, DoubleEditor, EnumEditor, IntegerEditor, StringEditor
 from .param_groups import GroupWidget
 from .param_updater import ParamUpdater
