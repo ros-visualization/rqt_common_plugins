@@ -41,13 +41,15 @@ import cProfile
 
 import dynamic_reconfigure as dyn_reconf
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt, QTimer, Signal
+from python_qt_binding.QtCore import QRegExp, Qt, QTimer, Signal
 from python_qt_binding.QtGui import QItemSelectionModel, QStandardItemModel, QWidget
 import rospkg
 import rospy
 import rosservice
 
+from .filter_children_model import FilterChildrenModel
 from .parameter_item import ParameterItem
+from .rqt_ros_graph import RqtRosGraph
 
 class NodeSelectorWidget(QWidget):
     _COL_NAMES = ['Node']
@@ -75,7 +77,6 @@ class NodeSelectorWidget(QWidget):
 
         #  Setup treeview and models
         self._std_model = QStandardItemModel()
-        self._node_selector_view.setModel(self._std_model)
         self._rootitem = self._std_model.invisibleRootItem()  # QStandardItem
 
         self._nodes_previous = None
@@ -87,10 +88,6 @@ class NodeSelectorWidget(QWidget):
 #        rospy.loginfo('DEBUG AFTER cprofile')
         self._update_nodetree()
 
-        # Setting slot for when user clicks on QTreeView.
-        selectionModel = self._node_selector_view.selectionModel()
-        selectionModel.selectionChanged.connect(self._selection_changed_slot)
-
         # TODO(Isaac): Needs auto-update function enabled, once another function
         #             that updates node tree with maintaining collapse/expansion
         #             state. http://goo.gl/GuwYp can be a help.
@@ -101,6 +98,16 @@ class NodeSelectorWidget(QWidget):
 
         self._collapse_button.pressed.connect(self._node_selector_view.collapseAll)
         self._expand_button.pressed.connect(self._node_selector_view.expandAll)
+        
+        # Filtering preparation.
+        self._proxy_model = FilterChildrenModel()
+        self._proxy_model.setDynamicSortFilter(True)
+        self._proxy_model.setSourceModel(self._std_model)
+        self._node_selector_view.setModel(self._proxy_model)
+
+        # Setting slot for when user clicks on QTreeView.
+        selectionModel = self._node_selector_view.selectionModel()
+        selectionModel.selectionChanged.connect(self._selection_changed_slot)
 
     def _selection_changed_slot(self, selected, deselected):
         """
@@ -126,7 +133,8 @@ class NodeSelectorWidget(QWidget):
             return  #  Meaning the selected is not the terminal node item. 
 
         # get the text of the selected item
-        node_name_selected = self.get_full_grn_recur(index_current, '')
+        node_name_selected = RqtRosGraph.get_upper_grn(index_current, '')
+        
         rospy.logdebug('_selection_changed_slot node_name_selected=%s',
                        node_name_selected)
         self.sig_node_selected.emit(node_name_selected)
@@ -134,39 +142,11 @@ class NodeSelectorWidget(QWidget):
         # Show the node as selected.
         #selmodel.select(index_current, QItemSelectionModel.SelectCurrent)
 
-    def get_full_grn_recur(self, model_index, str_grn):
-        """
-        
-        Create full path format of GRN (Graph Resource Names, see  
-        http://www.ros.org/wiki/Names). 
-        
-        A complete example: /wide_stereo/left/image_color/compressed
-        
-        Build GRN by recursively transcending parents & children of QModelIndex
-        instance.
-        
-        Upon its very 1st call, the argument is the index where user clicks on 
-        on the view object (here QTreeView is used but should work with other 
-        View too. Not tested yet though). str_grn can be 0-length string.           
-        
-        :type model_index: QModelIndex
-        :type str_grn: str
-        :param str_grn: This could be an incomplete or a complete GRN format.         
-        """
-        # TODO(Isaac) Consider moving this to rqt_py_common.
-
-        rospy.logdebug('get_full_grn_recur in str=%s', str_grn)
-        if model_index.data(Qt.DisplayRole) == None:
-            return str_grn
-        str_grn = '/' + str(model_index.data(Qt.DisplayRole)) + str_grn
-        rospy.logdebug('get_full_grn_recur out str=%s', str_grn)
-        return self.get_full_grn_recur(model_index.parent(), str_grn)
-
     def get_paramitems(self):
-        '''
+        """
         :rtype: OrderedDict 1st elem is node's GRN name, 
                 2nd is ParameterItem instance
-        '''
+        """
         return self._nodeitems
 
     def _update_nodetree(self):
@@ -190,18 +170,18 @@ class NodeSelectorWidget(QWidget):
             for node_name_grn in nodes:
 
                 ####(Begin) For DEBUG ONLY; skip some dynreconf creation
-#                if i_node_curr % 18 != 0:
+#                if i_node_curr % 5 != 0:
 #                    i_node_curr += 1
 #                    continue
-                # (End) For DEBUG ONLY.
+                #### (End) For DEBUG ONLY. ####
 
                 # Please don't remove - this is not a debug print.
                 rospy.loginfo('rqt_reconfigure loading #{}/{} node={}'.format(
                                         i_node_curr, num_nodes, node_name_grn))
 
-                paramitem_full_nodename = ParameterItem(node_name_grn,
-                                                        ParameterItem.NODE_FULLPATH)
-                paramitem_full_nodename.set_param_name(node_name_grn)
+                paramitem_full_nodename = ParameterItem(
+                                     node_name_grn, ParameterItem.NODE_FULLPATH)
+                #paramitem_full_nodename.set_param_name(node_name_grn)
                 names = paramitem_full_nodename.get_param_names()
 
                 # paramitem_full_nodename is the node that represents node.
@@ -277,3 +257,19 @@ class NodeSelectorWidget(QWidget):
     def close_node(self):
         rospy.logdebug(" in close_node")
         # TODO(Isaac) Figure out if dynamic_reconfigure needs to be closed.
+        
+    def filter_key_changed(self, text):
+        """
+        Slot that accepts filtering key.
+        
+        Taken from example:
+        http://doc.qt.digia.com/qt/itemviews-basicsortfiltermodel.html
+        """
+        
+        # Other than RegEx, Wild card, Fixed text are also possible. Right now
+        # RegEx is in use in hope of it works the best.
+        syntax_nr = QRegExp.RegExp 
+        
+        syntax = QRegExp.PatternSyntax(syntax_nr)
+        regExp = QRegExp(text, Qt.CaseInsensitive, syntax)
+        self._proxy_model.setFilterRegExp(regExp)        

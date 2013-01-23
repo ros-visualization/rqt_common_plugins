@@ -43,9 +43,9 @@ from rqt_py_common.data_items import ReadonlyItem
 from .dynreconf_client_widget import DynreconfClientWidget
 
 class ParameterItem(ReadonlyItem):
-    """
-    IMPORTANT: set_param_name method must be called right after 
-    the constructor is called.
+    """   
+    Extending ReadonlyItem - the display content of this item shouldn't be 
+    modified.
     """
     
     NODE_FULLPATH = 1
@@ -58,17 +58,18 @@ class ParameterItem(ReadonlyItem):
                                http://www.ros.org/wiki/Names). This can be None.
         """
         #super(ParameterItem, self).__init__(*args)
-        node_name = args[0]
-        self._nodename = node_name
-        super(ParameterItem, self).__init__(node_name)
+        treenode_name = args[0]
+        self._param_name_raw = treenode_name
+        self._set_param_name(treenode_name) #self._nodename = treenode_name
+        super(ParameterItem, self).__init__(treenode_name)
         
         self.node_full = False
         
         try:
             if args[1] != None:
                 self.node_full = True
-                rospy.logdebug('ParameterItem now loading node={}'.format(node_name))
-                self._dynreconf_client = self._create_paramclient(node_name) 
+                rospy.logdebug('ParameterItem now loading node={}'.format(treenode_name))
+                self._dynreconf_client = self._create_paramclient(treenode_name) 
         except IndexError as e: #tuple index out of range etc.
             rospy.logdebug('ParameterItem fullpath=F')
             
@@ -91,7 +92,8 @@ class ParameterItem(ReadonlyItem):
             _dynreconf_client = dynamic_reconfigure.client.Client(str(nodename),
                                                                   timeout=5.0)
         except rospy.exceptions.ROSException:
-            rospy.logerr("Could not connect to %s" % node)
+            rospy.logerr("ParameterItem. Could not connect to node {}".format(
+                                                                     nodename))
             #TODO(Isaac) Needs to show err msg on GUI too. 
             return
 #        finally:
@@ -101,15 +103,12 @@ class ParameterItem(ReadonlyItem):
         dynreconf_widget = DynreconfClientWidget(_dynreconf_client, nodename)
         return dynreconf_widget 
     
-    def set_param_name(self, param_name):
+    def _set_param_name(self, param_name):
         """
         :param param_name: A string formatted as GRN (Graph Resource Names, see  
                            http://www.ros.org/wiki/Names). 
                            Example: /paramname/subpara/subsubpara/...
-        """
-        
-        self._param_name_raw = param_name
-        
+        """       
         #  separate param_name by forward slash
         self._list_paramname = param_name.split('/')
         
@@ -118,9 +117,8 @@ class ParameterItem(ReadonlyItem):
         
         self._nodename = self._list_paramname[0]
         
-        rospy.logdebug('ParameterItem.__init__ param_name=%s  self._list_paramname[-1]=%s',
-                       param_name,
-                       self._list_paramname[-1])
+        rospy.logdebug('_set_param_name param_name={}  self._nodename={}  self._list_paramname[-1]={}'.format(
+                       param_name, self._nodename, self._list_paramname[-1]))
                         
     def get_param_name_toplv(self):
         """
@@ -141,6 +139,11 @@ class ParameterItem(ReadonlyItem):
         return self._list_paramname
 
     def get_node_name(self):
+        """
+        :return: A value of single tree node (ie. NOT the fullpath node name).
+                 Ex. suppose fullpath name is /top/sub/subsub/subsubsub and you
+                     are at 2nd from top, the return value is subsub. 
+        """
         return self._nodename
         
     def type(self):

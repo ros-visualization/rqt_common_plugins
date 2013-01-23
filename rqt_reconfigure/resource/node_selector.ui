@@ -28,7 +28,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Collapse all</string>
+        <string>&amp;Collapse all</string>
        </property>
       </widget>
      </item>
@@ -53,7 +53,19 @@
         </font>
        </property>
        <property name="text">
-        <string>Expand all</string>
+        <string>&amp;Expand all</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+       <property name="default">
+        <bool>false</bool>
+       </property>
+       <property name="flat">
+        <bool>false</bool>
        </property>
       </widget>
      </item>

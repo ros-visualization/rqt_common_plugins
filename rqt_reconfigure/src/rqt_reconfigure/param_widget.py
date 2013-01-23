@@ -38,7 +38,7 @@ import os
 import sys
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QHBoxLayout, QLineEdit, QSplitter, QVBoxLayout, QWidget
+from python_qt_binding.QtGui import QLabel, QHBoxLayout, QLineEdit, QSplitter, QVBoxLayout, QWidget
 
 from .node_selector_widget import NodeSelectorWidget
 from .paramedit_widget import ParameditWidget
@@ -73,9 +73,16 @@ class ParamWidget(QWidget):
 
         _vlayout_nodesel_widget = QWidget()
         _vlayout_nodesel_side = QVBoxLayout()
+        _hlayout_filter_widget = QWidget(self)
+        _hlayout_filter = QHBoxLayout()
         self.filter_lineedit = QLineEdit(self)
+        self.filterkey_label = QLabel("&Filter key:")
+        self.filterkey_label.setBuddy(self.filter_lineedit)
+        _hlayout_filter.addWidget(self.filterkey_label)
+        _hlayout_filter.addWidget(self.filter_lineedit)
+        _hlayout_filter_widget.setLayout(_hlayout_filter)
         nodesel = NodeSelectorWidget()
-        _vlayout_nodesel_side.addWidget(self.filter_lineedit)
+        _vlayout_nodesel_side.addWidget(_hlayout_filter_widget)
         _vlayout_nodesel_side.addWidget(nodesel)
         _vlayout_nodesel_side.setSpacing(1)
         _vlayout_nodesel_widget.setLayout(_vlayout_nodesel_side)
@@ -98,6 +105,10 @@ class ParamWidget(QWidget):
         else:
             title = self._TITLE_PLUGIN
         self.setObjectName(title)
+        
+        #Connect filter signal-slots.
+        self.filter_lineedit.textChanged.connect(nodesel.filter_key_changed)
+        #TODO Add editor pane's slot
                          
     def shutdown(self):
         #TODO(Isaac) Needs implemented. Trigger dynamic_reconfigure to unlatch
@@ -113,3 +124,8 @@ class ParamWidget(QWidget):
         else:
             self._splitter.setSizes([100, 100, 200])
     
+    def get_filter_text(self):
+        """
+        :rtype: QString
+        """
+        return self.filter_lineedit.text()
