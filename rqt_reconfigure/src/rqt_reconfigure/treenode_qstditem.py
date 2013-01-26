@@ -36,13 +36,13 @@ from __future__ import division
 
 import dynamic_reconfigure.client
 from python_qt_binding.QtCore import Qt, QVariant
-from python_qt_binding.QtGui import QWidget
+from python_qt_binding.QtGui import QBrush, QWidget
 import rospy
 from rqt_py_common.data_items import ReadonlyItem
 
 from .dynreconf_client_widget import DynreconfClientWidget
 
-class ParameterItem(ReadonlyItem):
+class TreenodeQstdItem(ReadonlyItem):
     """   
     Extending ReadonlyItem - the display content of this item shouldn't be 
     modified.
@@ -57,21 +57,21 @@ class ParameterItem(ReadonlyItem):
                                is node that has GRN (Graph Resource Names, see 
                                http://www.ros.org/wiki/Names). This can be None.
         """
-        #super(ParameterItem, self).__init__(*args)
+        #super(TreenodeQstdItem, self).__init__(*args)
         treenode_name = args[0]
         self._param_name_raw = treenode_name
         self._set_param_name(treenode_name) #self._nodename = treenode_name
-        super(ParameterItem, self).__init__(treenode_name)
+        super(TreenodeQstdItem, self).__init__(treenode_name)
         
         self.node_full = False
+        self._dynreconf_client = None
         
         try:
             if args[1] != None:
                 self.node_full = True
-                rospy.logdebug('ParameterItem now loading node={}'.format(treenode_name))
-                self._dynreconf_client = self._create_paramclient(treenode_name) 
+                self._dynreconf_client = self._create_paramclient(treenode_name)
         except IndexError as e: #tuple index out of range etc.
-            rospy.logdebug('ParameterItem fullpath=F')
+                rospy.logdebug('TreenodeQstdItem fullpath=F')
             
     def get_widget(self):
         """
@@ -92,7 +92,7 @@ class ParameterItem(ReadonlyItem):
             _dynreconf_client = dynamic_reconfigure.client.Client(str(nodename),
                                                                   timeout=5.0)
         except rospy.exceptions.ROSException:
-            rospy.logerr("ParameterItem. Could not connect to node {}".format(
+            rospy.logerr("TreenodeQstdItem. Could not connect to node {}".format(
                                                                      nodename))
             #TODO(Isaac) Needs to show err msg on GUI too. 
             return
@@ -101,7 +101,24 @@ class ParameterItem(ReadonlyItem):
 #                self._dynreconf_client.close() #Close old GUI client.
 
         dynreconf_widget = DynreconfClientWidget(_dynreconf_client, nodename)
-        return dynreconf_widget 
+        return dynreconf_widget
+     
+    def enable_param_items(self):
+        """
+        Create QStdItem per parameter and addColumn them to myself.
+        :rtype: None if _dynreconf_client is not initiated. 
+        """
+        if self._dynreconf_client == None:
+            return None
+        paramnames = self._dynreconf_client.get_param_names()
+        paramnames_items = []
+        brush = QBrush(Qt.lightGray)
+        for paramname in paramnames:
+            item = ReadonlyItem(paramname)
+            item.setBackground(brush)
+            paramnames_items.append(item)
+        rospy.logdebug('enable_param_items len of paramnames={}'.format(len(paramnames_items)))
+        self.appendColumn(paramnames_items)
     
     def _set_param_name(self, param_name):
         """

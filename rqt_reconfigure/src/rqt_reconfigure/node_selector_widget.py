@@ -46,9 +46,10 @@ from python_qt_binding.QtGui import QItemSelectionModel, QStandardItemModel, QWi
 import rospkg
 import rospy
 import rosservice
+from rqt_py_common.data_items import ReadonlyItem
 
 from .filter_children_model import FilterChildrenModel
-from .parameter_item import ParameterItem
+from .treenode_qstditem import TreenodeQstdItem
 from .rqt_ros_graph import RqtRosGraph
 
 class NodeSelectorWidget(QWidget):
@@ -70,15 +71,14 @@ class NodeSelectorWidget(QWidget):
         # time and we don't want to create node instance per every update cycle,
         # this list instance should better be capable of keeping track.
         self._nodeitems = OrderedDict()
-        # self._nodeitems = {}
         # Dictionary. 1st elem is node's GRN name,
-        # 2nd is ParameterItem instance.
+        # 2nd is TreenodeQstdItem instance.
         # TODO Needs updated when nodes list updated.
 
         #  Setup treeview and models
         self._std_model = QStandardItemModel()
         self._rootitem = self._std_model.invisibleRootItem()  # QStandardItem
-
+        
         self._nodes_previous = None
 
         # Calling this method updates the list of the node.
@@ -91,7 +91,6 @@ class NodeSelectorWidget(QWidget):
         # TODO(Isaac): Needs auto-update function enabled, once another function
         #             that updates node tree with maintaining collapse/expansion
         #             state. http://goo.gl/GuwYp can be a help.
-
 #        self.timer = QTimer()
 #        self.timer.timeout.connect(self._refresh_nodes)
 #        self.timer.start(5000) #  5sec interval is fast enough.
@@ -100,10 +99,10 @@ class NodeSelectorWidget(QWidget):
         self._expand_button.pressed.connect(self._node_selector_view.expandAll)
         
         # Filtering preparation.
-        self._proxy_model = FilterChildrenModel()
+        self._proxy_model = FilterChildrenModel(self)
         self._proxy_model.setDynamicSortFilter(True)
         self._proxy_model.setSourceModel(self._std_model)
-        self._node_selector_view.setModel(self._proxy_model)
+        self._node_selector_view.setModel(self._proxy_model) 
 
         # Setting slot for when user clicks on QTreeView.
         selectionModel = self._node_selector_view.selectionModel()
@@ -113,31 +112,60 @@ class NodeSelectorWidget(QWidget):
         """
         Receives args from signal QItemSelectionModel.selectionChanged.
         
+        :param selected: All indexs where selected (could be multiple)
         :type selected: QItemSelection
         :type deselected: QItemSelection
         """
         
+        ## Getting the index where user just selected. Should be single. 
         selmodel = self._node_selector_view.selectionModel()
-
         index_current = selmodel.currentIndex()
-        rospy.logdebug('_selection_changed_slot row=%d col=%d data=%s ' +
-                       'data.parent=%s child(0, 0)=%s',
-                       index_current.row(),
-                       index_current.column(),
-                       index_current.data(Qt.DisplayRole),
-                       index_current.parent().data(Qt.DisplayRole),
-                       index_current.child(0, 0).data(Qt.DisplayRole))
-
-        if not index_current.child(0, 0).data(Qt.DisplayRole) == None:
-            selmodel.select(index_current, QItemSelectionModel.Deselect)
-            return  #  Meaning the selected is not the terminal node item. 
-
-        # get the text of the selected item
-        node_name_selected = RqtRosGraph.get_upper_grn(index_current, '')
         
-        rospy.logdebug('_selection_changed_slot node_name_selected=%s',
-                       node_name_selected)
-        self.sig_node_selected.emit(node_name_selected)
+        #indexes = selected.indexes()        
+        #index_current = indexes[0]
+        #item_current = self._std_model.itemFromIndex(qmi)
+        
+        #'data.parent={} child(0, 0)={}'.format(index_current.parent().data(Qt.DisplayRole),
+        #    index_current.child(0, 0).data(Qt.DisplayRole)))
+
+        item_selected = self._proxy_model.sourceModel().itemFromIndex(index_current)
+        rospy.logdebug('_selection_changed_slot row={} col={} data={} item={}'.format(
+                          index_current.row(), index_current.column(),
+                          index_current.data(Qt.DisplayRole),
+                          item_selected))        
+
+        # Get the text of the selected item
+        rosnode_name_selected = RqtRosGraph.get_upper_grn(index_current, '')
+        # If rosnode_name_selected is in the nodename_list, this index is node.
+        # Otherwise, this index is a parameter.
+        if not rosnode_name_selected in self._nodeitems.keys():
+            selmodel.select(index_current, QItemSelectionModel.Deselect)
+            return
+
+        # Then determine if it's terminal treenode. Only when it's a terminal,
+        # move forward.
+        found_node = False
+        for n in self._nodeitems.itervalues():
+            name = n.data(Qt.DisplayRole)
+            name_sel = rosnode_name_selected[rosnode_name_selected.rfind(RqtRosGraph.DELIM_GRN) + 1:]
+            if ((name == rosnode_name_selected) and
+                (name[name.rfind(RqtRosGraph.DELIM_GRN) + 1:] == name_sel)):
+                rospy.logdebug('terminal str {} MATCH {}'.format(name, name_sel))
+                found_node = True
+                break
+        
+        if not found_node:
+            selmodel.select(index_current, QItemSelectionModel.Deselect)
+            return
+
+        item_child = self._std_model.itemFromIndex(index_current.child(0, 0))
+        rospy.logdebug('item_selected={} item_child={} r={} c={}'.format(
+                               index_current, item_child, 
+                               index_current.row(), index_current.column()))
+        
+        rospy.logdebug('_selection_changed_slot rosnode_name_selected=%s',
+                       rosnode_name_selected)
+        self.sig_node_selected.emit(rosnode_name_selected)
         
         # Show the node as selected.
         #selmodel.select(index_current, QItemSelectionModel.SelectCurrent)
@@ -145,7 +173,7 @@ class NodeSelectorWidget(QWidget):
     def get_paramitems(self):
         """
         :rtype: OrderedDict 1st elem is node's GRN name, 
-                2nd is ParameterItem instance
+                2nd is TreenodeQstdItem instance
         """
         return self._nodeitems
 
@@ -170,17 +198,17 @@ class NodeSelectorWidget(QWidget):
             for node_name_grn in nodes:
 
                 ####(Begin) For DEBUG ONLY; skip some dynreconf creation
-#                if i_node_curr % 5 != 0:
-#                    i_node_curr += 1
-#                    continue
+                if i_node_curr % 18 != 0:
+                    i_node_curr += 1
+                    continue
                 #### (End) For DEBUG ONLY. ####
 
                 # Please don't remove - this is not a debug print.
                 rospy.loginfo('rqt_reconfigure loading #{}/{} node={}'.format(
                                         i_node_curr, num_nodes, node_name_grn))
 
-                paramitem_full_nodename = ParameterItem(
-                                     node_name_grn, ParameterItem.NODE_FULLPATH)
+                paramitem_full_nodename = TreenodeQstdItem(
+                                  node_name_grn, TreenodeQstdItem.NODE_FULLPATH)
                 #paramitem_full_nodename.set_param_name(node_name_grn)
                 names = paramitem_full_nodename.get_param_names()
 
@@ -204,7 +232,7 @@ class NodeSelectorWidget(QWidget):
         If not, the current node gets added to the same parent node.
         At the end, this function gets called recursively going down 1 level.
         
-        :type param_item_full: ParameterItem
+        :type param_item_full: TreenodeQstdItem
         :type stditem_parent: QStandardItem.
         :type child_names_left: List of str
         :param child_names_left: List of strings that is sorted in hierarchical 
@@ -213,7 +241,8 @@ class NodeSelectorWidget(QWidget):
         # TODO(Isaac): Consider moving to rqt_py_common.
 
         name_curr = child_names_left.pop(0)
-        stditem_curr = ParameterItem(param_item_full.get_raw_param_name())
+        stditem_curr = TreenodeQstdItem(param_item_full.get_raw_param_name(),
+                                        TreenodeQstdItem.NODE_FULLPATH)
 
         # item at the bottom is your most recent node.
         row_index_parent = stditem_parent.rowCount() - 1
@@ -265,6 +294,12 @@ class NodeSelectorWidget(QWidget):
         Taken from example:
         http://doc.qt.digia.com/qt/itemviews-basicsortfiltermodel.html
         """
+        
+        if '' == text:
+            # When filter key is empty, search with all text by regex.
+            #TODO However, this resets selections and collapse tree. Need improvement.
+            self._proxy_model.reset()
+            text = "[a-z0-9]*"
         
         # Other than RegEx, Wild card, Fixed text are also possible. Right now
         # RegEx is in use in hope of it works the best.

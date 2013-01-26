@@ -127,6 +127,7 @@ class GroupWidget(QWidget):
         self.updater = updater
 
         self.editor_widgets = []
+        self._param_names = []
         
         #cProfile.runctx('self.add_widgets(config)', globals(), locals())  #For debug. Needs to be removed 
         self.add_widgets(config)
@@ -162,6 +163,7 @@ class GroupWidget(QWidget):
                 widget = eval(editor_type)(self.updater, param)
 
             self.editor_widgets.append(widget)
+            self._param_names.append(param['name'])
             
             rospy.logdebug('groups.add_widgets num editors=%d', i_debug)
 
@@ -179,7 +181,7 @@ class GroupWidget(QWidget):
                 widget = eval(_GROUP_TYPES[group['type']])(self.updater, group)
 
             self.editor_widgets.append(widget)
-            rospy.loginfo('groups.add_widgets ' +
+            rospy.logdebug('groups.add_widgets ' +
                           #'num groups=%d' +
                           'name=%s', 
                           #g_debug, 
@@ -213,6 +215,12 @@ class GroupWidget(QWidget):
     def close(self):
         for w in self.editor_widgets:
             w.close()
+            
+    def get_param_names(self):
+        """
+        :rtype: str[]
+        """
+        return self._param_names
 
 class BoxGroup(GroupWidget):
     def __init__(self, updater, config):

@@ -37,22 +37,41 @@ from __future__ import division
 from collections import OrderedDict
 
 import dynamic_reconfigure.client
-from python_qt_binding.QtCore import Qt
+from python_qt_binding.QtCore import Qt, Signal
 from python_qt_binding.QtGui import QSortFilterProxyModel
 import rospy
+from rqt_py_common.data_items import ReadonlyItem
 
 #from .rqt_ros_graph import RqtRosGraph
 #from .treenode_status import TreenodeStatus
+from .treenode_qstditem import TreenodeQstdItem
 
 class FilterChildrenModel(QSortFilterProxyModel):
+    """
+    Extending QSortFilterProxyModel, this provides methods to filter children
+    tree nodes. 
+    
+    QSortFilterProxyModel filters top-down direction starting from 
+    the top-level of tree, and once a node doesn't hit the query it gets
+    disabled. Filtering with this class reflects the result from the bottom node.
+    
+    Ex. 
+    #TODO example needed here
+     
+    """
 
-    def __init__(self, parent=None):
+    # Emitted when parameters filtered. int indicates the order/index of 
+    # params displayed.
+    sig_filtered = Signal(int)
+    
+    def __init__(self, parent):
         super(FilterChildrenModel, self).__init__(parent)
         
         # :Key: Internal ID of QModelIndex of each treenode.
         # :Value: TreenodeStatus 
         #self._treenodes = OrderedDict()
 
+        self._parent = parent
         self._toplv_parent_prev = None
         
     def filterAcceptsRow(self, src_row, src_parent_qmindex):
@@ -66,50 +85,60 @@ class FilterChildrenModel(QSortFilterProxyModel):
         :type src_parent_qmindex: QModelIndex
         """
         
-        return self._filter_row(src_row, src_parent_qmindex)
-      
-    def filterAcceptsColumn(self, source_column, source_parent):
+        return self._filter_row_recur(src_row, src_parent_qmindex)
+         
+    def _filter_row_recur(self, src_row, src_parent_qmindex):
         """
-        Overridden.
-        
-        :type source_column: int
-        :type source_parent: QModelIndex
-        """
-        rospy.logdebug('FCModel.filterAcceptsCol source_col={} '.format(
-            source_column) + 'parent col={} row={} data={}'.format(
-            source_parent.column(), source_parent.row(), source_parent.data()))
-        return True
-    
-    def _filter_row(self, src_row, src_parent_qmindex):
+        :type src_row: int
+        :type src_parent_qmindex: QModelIndex
+        """        
         curr_qmindex = self.sourceModel().index(src_row, 0, src_parent_qmindex)
-        curr_qstd_item = self.sourceModel().itemFromIndex(curr_qmindex)
-        #parent_item = curr_qmindex.internalPointer()        
-        rospy.logdebug('Nodename full={} Top treenode={}'.format(
-           curr_qstd_item.get_raw_param_name(), curr_qstd_item.get_node_name()))
-        nodename_fullpath = curr_qstd_item.get_raw_param_name()
+        curr_qstd_item = self.sourceModel().itemFromIndex(curr_qmindex)                
+        text_filtered = curr_qstd_item.data(Qt.DisplayRole)
+        
+        if isinstance(curr_qstd_item, TreenodeQstdItem):
+            # if ReadonlyItem, this means items are the parameters, not nodes.
+            nodename_fullpath = curr_qstd_item.get_raw_param_name()
+            text_filtered = nodename_fullpath
+            rospy.logdebug('   Nodename full={} '.format(nodename_fullpath))
 
         regex = self.filterRegExp()        
-        pos_hit = regex.indexIn(nodename_fullpath)
+        pos_hit = regex.indexIn(text_filtered)
         if pos_hit >= 0:  # Query hit.
+            rospy.logdebug('curr data={} row={} col={}'.format(
+                                                         curr_qmindex.data(),
+                                                         curr_qmindex.row(),
+                                                         curr_qmindex.column()))
+            
             # Set all subsequent treenodes True
-            rospy.logdebug('  FCModel.filterAcceptsRow src_row={}'.format(src_row) +
+            rospy.logdebug(' FCModel.filterAcceptsRow src_row={}'.format(src_row) +
                           ' parent row={} data={}'.format(
                               src_parent_qmindex.row(),
                               src_parent_qmindex.data()) +
                           ' filterRegExp={}'.format(regex))
+            
+            #TODO If the index is the terminal treenode, parameters that hit
+            # the query are displayed on column 1 at the root tree.
+            child = curr_qmindex.child(0, 0)
+            if ((not child.isValid()) and
+                (isinstance(curr_qstd_item, TreenodeQstdItem))):
+                self._show_params_view(src_row, curr_qstd_item)
             
             # Once we find a treenode that hits the query, no need to further
             # traverse since what this method wants to know with the given
             # index is whether the given index is supposed to be shown or not. 
             # Thus, just return True here.
             return True
-        
+                
+        if not isinstance(curr_qstd_item, TreenodeQstdItem):
+            return False # If parameters, no need for recursive filtering.
+            
         # Evaluate children recursively.
         row_child = 0
         while True:
             child_qmindex = curr_qmindex.child(row_child, 0)
             if child_qmindex.isValid():
-                flag = self._filter_row(row_child, curr_qmindex)
+                flag = self._filter_row_recur(row_child, curr_qmindex)
                 if flag:
                     return True
             else:
@@ -117,6 +146,31 @@ class FilterChildrenModel(QSortFilterProxyModel):
             row_child += 1
         
         return False
+    
+    def _show_params_view(self, src_row, curr_qstd_item):
+        """
+        :type curr_qstd_item: QStandardItem
+        """
+        
+#        cols = self._parent._std_model.columnCount()
+#        if 2 > cols: # columns = 2 means params are shown. 
+#            self._parent._std_model.setColumnCount(2)
+        
+#        if self._parent.isHeaderHidden():
+#            rospy.loginfo('_show_params_view 1')
+#            self._parent.setHeaderHidden(False)
+
+        rospy.logdebug('_show_params_view data={}'.format(
+                                  curr_qstd_item.data(Qt.DisplayRole)))
+        curr_qstd_item.enable_param_items()
+        # Set column for params.
+#        param_col_item = ReadonlyItem('Paramo')
+#        param_col_item_2 = ReadonlyItem('Paramo_2')
+#        list_colitems = []
+#        list_colitems.append(param_col_item)
+#        list_colitems.append(param_col_item_2)
+#        curr_qstd_item.insertColumn(1, list_colitems)
+#        self._parent._std_model.setItem(src_row, 1, curr_qstd_item)
          
     def _filter_row_precedent(self, src_row, src_parent_qmindex):
         """
@@ -182,33 +236,14 @@ class FilterChildrenModel(QSortFilterProxyModel):
             self._get_toplevel_parent(p)
         return p
     
-    def _gen_children_treenodes(self, qmindex_curr):
+    def filterAcceptsColumn(self, source_column, source_parent):
         """
-        :rtype" 
+        Overridden.
+        
+        :type source_column: int
+        :type source_parent: QModelIndex
         """
-        i_child = 0
-        children_dict = OrderedDict()
-        while True: # Loop per child.
-            grn_curr = grn_prev + DELIM_GRN + str(qmindex_curr.data())
-            child_qmindex = qmindex_curr.child(i_child, 0)
-            
-            if (not child_qmindex.isValid()):
-                rospy.logdebug('!! DEADEND i_child=#{} grn_curr={}'.format(i_child,
-                                                                          grn_curr))
-                if i_child == 0:
-                    # Only when the current node has no children, add current 
-                    # GRN to the returning list.
-                    children_dict.append(grn_curr)
-                return children_dict
-
-            list_grn_children = self._gen_children_treenodes(child_qmindex)
-
-            for child_grn in list_grn_children:
-                child_grn = grn_prev + (DELIM_GRN + grn_curr) + (DELIM_GRN + child_grn)
-                
-            children_dict = children_dict + list_grn_children
-            rospy.logdebug('111 lennodes={} list_grn_children={}'.format(
-                                len(children_dict), list_grn_children))
-            rospy.logdebug('122 children_dict={}'.format(children_dict))
-            i_child += 1
-        return children_dict
+        rospy.logdebug('FCModel.filterAcceptsCol source_col={} '.format(
+            source_column) + 'parent col={} row={} data={}'.format(
+            source_parent.column(), source_parent.row(), source_parent.data()))
+        return True    

@@ -54,7 +54,7 @@ class ParamWidget(QWidget):
         pane lets you work with the parameters associated with the node(s) you
         select on the left.  
         
-        (12/27/2012) Despite the pkg name is modified to rqt_reconfigure to 
+        (12/27/2012) Despite the pkg name is changed to rqt_reconfigure to 
         reflect the available functionality, file & class names remain 
         'param', expecting all the parameters will become handle-able.
         '''
@@ -76,29 +76,29 @@ class ParamWidget(QWidget):
         _hlayout_filter_widget = QWidget(self)
         _hlayout_filter = QHBoxLayout()
         self.filter_lineedit = QLineEdit(self)
+        #self.filter_lineedit.setText('(Filter by node name)')
         self.filterkey_label = QLabel("&Filter key:")
         self.filterkey_label.setBuddy(self.filter_lineedit)
         _hlayout_filter.addWidget(self.filterkey_label)
         _hlayout_filter.addWidget(self.filter_lineedit)
         _hlayout_filter_widget.setLayout(_hlayout_filter)
-        nodesel = NodeSelectorWidget()
+        nodesel_widget = NodeSelectorWidget()
         _vlayout_nodesel_side.addWidget(_hlayout_filter_widget)
-        _vlayout_nodesel_side.addWidget(nodesel)
+        _vlayout_nodesel_side.addWidget(nodesel_widget)
         _vlayout_nodesel_side.setSpacing(1)
         _vlayout_nodesel_widget.setLayout(_vlayout_nodesel_side)
 
-        paramitems = nodesel.get_paramitems()
+        paramitems = nodesel_widget.get_paramitems()
                         
         reconf_widget = ParameditWidget(paramitems)
         #reconf_widget.set_nodes(paramitems)
 
-        #self._splitter.insertWidget(0, nodesel)
+        #self._splitter.insertWidget(0, nodesel_widget)
         self._splitter.insertWidget(0, _vlayout_nodesel_widget)
         self._splitter.insertWidget(1, reconf_widget)
         
         # Pass name of node to editor widget
-        #nodesel.sig_node_selected.connect(reconf_widget.move_to_node)
-        nodesel.sig_node_selected.connect(reconf_widget.show_reconf)
+        nodesel_widget.sig_node_selected.connect(reconf_widget.show_reconf)
      
         if node is not None:
             title = self._TITLE_PLUGIN + ' %s' % node
@@ -107,8 +107,9 @@ class ParamWidget(QWidget):
         self.setObjectName(title)
         
         #Connect filter signal-slots.
-        self.filter_lineedit.textChanged.connect(nodesel.filter_key_changed)
-        #TODO Add editor pane's slot
+        self.filter_lineedit.textChanged.connect(nodesel_widget.filter_key_changed)
+        self.filter_lineedit.textChanged.connect(reconf_widget.filter_param)
+
                          
     def shutdown(self):
         #TODO(Isaac) Needs implemented. Trigger dynamic_reconfigure to unlatch

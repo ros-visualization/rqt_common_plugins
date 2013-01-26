@@ -51,15 +51,15 @@ from .param_updater import ParamUpdater
 
 class ParameditWidget(QWidget):
     """
-    This class represents a pane where parameter editor widgets of multiple nodes
-    are shown. In rqt_reconfigure, this pane occupies right half of the entire 
-    visible area.    
+    This class represents a pane where parameter editor widgets of multiple 
+    nodes are shown. In rqt_reconfigure, this pane occupies right half of the 
+    entire visible area.    
     """
     
     def __init__(self, paramitems_dict):
         """
         :type paramitems_dict: OrderedDict. 1st elem is node's GRN name,
-                          2nd is ParameterItem instance (that extends 
+                          2nd is TreenodeQstdItem instance (that extends 
                           QStandardItem)
         """
         super(ParameditWidget, self).__init__()
@@ -99,10 +99,8 @@ class ParameditWidget(QWidget):
         """        
         Callback when user chooses a node.
         
-        :deprecated: move_to_node should be used due to the enhancement
-                    request https://github.com/ros-visualization/rqt_common_plugins/issues/4
-        :param node_grn: GRN (Graph Resource Names, see http://www.ros.org/wiki/Names)  
-                         of node name.
+        :param node_grn: GRN (Graph Resource Names, 
+                         see http://www.ros.org/wiki/Names) of node name.
         :type node_grn: str
         """
         rospy.logdebug('ParameditWidget.show str(node_grn)=%s', str(node_grn))
@@ -120,8 +118,9 @@ class ParameditWidget(QWidget):
                 #TODO(Isaac) Needs to show err msg on GUI too. 
                 return
          
-            #Comment these lines out, since closing dyn_reconf client
-            #doesn't make sense now that multiple clients can exits simultaneously.
+            # Comment these lines out, since closing dyn_reconf client
+            # doesn't make sense now that multiple clients can exits 
+            # simultaneously.
             #TODO (Isaac) Better to figure out why closing at this point.
             #        finally: 
             #            if self._dynreconf_client:
@@ -132,8 +131,8 @@ class ParameditWidget(QWidget):
             # Client gets renewed every time different node_grn was clicked.
             
             self._dynreconf_clients.__setitem__(node_grn, _dynreconf_client)
-            
             self.vlayout.addWidget(_dynreconf_client)
+
         else: # If there has one already existed, remove it.
             i = self._dynreconf_clients.keys().index(node_grn)
             item = self.vlayout.itemAt(i)
@@ -162,20 +161,6 @@ class ParameditWidget(QWidget):
             dc = None
 
             self._paramedit_scrollarea.deleteLater()
-
-    def set_nodes(self, nodeitems):
-        """
-        :type nodeitems: ParameterItem[] (that extends QStandardItem)
-        """
-        
-        self.node_delegate.set_nodeitems(nodeitems)
-             
-        #TODO Add EditorWidgets
-        #     setIndexWidget() might be it. 
-        #     http://doc.qt.digia.com/qt/qtableview.html
-                
-        self.std_model.insertColumn(0, nodeitems)
-        self.listview.setModel(self.std_model) # QListView
     
     def filter_param(self, filter_key):
         """
@@ -188,15 +173,4 @@ class ParameditWidget(QWidget):
         #     DynreconfWidget.filter_param for all of its existing 
         #     instances. 
         pass
-
-    def move_to_node(self, node):
-        """
-        Move the visible region to the widget of correspondent node group.
-        
-        :since : 1/4/2013
-        """
-        rospy.logdebug('ParameditWidget.move_to_node str(node)=%s', str(node))
-        
-        #TODO Figure out the row index from node name.
-         
-        #TODO Move cursor to the corresponding node. Use QTableView.selectRow
+    

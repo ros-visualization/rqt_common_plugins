@@ -36,9 +36,9 @@
 
 import unittest
 
-from rqt_reconfigure.parameter_item import ParameterItem
+from rqt_reconfigure.treenode_qstditem import TreenodeQstdItem
 
-class TestParameterItem(unittest.TestCase):
+class TestTreenodeQstdItem(unittest.TestCase):
     """
     :author: Isaac Saito
     """
@@ -47,9 +47,9 @@ class TestParameterItem(unittest.TestCase):
                
     def setUp(self):
         unittest.TestCase.setUp(self)
-        #self._item = ParameterItem(self._nodename, 0) # For unknown reason this
+        #self._item = TreenodeQstdItem(self._nodename, 0) # For unknown reason this
                                                        # stops operation.
-        self._item = ParameterItem(self._nodename)
+        self._item = TreenodeQstdItem(self._nodename)
  
     def tearDown(self):
         unittest.TestCase.tearDown(self)
