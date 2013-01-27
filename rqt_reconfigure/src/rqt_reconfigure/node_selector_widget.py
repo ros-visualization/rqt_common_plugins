@@ -105,45 +105,20 @@ class NodeSelectorWidget(QWidget):
         self._node_selector_view.setModel(self._proxy_model) 
 
         # Setting slot for when user clicks on QTreeView.
-        selectionModel = self._node_selector_view.selectionModel()
-        selectionModel.selectionChanged.connect(self._selection_changed_slot)
+        self.selectionModel = self._node_selector_view.selectionModel()
+        self.selectionModel.selectionChanged.connect(self._selection_changed_slot)
 
-    def _selection_changed_slot(self, selected, deselected):
-        """
-        Receives args from signal QItemSelectionModel.selectionChanged.
-        
-        :param selected: All indexs where selected (could be multiple)
-        :type selected: QItemSelection
-        :type deselected: QItemSelection
-        """
-        
-        ## Getting the index where user just selected. Should be single. 
-        selmodel = self._node_selector_view.selectionModel()
-        index_current = selmodel.currentIndex()
-        
-        #indexes = selected.indexes()        
-        #index_current = indexes[0]
-        #item_current = self._std_model.itemFromIndex(qmi)
-        
-        #'data.parent={} child(0, 0)={}'.format(index_current.parent().data(Qt.DisplayRole),
-        #    index_current.child(0, 0).data(Qt.DisplayRole)))
-
-        item_selected = self._proxy_model.sourceModel().itemFromIndex(index_current)
-        rospy.logdebug('_selection_changed_slot row={} col={} data={} item={}'.format(
+    def _selection_deselected(self, index_current, rosnode_name_selected):
+        rospy.loginfo('_selection_deselected.')
+        self.selectionModel.select(index_current, QItemSelectionModel.Deselect)
+        self.sig_node_selected.emit(rosnode_name_selected)
+    
+    def _selection_selected(self, index_current, rosnode_name_selected):
+        rospy.loginfo('_selection_changed_slot row={} col={} data={}'.format(
                           index_current.row(), index_current.column(),
-                          index_current.data(Qt.DisplayRole),
-                          item_selected))        
+                          index_current.data(Qt.DisplayRole)))        
 
-        # Get the text of the selected item
-        rosnode_name_selected = RqtRosGraph.get_upper_grn(index_current, '')
-        # If rosnode_name_selected is in the nodename_list, this index is node.
-        # Otherwise, this index is a parameter.
-        if not rosnode_name_selected in self._nodeitems.keys():
-            selmodel.select(index_current, QItemSelectionModel.Deselect)
-            return
-
-        # Then determine if it's terminal treenode. Only when it's a terminal,
-        # move forward.
+        # Then determine if it's terminal treenode. 
         found_node = False
         for n in self._nodeitems.itervalues():
             name = n.data(Qt.DisplayRole)
@@ -153,22 +128,65 @@ class NodeSelectorWidget(QWidget):
                 rospy.logdebug('terminal str {} MATCH {}'.format(name, name_sel))
                 found_node = True
                 break
-        
-        if not found_node:
-            selmodel.select(index_current, QItemSelectionModel.Deselect)
+        if not found_node: # Only when it's a terminal, move forward.
+            self.selectionModel.select(index_current, QItemSelectionModel.Deselect)
             return
 
         item_child = self._std_model.itemFromIndex(index_current.child(0, 0))
         rospy.logdebug('item_selected={} item_child={} r={} c={}'.format(
-                               index_current, item_child, 
-                               index_current.row(), index_current.column()))
+                       index_current, item_child,
+                       index_current.row(), index_current.column()))
         
-        rospy.logdebug('_selection_changed_slot rosnode_name_selected=%s',
-                       rosnode_name_selected)
         self.sig_node_selected.emit(rosnode_name_selected)
         
         # Show the node as selected.
-        #selmodel.select(index_current, QItemSelectionModel.SelectCurrent)
+        #selmodel.select(index_current, QItemSelectionModel.SelectCurrent)        
+
+    def _selection_changed_slot(self, selected, deselected):
+        """
+        Sends "open ROS Node box" signal ONLY IF the selected treenode is the 
+        terminal treenode.  
+        Receives args from signal QItemSelectionModel.selectionChanged.
+        
+        :param selected: All indexs where selected (could be multiple)
+        :type selected: QItemSelection
+        :type deselected: QItemSelection
+        """
+        
+        ## Getting the index where user just selected. Should be single.
+        if len(selected.indexes()) < 0 and len(deselected.indexes()) < 0:
+            rospy.loginfo('Nothing selected? Not ideal to reach here')
+            return
+         
+        if len(selected.indexes()) > 0:
+            index_current = selected.indexes()[0]            
+        elif len(deselected.indexes()) == 1:
+            # Setting length criteria as 1 is only a workaround, to avoid
+            # Node boxes on right-hand side disappears when filter key doesn't
+            # match them. 
+            # Indeed this workaround leaves another issue. Question for permanent
+            # solution is asked here http://goo.gl/V4DT1
+            index_current = deselected.indexes()[0]
+        
+        rosnode_name_selected = RqtRosGraph.get_upper_grn(index_current, '')
+        if not rosnode_name_selected in self._nodeitems.keys():
+            # De-select the selected item.
+            self.selectionModel.select(index_current, QItemSelectionModel.Deselect)
+            return
+
+        if len(selected.indexes()) > 0:
+            self._selection_selected(index_current, rosnode_name_selected)
+        elif len(deselected.indexes()) > 0:
+            self._selection_deselected(index_current, rosnode_name_selected)
+            
+        #index_current = self.selectionModel.currentIndex()
+        
+        # Trid so hard to obtain Item instance by either of following but never succeeds.
+        # self._std_model.itemFromIndex(qmi)
+        # self._proxy_model.sourceModel().itemFromIndex(index_current)
+
+        # If rosnode_name_selected is in the nodename_list, this index is node.
+        # Otherwise, this index is a parameter.
 
     def get_paramitems(self):
         """
@@ -198,7 +216,7 @@ class NodeSelectorWidget(QWidget):
             for node_name_grn in nodes:
 
                 ####(Begin) For DEBUG ONLY; skip some dynreconf creation
-                if i_node_curr % 18 != 0:
+                if i_node_curr % 21 != 0:
                     i_node_curr += 1
                     continue
                 #### (End) For DEBUG ONLY. ####
@@ -295,16 +313,17 @@ class NodeSelectorWidget(QWidget):
         http://doc.qt.digia.com/qt/itemviews-basicsortfiltermodel.html
         """
         
-        if '' == text:
-            # When filter key is empty, search with all text by regex.
-            #TODO However, this resets selections and collapse tree. Need improvement.
-            self._proxy_model.reset()
-            text = "[a-z0-9]*"
+#        if '' == text:
+#            # When filter key is empty, search with all text by regex.
+#            #TODO However, this resets selections and collapse tree. Need improvement.
+#            self._proxy_model.reset()
+#            text = "[a-z0-9]*"
         
         # Other than RegEx, Wild card, Fixed text are also possible. Right now
         # RegEx is in use in hope of it works the best.
         syntax_nr = QRegExp.RegExp 
         
+        rospy.loginfo('Filter key={}'.format(text))
         syntax = QRegExp.PatternSyntax(syntax_nr)
         regExp = QRegExp(text, Qt.CaseInsensitive, syntax)
         self._proxy_model.setFilterRegExp(regExp)        

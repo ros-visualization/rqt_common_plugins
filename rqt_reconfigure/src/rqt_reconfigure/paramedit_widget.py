@@ -109,6 +109,10 @@ class ParameditWidget(QWidget):
         
         if not node_grn in self._dynreconf_clients.keys():
             # Add dynreconf widget if there hasn't one existed.
+            
+            #TODO think about sharing dynamic_reconfigure.client instances
+            # with NodeSelecorWidget...generating 2 instances of the same node
+            # is nothing but inefficient and bad design.
 
             try:
                 dynreconf_client = dynamic_reconfigure.client.Client(
@@ -118,14 +122,6 @@ class ParameditWidget(QWidget):
                 #TODO(Isaac) Needs to show err msg on GUI too. 
                 return
          
-            # Comment these lines out, since closing dyn_reconf client
-            # doesn't make sense now that multiple clients can exits 
-            # simultaneously.
-            #TODO (Isaac) Better to figure out why closing at this point.
-            #        finally: 
-            #            if self._dynreconf_client:
-            #               self._dynreconf_client.close() #Close old GUI client.
-
             _dynreconf_client = DynreconfClientWidget(dynreconf_client, 
                                                       node_grn)
             # Client gets renewed every time different node_grn was clicked.
@@ -137,11 +133,10 @@ class ParameditWidget(QWidget):
             i = self._dynreconf_clients.keys().index(node_grn)
             item = self.vlayout.itemAt(i)
             if isinstance(item, QWidgetItem):
-                #print "widget" + str(item)
                 item.widget().close()
             w = self._dynreconf_clients.pop(node_grn)
             
-            rospy.logdebug('popped={} Len of left clients={}'.format( 
+            rospy.loginfo('popped={} Len of left clients={}'.format( 
                                               w, len(self._dynreconf_clients)))
             #LayoutUtil.clear_layout(self.vlayout)
 

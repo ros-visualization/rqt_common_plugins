@@ -65,6 +65,7 @@ class TreenodeQstdItem(ReadonlyItem):
         
         self.node_full = False
         self._dynreconf_client = None
+        self.is_selected = False 
         
         try:
             if args[1] != None:
@@ -73,6 +74,9 @@ class TreenodeQstdItem(ReadonlyItem):
         except IndexError as e: #tuple index out of range etc.
                 rospy.logdebug('TreenodeQstdItem fullpath=F')
             
+    def set_selected(self, is_selected):
+        self.is_selected = is_selected
+        
     def get_widget(self):
         """
         :rtype: DynreconfClientWidget (QWidget)

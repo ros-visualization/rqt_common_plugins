@@ -85,6 +85,8 @@ class FilterChildrenModel(QSortFilterProxyModel):
         :type src_parent_qmindex: QModelIndex
         """
         
+        rospy.loginfo('filerAcceptRow 1')
+        
         return self._filter_row_recur(src_row, src_parent_qmindex)
          
     def _filter_row_recur(self, src_row, src_parent_qmindex):
@@ -94,16 +96,16 @@ class FilterChildrenModel(QSortFilterProxyModel):
         """        
         curr_qmindex = self.sourceModel().index(src_row, 0, src_parent_qmindex)
         curr_qstd_item = self.sourceModel().itemFromIndex(curr_qmindex)                
-        text_filtered = curr_qstd_item.data(Qt.DisplayRole)
+        text_filter_target = curr_qstd_item.data(Qt.DisplayRole)
         
         if isinstance(curr_qstd_item, TreenodeQstdItem):
             # if ReadonlyItem, this means items are the parameters, not nodes.
             nodename_fullpath = curr_qstd_item.get_raw_param_name()
-            text_filtered = nodename_fullpath
+            text_filter_target = nodename_fullpath
             rospy.logdebug('   Nodename full={} '.format(nodename_fullpath))
 
         regex = self.filterRegExp()        
-        pos_hit = regex.indexIn(text_filtered)
+        pos_hit = regex.indexIn(text_filter_target)
         if pos_hit >= 0:  # Query hit.
             rospy.logdebug('curr data={} row={} col={}'.format(
                                                          curr_qmindex.data(),
