@@ -136,7 +136,7 @@ class ParameditWidget(QWidget):
                 item.widget().close()
             w = self._dynreconf_clients.pop(node_grn)
             
-            rospy.loginfo('popped={} Len of left clients={}'.format( 
+            rospy.logdebug('popped={} Len of left clients={}'.format( 
                                               w, len(self._dynreconf_clients)))
             #LayoutUtil.clear_layout(self.vlayout)
 
