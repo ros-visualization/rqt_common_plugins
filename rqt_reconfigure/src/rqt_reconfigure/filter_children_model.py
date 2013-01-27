@@ -85,7 +85,7 @@ class FilterChildrenModel(QSortFilterProxyModel):
         :type src_parent_qmindex: QModelIndex
         """
         
-        rospy.loginfo('filerAcceptRow 1')
+        rospy.logdebug('filerAcceptRow 1')
         
         return self._filter_row_recur(src_row, src_parent_qmindex)
          
