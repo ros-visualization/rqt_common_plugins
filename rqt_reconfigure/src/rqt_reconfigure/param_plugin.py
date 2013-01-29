@@ -45,7 +45,7 @@ class ParamPlugin(Plugin):
         """
 
         super(ParamPlugin, self).__init__(context)
-        self.setObjectName('Param')
+        self.setObjectName('Dynamic Reconfigure')
 
         self._widget = ParamWidget(context)
         if context.serial_number() > 1:

@@ -44,7 +44,7 @@ from .node_selector_widget import NodeSelectorWidget
 from .paramedit_widget import ParameditWidget
 
 class ParamWidget(QWidget):
-    _TITLE_PLUGIN = 'Param'
+    _TITLE_PLUGIN = 'Dynamic Reconfigure'
 
     def __init__(self, context, node=None):
         '''
@@ -61,6 +61,7 @@ class ParamWidget(QWidget):
         
         super(ParamWidget, self).__init__()
         self.setObjectName(self._TITLE_PLUGIN)
+        self.setWindowTitle(self._TITLE_PLUGIN)
         
         #TODO(Isaac) .ui file needs to replace the GUI components declaration
         #            below. For unknown reason, referring to another .ui files

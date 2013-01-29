@@ -222,9 +222,9 @@ class NodeSelectorWidget(QWidget):
             for node_name_grn in nodes:
 
                 ####(Begin) For DEBUG ONLY; skip some dynreconf creation
-#                if i_node_curr % 12 != 0:
-#                    i_node_curr += 1
-#                    continue
+                if i_node_curr % 21 != 0:
+                    i_node_curr += 1
+                    continue
                 #### (End) For DEBUG ONLY. ####
 
                 # Please don't remove - this is not a debug print.

@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Param</string>
+   <string>Dynamic Reconfigure</string>
   </property>
   <layout class="QHBoxLayout" name="_hlayout_top">
    <property name="spacing">
