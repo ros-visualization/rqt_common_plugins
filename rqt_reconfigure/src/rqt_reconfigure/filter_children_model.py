@@ -213,7 +213,7 @@ class FilterChildrenModel(QSortFilterProxyModel):
         i_debug = 0
         # Loop per all sub children full path nodes.
         for node_name_selected in node_names:
-            rospy.loginfo('i={} {}'.format(i_debug, node_name_selected))
+            rospy.logdebug('i={} {}'.format(i_debug, node_name_selected))
             #regex = self.filterRegExp()
             i = regex.indexIn(node_name_selected)
             if i >= 0:  # Query hit.

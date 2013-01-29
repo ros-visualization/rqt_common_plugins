@@ -82,14 +82,14 @@
      <property name="selectionMode">
       <enum>QAbstractItemView::MultiSelection</enum>
      </property>
+     <property name="animated">
+      <bool>true</bool>
+     </property>
      <property name="headerHidden">
       <bool>true</bool>
      </property>
-     <attribute name="headerDefaultSectionSize">
-      <number>128</number>
-     </attribute>
-     <attribute name="headerMinimumSectionSize">
-      <number>128</number>
+     <attribute name="headerStretchLastSection">
+      <bool>false</bool>
      </attribute>
     </widget>
    </item>

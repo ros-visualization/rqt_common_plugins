@@ -87,9 +87,9 @@ class ParameditWidget(QWidget):
         self.destroyed.connect(self.close)  # func in mercurial?
                 
     def _set_index_widgets(self, view, paramitems_dict):
-        '''
+        """
         :deprecated: Causes error  
-        '''
+        """
         i = 0
         for p in paramitems_dict:
             view.setIndexWidget(i, p)
