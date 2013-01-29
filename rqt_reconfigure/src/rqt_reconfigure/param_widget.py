@@ -97,6 +97,10 @@ class ParamWidget(QWidget):
         #self._splitter.insertWidget(0, nodesel_widget)
         self._splitter.insertWidget(0, _vlayout_nodesel_widget)
         self._splitter.insertWidget(1, reconf_widget)
+        # 1st column, _vlayout_nodesel_widget, to minimize width.
+        # 2nd col to keep the possible max width.
+        self._splitter.setStretchFactor(0, 1)
+        self._splitter.setStretchFactor(1, 0)
         
         # Pass name of node to editor widget
         nodesel_widget.sig_node_selected.connect(reconf_widget.show_reconf)
