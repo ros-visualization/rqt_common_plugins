@@ -50,9 +50,10 @@ from rqt_console.text_browse_dialog import TextBrowseDialog
 class MsgWidget(QWidget):
     """
     This class is intended to be able to handle msg, srv in addition to action.
-    Therefore the name remains Msg, which is the most versatile.
+    Therefore the name remains Msg, which is the most versatile. 
+    (As of 1/29/2013) If agreed, this class should be able to replace 
+    rqt_msg.MessageWidget with keeping compatibility with depending pkgs.    
     """
-    
     def __init__(self, mode=rosaction.MODE_ACTION):
         super(MsgWidget, self).__init__()
         rp = rospkg.RosPack()
@@ -64,20 +65,25 @@ class MsgWidget(QWidget):
 
         self._add_button.setIcon(QIcon.fromTheme('list-add'))
         self._add_button.clicked.connect(self._add_message)
-        self._refresh_packages()
+        self._refresh_packages(mode)
         self._refresh_msgs(self._package_combo.itemText(0))
         self._package_combo.currentIndexChanged[str].connect(self._refresh_msgs)
         self._msgs_tree.mousePressEvent = self._handle_mouse_press
 
         self._browsers = []
 
-    def _refresh_packages(self):
+    def _refresh_packages(self, mode=rosmsg.MODE_MSG):
         rospack = rospkg.RosPack()
-        packages = sorted([pkg_tuple[0]
-                           for pkg_tuple in rosaction.iterate_packages(rospack,
-                                                                  self._mode)])
+
+        if (self._mode == rosmsg.MODE_MSG) or self._mode == rosmsg.MODE_SRV:
+            packages = sorted([pkg_tuple[0] for pkg_tuple in 
+                               rosmsg.iterate_packages(rospack, self._mode)])
+        elif self._mode == rosaction.MODE_ACTION:
+            packages = sorted([pkg_tuple[0] 
+                               for pkg_tuple in rosaction.iterate_packages(
+                                                          rospack, self._mode)])
         self._package_list = packages
-        rospy.loginfo('pkgs={}'.format(self._package_list))
+        rospy.logdebug('pkgs={}'.format(self._package_list))
         self._package_combo.clear()
         self._package_combo.addItems(self._package_list)
         self._package_combo.setCurrentIndex(0)
@@ -86,26 +92,20 @@ class MsgWidget(QWidget):
         if package is None or len(package) == 0:
             return
         self._msgs = []
-        if self._mode == rosmsg.MODE_MSG:
+        if self._mode == rosmsg.MODE_MSG or self._mode == rosaction.MODE_ACTION:
             msg_list = rosmsg.list_msgs(package)
         elif self._mode == rosmsg.MODE_SRV:
             msg_list = rosmsg.list_srvs(package)
-        elif self._mode == rosaction.MODE_ACTION:
-            #msg_list = rosaction.list_actions(package)
-            msg_list = rosmsg.list_msgs(package)
 
-        rospy.loginfo('_refresh_msgs package={} msg_list={}'.format(package,
+        rospy.logdebug('_refresh_msgs package={} msg_list={}'.format(package,
                                                                     msg_list))        
         for msg in msg_list:
-            if self._mode == rosmsg.MODE_MSG:
+            if self._mode == rosmsg.MODE_MSG or self._mode == rosaction.MODE_ACTION:
                 msg_class = roslib.message.get_message_class(msg)            
             elif self._mode == rosmsg.MODE_SRV:
                 msg_class = roslib.message.get_service_class(msg)
-            elif self._mode == rosaction.MODE_ACTION:
-                msg_class = roslib.message.get_message_class(msg)
-                #msg_class = rosaction.get_action_class(msg)
                 
-            rospy.loginfo('_refresh_msgs msg_class={}'.format(msg_class))
+            rospy.logdebug('_refresh_msgs msg_class={}'.format(msg_class))
             
             if msg_class is not None:
                 self._msgs.append(msg)
@@ -121,12 +121,17 @@ class MsgWidget(QWidget):
         msg = (self._package_combo.currentText() + 
                '/' + self._msgs_combo.currentText())
         
-        rospy.loginfo('_add_message msg={}'.format(msg))
+        rospy.logdebug('_add_message msg={}'.format(msg))
 
-        if self._mode == rosmsg.MODE_MSG:
+        if self._mode == rosmsg.MODE_MSG or self._mode == rosaction.MODE_ACTION:
             msg_class = roslib.message.get_message_class(msg)()
+            if self._mode == rosmsg.MODE_MSG: 
+                text_tree_root = 'Msg Root'
+            elif self._mode == rosaction.MODE_ACTION:
+                text_tree_root = 'Action Root'
             self._msgs_tree.model().add_message(msg_class,
-                                                self.tr('Msg Root'), msg, msg)
+                                                self.tr(text_tree_root), msg, msg)
+
         elif self._mode == rosmsg.MODE_SRV:
             msg_class = roslib.message.get_service_class(msg)()
             self._msgs_tree.model().add_message(msg_class._request_class,
@@ -134,13 +139,6 @@ class MsgWidget(QWidget):
                                                 msg, msg)
             self._msgs_tree.model().add_message(msg_class._response_class,
                                                 self.tr('Service Response'),
-                                                msg, msg)
-        elif self._mode == rosaction.MODE_ACTION:
-            #msg_class = rosaction.get_action_class(msg)            
-            msg_class = roslib.message.get_message_class(msg)()
-            rospy.loginfo('_add_message msg_class={}'.format(msg_class))
-            self._msgs_tree.model().add_message(msg_class,
-                                                self.tr('Action Root'),
                                                 msg, msg)
         self._msgs_tree._recursive_set_editable(
                          self._msgs_tree.model().invisibleRootItem(), False)
@@ -152,6 +150,18 @@ class MsgWidget(QWidget):
         return old_pressEvent(self._msgs_tree, event)
 
     def _rightclick_menu(self, event):
+        """
+        :type event: QEvent
+        """
+        
+        # QTreeview.selectedIndexes() returns 0 when no node is selected.
+        # This can happen when after booting no left-click has been made yet 
+        # (ie. looks like right-click doesn't count). These lines are the
+        # workaround for that problem.
+        selected = self._msgs_tree.selectedIndexes()
+        if len(selected) == 0:
+            return
+        
         menu = QMenu()
         text_action = QAction(self.tr('View Text'), menu)
         menu.addAction(text_action)
@@ -159,9 +169,10 @@ class MsgWidget(QWidget):
         menu.addAction(raw_action)
 
         action = menu.exec_(event.globalPos())
-
+        
         if action == raw_action or action == text_action:
-            selected = self._msgs_tree.selectedIndexes()
+            #selected = self._msgs_tree.selectedIndexes()
+            rospy.logdebug('_rightclick_menu selected={}'.format(selected))
             selected_type = selected[1].data()
 
             if selected_type[-2:] == '[]':
