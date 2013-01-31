@@ -54,7 +54,17 @@ class MessagesWidget(QWidget):
     rqt_msg.MessageWidget with keeping compatibility with depending pkgs.    
     """
     def __init__(self, mode=rosmsg.MODE_MSG, 
-                 pkg_name='rqt_msg', ui_filename='messages.ui'):
+                 pkg_name='rqt_msg', 
+                 ui_filename='messages.ui'):
+        """
+        :param ui_filename: This Qt-based .ui file must have elements that are 
+                            referred from this class. Otherwise unexpected
+                            errors are likely to happen. Best way to avoid that
+                            situation when you want to give your own .ui file
+                            is to implement all Qt components in 
+                            rqt_msg/resource/message.ui file.
+        """
+        
         super(MessagesWidget, self).__init__()
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path(pkg_name), 'resource',

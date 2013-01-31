@@ -3,6 +3,7 @@
   <version>0.2.10</version>
   <description>A Python GUI plugin for introspecting available ROS message types.</description>
   <maintainer email="ablasdel@willowgarage.com">Aaron Blasdel</maintainer>
+  <maintainer email="isaito@willowgarage.com">Isaac Saito</maintainer>
 
   <license>BSD</license>
 

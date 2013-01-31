@@ -35,15 +35,14 @@
 
 from qt_gui.plugin import Plugin
 
-from .msg_widget import MsgWidget
+from rqt_msg.messages_widget import MessagesWidget
 import rosaction
 
 class ActionPlugin(Plugin):
     def __init__(self, context):
         super(ActionPlugin, self).__init__(context)
         self.setObjectName('Action')
-        self._widget = MsgWidget(rosaction.MODE_ACTION, 'rqt_action', 
-                                 'action.ui')
+        self._widget = MessagesWidget(rosaction.MODE_ACTION)
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + 
                                         (' (%d)' % context.serial_number()))
