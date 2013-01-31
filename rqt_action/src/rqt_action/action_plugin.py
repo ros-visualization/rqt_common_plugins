@@ -43,6 +43,7 @@ class ActionPlugin(Plugin):
         super(ActionPlugin, self).__init__(context)
         self.setObjectName('Action')
         self._widget = MessagesWidget(rosaction.MODE_ACTION)
+        self._widget.setWindowTitle('Action Introspection')
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + 
                                         (' (%d)' % context.serial_number()))
