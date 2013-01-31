@@ -35,7 +35,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="package_combo">
+        <widget class="QComboBox" name="_package_combo">
          <property name="minimumSize">
           <size>
            <width>250</width>
@@ -58,7 +58,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="message_combo">
+        <widget class="QComboBox" name="_msgs_combo">
          <property name="minimumSize">
           <size>
            <width>250</width>
@@ -71,7 +71,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="add_button">
+        <widget class="QPushButton" name="_add_button">
          <property name="maximumSize">
           <size>
            <width>32</width>
@@ -102,7 +102,7 @@
       </layout>
      </item>
      <item>
-      <widget class="MessagesTreeView" name="messages_tree">
+      <widget class="MessagesTreeView" name="_messages_tree">
        <property name="toolTip">
         <string>Select a message above and click add to see it in this viewing area.</string>
        </property>

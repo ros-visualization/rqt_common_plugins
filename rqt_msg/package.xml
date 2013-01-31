@@ -22,6 +22,10 @@
   <run_depend>rqt_gui_py</run_depend>
   <run_depend>rqt_py_common</run_depend>
   <run_depend>rqt_console</run_depend>
+  <!-- 1/30/2013 depending on rqt_action is only temporary. This will be
+   replaced with actionlib in the future when rqt_action.rosaction gets
+   integrated into it. -->
+  <run_depend>rqt_action</run_depend>
 
   <export>
     <rqt_gui plugin="${prefix}/plugin.xml"/>
