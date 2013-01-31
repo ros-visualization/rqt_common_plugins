@@ -54,11 +54,12 @@ class MsgWidget(QWidget):
     (As of 1/29/2013) If agreed, this class should be able to replace 
     rqt_msg.MessageWidget with keeping compatibility with depending pkgs.    
     """
-    def __init__(self, mode=rosaction.MODE_ACTION):
+    def __init__(self, mode=rosaction.MODE_ACTION, 
+                 pkg_name='rqt_msg', ui_filename='messages.ui'):
         super(MsgWidget, self).__init__()
         rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_action'), 'resource',
-                               'action.ui')                
+        ui_file = os.path.join(rp.get_path(pkg_name), 'resource',
+                               ui_filename)                
         loadUi(ui_file, self, {'ActionTreeView': ActionTreeView})
         self.setObjectName('actionUi')
         self._mode = mode
@@ -179,15 +180,14 @@ class MsgWidget(QWidget):
                 selected_type = selected_type[:-2]
             browsetext = None
             try:
-                if self._mode == rosmsg.MODE_MSG:
+                if (self._mode == rosmsg.MODE_MSG or 
+                    self._mode == rosaction.MODE_ACTION):
                     browsetext = rosmsg.get_msg_text(selected_type,
                                                      action == raw_action)
                 elif self._mode == rosmsg.MODE_SRV:
                     browsetext = rosmsg.get_srv_text(selected_type,
                                                      action == raw_action)
-                elif self._mode == rosaction.MODE_ACTION:
-                    browsetext = rosaction.get_action_text(selected_type,
-                                                     action == raw_action)
+                
                 else:
                     raise
             except rosmsg.ROSMsgException, e:

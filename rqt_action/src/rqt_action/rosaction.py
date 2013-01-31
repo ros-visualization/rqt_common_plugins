@@ -189,7 +189,7 @@ Taken from roslib.message
 """
 ## cache for get_message_class
 _action_class_cache = {}
-        
+
 def get_action_class(action_type, reload_on_error=False):
     """
     Taken from roslib.message.get_action_class
@@ -209,8 +209,8 @@ def get_action_class(action_type, reload_on_error=False):
 
 def iterate_packages(rospack, mode):
     """
-    Iterator for packages that contain messages/services
-    :param mode: .msg or .srv, ``str``
+    Iterator for packages that contain actions
+    :param mode: .action, ``str``
     """
     if mode == MODE_ACTION:
         subdir = 'action'
@@ -680,32 +680,6 @@ def get_msg_text(type_, raw=False, rospack=None):
         return spec.text
     else:
         return spec_to_str(context, spec)
-
-def get_action_text(type_, raw=False, rospack=None):
-    """
-    Get .action file for type_ as text
-    :param type_: message type, ``str``
-    :param raw: if True, include comments and whitespace (default False), ``bool``
-    :returns: text of .action file, ``str``
-    :raises :exc:`ROSActionException` If type_ is unknown
-    """
-    if rospack is None:
-        rospack = rospkg.RosPack()
-    search_path = {}
-    for p in rospack.list():
-        search_path[p] = [os.path.join(rospack.get_path(p), 'action')]
-
-    context = genmsg.MsgContext.create_default()
-    try:
-        spec = genmsg.load_msg_by_type(context, type_, search_path)
-        genmsg.load_depends(context, spec, search_path)
-    except Exception as e:
-        raise ROSActionException("Unable to load action [%s]: %s"%(type_, e))
-    
-    if raw:
-        return spec.text
-    else:
-        return spec_to_str(context, spec)                                                        
 
 def _msg_filter(ext):
     def mfilter(f):
