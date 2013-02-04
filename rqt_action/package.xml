@@ -2,9 +2,11 @@
 <package>
   <name>rqt_action</name>
   <version>0.0.0</version>
-  <description>rqt_action provides a feature to introspect available ROS 
+  <description>rqt_action provides a feature to introspect all available ROS 
   action (from actionlib) types. By utilizing rqt_msg, the output format is
-  unified with it and rqt_srv.</description>
+  unified with it and rqt_srv. Note that the actions shown on this plugin
+  is the ones that are stored on your machine, not on the ROS core your rqt
+  instance connects to.</description>
 
   <maintainer email="isaito@willowgarage.com">Isaac Isao Saito</maintainer>
   <license>BSD</license>
