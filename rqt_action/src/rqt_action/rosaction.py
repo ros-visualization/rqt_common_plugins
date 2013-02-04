@@ -30,14 +30,18 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-# Author: Isaac Saito under the influence of rosaction.__init__.py
+# Author: Isaac Saito under the influence of rosmsg.__init__.py
 
 """
-(Isaac) Modifying rosaction.__init__.py to add functionality for ROS Action.
+Modifying rosaction.__init__.py to add functionality for ROS Action.
 
 Implements rosaction command-line tools.
 
-The code API of the rosaction module is unstable. 
+The code API of the rosaction module is unstable (inheriting the status of 
+rosmsg)
+
+(2/4/2013) Most of codes are not tested with actinlib. There's 
+"#NOT_TESTED_FROM_HERE" sign in the code below. 
 """
 
 from __future__ import print_function
@@ -339,7 +343,7 @@ def rosactionmain(mode=MODE_ACTION):
         pass
 
 """
-----------------------------------------
+"#NOT_TESTED_FROM_HERE"----------------------------------------
 From here are what are copied from __init__.py that I don't know yet
 if they are necessary/useful.
 """
