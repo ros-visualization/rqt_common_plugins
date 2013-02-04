@@ -48,10 +48,9 @@ from rqt_console.text_browse_dialog import TextBrowseDialog
 
 class MessagesWidget(QWidget):
     """
-    This class is intended to be able to handle msg, srv in addition to action.
-    Therefore the name remains Msg, which is the most versatile. 
-    (As of 1/29/2013) If agreed, this class should be able to replace 
-    rqt_msg.MessageWidget with keeping compatibility with depending pkgs.    
+    This class is intended to be able to handle msg, srv & action (actionlib).
+    The name of the class is kept to use message, by following the habit of 
+    rosmsg (a script that can handle both msg & srv).     
     """
     def __init__(self, mode=rosmsg.MODE_MSG, 
                  pkg_name='rqt_msg', 
