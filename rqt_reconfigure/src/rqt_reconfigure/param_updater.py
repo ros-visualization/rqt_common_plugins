@@ -38,9 +38,10 @@ import time
 import dynamic_reconfigure
 import rospy
 
+
 class ParamUpdater(threading.Thread):
     #TODO(Isaac) Modify variable names to the ones that make more intuition.
-     
+
     def __init__(self, reconf):
         super(ParamUpdater, self).__init__()
         self.setDaemon(True)
@@ -54,14 +55,12 @@ class ParamUpdater(threading.Thread):
     def run(self):
         last_commit = None
 
-
-        begin_loop = time.time() * 1000
         while not self._stop_flag:
             if last_commit >= self._last_pending:
                     with self._cv:
                         self._cv.wait()
 
-            if self._stop_flag:  
+            if self._stop_flag:
                 return
 
             last_commit = time.time()
@@ -74,13 +73,7 @@ class ParamUpdater(threading.Thread):
                 rospy.logdebug('Could not update configuration')
             except Exception as exc:
                 raise exc
-    
-        end_loop = time.time() * 1000
-        time_elap_loop = end_loop - begin_loop
-        rospy.logdebug('ParamUpdater #loops={} Time taken ={} sec. ' +
-                      'Avg time per dynClient={} sec.'.format(i, time_elap_loop, 
-                                                              time_elap_loop/i))
-    
+
     def update(self, config):
         with self._cv:
             for name, value in config.items():
@@ -91,6 +84,6 @@ class ParamUpdater(threading.Thread):
             self._cv.notify()
 
     def stop(self):
-        self._stop_flag = True 
+        self._stop_flag = True
         with self._cv:
             self._cv.notify()

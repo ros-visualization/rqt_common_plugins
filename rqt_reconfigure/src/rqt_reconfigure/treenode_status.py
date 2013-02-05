@@ -32,33 +32,58 @@
 #
 # Author: Isaac Saito
 
-from rqt_gui_py.plugin import Plugin
-import rospy
 
-from .param_widget import ParamWidget
+from python_qt_binding.QtGui import QModelIndex
 
 
-class ParamPlugin(Plugin):
+class TreenodeStatus(QModelIndex):
+    """
 
-    def __init__(self, context):
+    This class contains very similar information with
+    rqt_reconfigure.ParameterItem. The purpose of this class is to enable
+    FilterChildrenModel (subclassing QSortFilterProxyModel) to look up each
+    node, which, afaik, is not possible via QSortFilterProxyModel and that's
+    why I created this class.
+
+    That said, to store an info about each treenode:
+
+    - ParameterItem should be used to show on view.
+    - This class should be used when you need to keep track from
+      QAbstractProxyModel
+
+    :author: Isaac Saito
+    """
+
+    def __init__(self, nodename_full=None, qmindex=None):
         """
-        :type context: qt_gui.PluginContext
+        :param index_id: default value is -1, which indicates "not set". This
+                         can be set.
+        :param nodename_full: default value is None, which indicates "not set".
+                        This can be set.
+        :type index_id: qint64
+        :type nodename_full: str
+        :type qmindex: QModelIndex
         """
+        super(TreenodeStatus, self).__init__(qmindex)
 
-        super(ParamPlugin, self).__init__(context)
-        self.setObjectName('Dynamic Reconfigure')
+        self._is_eval_done = False
+        self._shows = False
+        self._nodename_full = nodename_full
 
-        self._widget = ParamWidget(context)
-        if context.serial_number() > 1:
-            self._widget.setWindowTitle(self._widget.windowTitle() +
-                                        (' (%d)' % context.serial_number()))
-        context.add_widget(self._widget)
+    def set_nodename_full(self, nodename_full):
+        self._nodename_full = nodename_full
 
-    def shutdown_plugin(self):
-        self._widget.shutdown()
+    def get_nodename_full(self):
+        return self._nodename_full
 
-    def save_settings(self, plugin_settings, instance_settings):
-        self._widget.save_settings(plugin_settings, instance_settings)
+    def set_is_eval_done(self, v):
+        self._is_eval_done = v
 
-    def restore_settings(self, plugin_settings, instance_settings):
-        self._widget.restore_settings(plugin_settings, instance_settings)
+    def get_is_eval_done(self):
+        return self._is_eval_done
+
+    def set_shows(self, v):
+        self._shows = v
+
+    def get_shows(self):
+        return self._shows

@@ -38,38 +38,40 @@ import os
 import sys
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QLabel, QHBoxLayout, QLineEdit, QSplitter, QVBoxLayout, QWidget
+from python_qt_binding.QtGui import (QLabel, QHBoxLayout, QLineEdit, QSplitter,
+                                     QVBoxLayout, QWidget)
 
-from .node_selector_widget import NodeSelectorWidget
-from .paramedit_widget import ParameditWidget
+from rqt_reconfigure.node_selector_widget import NodeSelectorWidget
+from rqt_reconfigure.paramedit_widget import ParameditWidget
+
 
 class ParamWidget(QWidget):
     _TITLE_PLUGIN = 'Dynamic Reconfigure'
 
     def __init__(self, context, node=None):
-        '''
+        """
         This class is intended to be called by rqt plugin framework class.
         Currently (12/12/2012) the whole widget is splitted into 2 panes:
-        one on left allows you to choose the node(s) you work on. Right side 
+        one on left allows you to choose the node(s) you work on. Right side
         pane lets you work with the parameters associated with the node(s) you
-        select on the left.  
-        
-        (12/27/2012) Despite the pkg name is changed to rqt_reconfigure to 
-        reflect the available functionality, file & class names remain 
+        select on the left.
+
+        (12/27/2012) Despite the pkg name is changed to rqt_reconfigure to
+        reflect the available functionality, file & class names remain
         'param', expecting all the parameters will become handle-able.
-        '''
-        
+        """
+
         super(ParamWidget, self).__init__()
         self.setObjectName(self._TITLE_PLUGIN)
         self.setWindowTitle(self._TITLE_PLUGIN)
-        
+
         #TODO(Isaac) .ui file needs to replace the GUI components declaration
         #            below. For unknown reason, referring to another .ui files
         #            from a .ui that is used in this class failed. So for now,
-        #            I decided not use .ui in this class. 
-        #            If someone can tackle this I'd appreciate. 
+        #            I decided not use .ui in this class.
+        #            If someone can tackle this I'd appreciate.
         _hlayout_top = QHBoxLayout(self)
-        self._splitter = QSplitter(self)        
+        self._splitter = QSplitter(self)
         _hlayout_top.addWidget(self._splitter)
 
         _vlayout_nodesel_widget = QWidget()
@@ -77,7 +79,6 @@ class ParamWidget(QWidget):
         _hlayout_filter_widget = QWidget(self)
         _hlayout_filter = QHBoxLayout()
         self.filter_lineedit = QLineEdit(self)
-        #self.filter_lineedit.setText('(Filter by node name)')
         self.filterkey_label = QLabel("&Filter key:")
         self.filterkey_label.setBuddy(self.filter_lineedit)
         _hlayout_filter.addWidget(self.filterkey_label)
@@ -90,7 +91,7 @@ class ParamWidget(QWidget):
         _vlayout_nodesel_widget.setLayout(_vlayout_nodesel_side)
 
         paramitems = nodesel_widget.get_paramitems()
-                        
+
         reconf_widget = ParameditWidget(paramitems)
         #reconf_widget.set_nodes(paramitems)
 
@@ -101,21 +102,21 @@ class ParamWidget(QWidget):
         # 2nd col to keep the possible max width.
         self._splitter.setStretchFactor(0, 1)
         self._splitter.setStretchFactor(1, 0)
-        
+
         # Pass name of node to editor widget
         nodesel_widget.sig_node_selected.connect(reconf_widget.show_reconf)
-     
+
         if node is not None:
             title = self._TITLE_PLUGIN + ' %s' % node
         else:
             title = self._TITLE_PLUGIN
         self.setObjectName(title)
-        
+
         #Connect filter signal-slots.
-        self.filter_lineedit.textChanged.connect(nodesel_widget.filter_key_changed)
+        self.filter_lineedit.textChanged.connect(
+                                             nodesel_widget.filter_key_changed)
         self.filter_lineedit.textChanged.connect(reconf_widget.filter_param)
 
-                         
     def shutdown(self):
         #TODO(Isaac) Needs implemented. Trigger dynamic_reconfigure to unlatch
         #            subscriber.
@@ -129,9 +130,18 @@ class ParamWidget(QWidget):
             self._splitter.restoreState(instance_settings.value('splitter'))
         else:
             self._splitter.setSizes([100, 100, 200])
-    
+
     def get_filter_text(self):
         """
         :rtype: QString
         """
         return self.filter_lineedit.text()
+
+
+if __name__ == '__main__':
+    # main should be used only for debug purpose.
+    # This launches this QWidget as a standalone rqt gui.
+    from rqt_gui.main import Main
+
+    main = Main()
+    sys.exit(main.main(sys.argv, standalone='rqt_reconfigure'))

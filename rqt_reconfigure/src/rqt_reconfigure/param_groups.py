@@ -32,19 +32,20 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow
 
-import cProfile
-import os
 import time
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QFont, QFormLayout, QGroupBox, QLabel, QPushButton, QTabWidget, QVBoxLayout, QWidget
-import rospkg
+from python_qt_binding.QtCore import QSize, Qt
+from python_qt_binding.QtGui import (QFont, QFormLayout, QHBoxLayout, QIcon,
+                                     QGroupBox, QLabel, QPushButton, QTabWidget,
+                                     QVBoxLayout, QWidget)
 import rospy
 
-from .param_editors import BooleanEditor, DoubleEditor, EditorWidget, EDITOR_TYPES, EnumEditor, IntegerEditor, StringEditor
-# *Editor classes that are not explicitly used within this .py file still need 
-# to be imported. Otherwise runtime error might occur. 
+from .param_editors import (BooleanEditor, DoubleEditor, EditorWidget,
+                            EDITOR_TYPES, EnumEditor, IntegerEditor,
+                            StringEditor)
+# *Editor classes that are not explicitly used within this .py file still need
+# to be imported. Otherwise runtime error might occur.
 
 _GROUP_TYPES = {
     '': 'BoxGroup',
@@ -54,9 +55,10 @@ _GROUP_TYPES = {
     'apply': 'ApplyGroup',
 }
 
+
 def find_cfg(config, name):
     """
-    (Ze'ev) reaaaaallly cryptic function which returns the config object for 
+    (Ze'ev) reaaaaallly cryptic function which returns the config object for
     specified group.
     """
     cfg = None
@@ -78,44 +80,64 @@ def find_cfg(config, name):
             raise exc
     return cfg
 
+
 class GroupWidget(QWidget):
     """
-    (Isaac's guess as of 12/13/2012) 
+    (Isaac's guess as of 12/13/2012)
     This class bonds multiple Editor instances that are associated with
-    a single node as a group. 
+    a single node as a group.
     """
 
     def __init__(self, updater, config, nodename):
         """
-        :param config: 
+        :param config:
         :type config: Dictionary? defined in dynamic_reconfigure.client.Client
-        :type nodename: str 
+        :type nodename: str
         """
-        
-        #TODO figure out what data type 'config' is. It is afterall returned 
+
+        #TODO figure out what data type 'config' is. It is afterall returned
         #     from dynamic_reconfigure.client.get_parameter_descriptions()
         #     http://ros.org/doc/api/dynamic_reconfigure/html/dynamic_reconfigure.client-pysrc.html#Client
 
         super(GroupWidget, self).__init__()
         self.state = config['state']
         self.name = config['name']
-        
-        #TODO .ui file needs to be back in use in later phase.
+
+        #TODO .ui file needs to be back into usage in later phase.
 #        rp = rospkg.RosPack()
-#        ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 
+#        ui_file = os.path.join(rp.get_path('rqt_reconfigure'),
 #                               'resource', 'singlenode_parameditor.ui')
 #        loadUi(ui_file, self)
+
         verticalLayout = QVBoxLayout(self)
+
+        _widget_nodeheader = QWidget()
+        _h_layout_nodeheader = QHBoxLayout(_widget_nodeheader)
+
         self.node_name = QLabel(self)
         font = QFont('Trebuchet MS, Bold')
         font.setUnderline(True)
         font.setBold(True)
+
+        # Button to close a node.
+        _icon_disable_node = QIcon.fromTheme('emblem-unreadable')
+        _bt_disable_node = QPushButton(_icon_disable_node, '', self)
+        _bt_disable_node.setToolTip('Hide this node')
+        #_bt_disable_node.setIconSize(QSize(15, 15))
+        #_bt_disable_node.resize(20, 20)
+        _bt_disable_node_size = QSize(36, 24)
+        _bt_disable_node.setFixedSize(_bt_disable_node_size)
+        #_bt_disable_node.pressed().connect(,)
+
+        _h_layout_nodeheader.addWidget(self.node_name)
+        _h_layout_nodeheader.addWidget(_bt_disable_node)
+
         self.node_name.setAlignment(Qt.AlignCenter)
         font.setPointSize(10)
         self.node_name.setFont(font)
         grid_widget = QWidget(self)
         self.grid = QFormLayout(grid_widget)
-        verticalLayout.addWidget(self.node_name)
+        verticalLayout.addWidget(_widget_nodeheader)
         verticalLayout.addWidget(grid_widget)
         # Again, these UI operation above needs to happen in .ui file.
 
@@ -128,35 +150,32 @@ class GroupWidget(QWidget):
 
         self.editor_widgets = []
         self._param_names = []
-        
-        #cProfile.runctx('self.add_widgets(config)', globals(), locals())  #For debug. Needs to be removed 
+
         self.add_widgets(config)
-        
+
         rospy.logdebug('Groups node name={}'.format(nodename))
         self.node_name.setText(nodename)
 
         # Labels should not stretch
         #self.grid.setColumnStretch(1, 1)
-        
         #self.setLayout(self.grid)
 
     def collect_paramnames(self, config):
         pass
-    
+
     def add_widgets(self, config):
         """
         :type config: Dict?
         """
         i_debug = 0
         for param in config['parameters']:
-            
             begin = time.time() * 1000
             editor_type = '(none)'
-            
+
             if param['edit_method']:
                 widget = EnumEditor(self.updater, param)
             elif param['type'] in EDITOR_TYPES:
-                rospy.logdebug('GroupWidget i_debug=%d param type =%s', 
+                rospy.logdebug('GroupWidget i_debug=%d param type =%s',
                               i_debug,
                               param['type'])
                 editor_type = EDITOR_TYPES[param['type']]
@@ -164,16 +183,15 @@ class GroupWidget(QWidget):
 
             self.editor_widgets.append(widget)
             self._param_names.append(param['name'])
-            
+
             rospy.logdebug('groups.add_widgets num editors=%d', i_debug)
 
             end = time.time() * 1000
             time_elap = end - begin
-            rospy.logdebug('ParamG editor={} loop=#{} Time taken ={} msec. '.format(
-                                               editor_type, i_debug, time_elap))
+            rospy.logdebug('ParamG editor={} loop=#{} Time={}msec'.format(
+                                              editor_type, i_debug, time_elap))
             i_debug += 1
 
-        g_debug = 0
         for name, group in config['groups'].items():
             if group['type'] == 'tab':
                 widget = TabGroup(self, self.updater, group)
@@ -183,10 +201,8 @@ class GroupWidget(QWidget):
             self.editor_widgets.append(widget)
             rospy.logdebug('groups.add_widgets ' +
                           #'num groups=%d' +
-                          'name=%s', 
-                          #g_debug, 
+                          'name=%s',
                           name)
-            #g_debug += 1
 
         for i, ed in enumerate(self.editor_widgets):
             ed.display(self.grid, i)
@@ -202,7 +218,7 @@ class GroupWidget(QWidget):
         self.state = config['state']
 
         # TODO: should use config.keys but this method doesnt exist
-        names = [name for name, v in config.items()]
+        names = [name for name in config.items()]
 
         for widget in self.editor_widgets:
             if isinstance(widget, EditorWidget):
@@ -215,12 +231,13 @@ class GroupWidget(QWidget):
     def close(self):
         for w in self.editor_widgets:
             w.close()
-            
+
     def get_param_names(self):
         """
         :rtype: str[]
         """
         return self._param_names
+
 
 class BoxGroup(GroupWidget):
     def __init__(self, updater, config):
@@ -232,15 +249,18 @@ class BoxGroup(GroupWidget):
     def display(self, grid, row):
         grid.addWidget(self.box, row, 0, 1, -1)
 
+
 class CollapseGroup(BoxGroup):
     def __init__(self, updater, config):
         super(CollapseGroup, self).__init__(updater, config)
         self.box.setCheckable(True)
 
+
 class HideGroup(BoxGroup):
     def update_group(self, config):
         super(HideGroup, self).update_group(config)
         self.box.setVisible(self.state)
+
 
 class TabGroup(GroupWidget):
     def __init__(self, parent, updater, config):
@@ -261,6 +281,7 @@ class TabGroup(GroupWidget):
         super(TabGroup, self).close()
         self.parent.tab_bar = None
         self.parent.tab_bar_shown = False
+
 
 class ApplyGroup(BoxGroup):
     class ApplyUpdater:

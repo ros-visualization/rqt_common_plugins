@@ -38,78 +38,78 @@ from collections import OrderedDict
 import dynamic_reconfigure.client
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QSpacerItem, QStandardItemModel, QVBoxLayout, QWidget, QWidgetItem
+from python_qt_binding.QtGui import (QSpacerItem, QStandardItemModel, 
+                                     QVBoxLayout, QWidget, QWidgetItem)
 from rqt_py_common.layout_util import LayoutUtil
 import rospkg
 import rospy
 
 from .dynreconf_client_widget import DynreconfClientWidget
 #from .node_delegate import NodeDelegate
-from .param_editors import EditorWidget, BooleanEditor, DoubleEditor, EnumEditor, IntegerEditor, StringEditor
-from .param_groups import GroupWidget
 from .param_updater import ParamUpdater
+
 
 class ParameditWidget(QWidget):
     """
-    This class represents a pane where parameter editor widgets of multiple 
-    nodes are shown. In rqt_reconfigure, this pane occupies right half of the 
-    entire visible area.    
+    This class represents a pane where parameter editor widgets of multiple
+    nodes are shown. In rqt_reconfigure, this pane occupies right half of the
+    entire visible area.
     """
-    
+
     def __init__(self, paramitems_dict):
         """
         :type paramitems_dict: OrderedDict. 1st elem is node's GRN name,
-                          2nd is TreenodeQstdItem instance (that extends 
+                          2nd is TreenodeQstdItem instance (that extends
                           QStandardItem)
         """
         super(ParameditWidget, self).__init__()
-        
+
         rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 
+        ui_file = os.path.join(rp.get_path('rqt_reconfigure'),
                                'resource', 'paramedit_pane.ui')
         loadUi(ui_file, self)
-        
+
         self._dynreconf_clients = OrderedDict()
-       
+
         #self.node_delegate = NodeDelegate(self, paramitems_dict)
         #self.listview.setItemDelegate(self.node_delegate)
 
         #self.set_nodes(paramitems_dict)
         #self.std_model = QStandardItemModel()
         #self.listview.setModel(self.std_model) # QListView
-        
-        # Adding the list of Items 
+
+        # Adding the list of Items
         #self.std_model.insertColumn(0, paramitems_dict.values())
         self.vlayout = QVBoxLayout(self.scrollarea_holder_widget)
-                
-        #self._set_index_widgets(self.listview, paramitems_dict) #causes error        
+
+        #self._set_index_widgets(self.listview, paramitems_dict) #causes error
 
         self.destroyed.connect(self.close)  # func in mercurial?
-                
+
     def _set_index_widgets(self, view, paramitems_dict):
         """
-        :deprecated: Causes error  
+        :deprecated: Causes error
         """
         i = 0
         for p in paramitems_dict:
             view.setIndexWidget(i, p)
             i += 1
-        
+
     def show_reconf(self, node_grn):
-        """        
+        """
         Callback when user chooses a node.
-        
-        :param node_grn: GRN (Graph Resource Names, 
+
+        :param node_grn: GRN (Graph Resource Names,
                          see http://www.ros.org/wiki/Names) of node name.
         :type node_grn: str
         """
         rospy.logdebug('ParameditWidget.show str(node_grn)=%s', str(node_grn))
 
         dynreconf_client = None
-        
+
         if not node_grn in self._dynreconf_clients.keys():
             # Add dynreconf widget if there hasn't one existed.
-            
+
             #TODO think about sharing dynamic_reconfigure.client instances
             # with NodeSelecorWidget...generating 2 instances of the same node
             # is nothing but inefficient and bad design.
@@ -119,28 +119,28 @@ class ParameditWidget(QWidget):
                                                str(node_grn), timeout=5.0)
             except rospy.exceptions.ROSException:
                 rospy.logerr("Could not connect to %s" % node_grn)
-                #TODO(Isaac) Needs to show err msg on GUI too. 
+                #TODO(Isaac) Needs to show err msg on GUI too.
                 return
-         
-            _dynreconf_client = DynreconfClientWidget(dynreconf_client, 
+
+            _dynreconf_client = DynreconfClientWidget(dynreconf_client,
                                                       node_grn)
             # Client gets renewed every time different node_grn was clicked.
-            
+
             self._dynreconf_clients.__setitem__(node_grn, _dynreconf_client)
             self.vlayout.addWidget(_dynreconf_client)
 
-        else: # If there has one already existed, remove it.
+        else:  # If there has one already existed, remove it.
             i = self._dynreconf_clients.keys().index(node_grn)
             item = self.vlayout.itemAt(i)
             if isinstance(item, QWidgetItem):
                 item.widget().close()
             w = self._dynreconf_clients.pop(node_grn)
-            
-            rospy.logdebug('popped={} Len of left clients={}'.format( 
+
+            rospy.logdebug('popped={} Len of left clients={}'.format(
                                               w, len(self._dynreconf_clients)))
             #LayoutUtil.clear_layout(self.vlayout)
 
-            # Re-add the rest of existing items to layout.  
+            # Re-add the rest of existing items to layout.
             #for k, v in self._dynreconf_clients.iteritems():
             #    rospy.loginfo('added to layout k={} v={}'.format(k, v))
             #    self.vlayout.addWidget(v)
@@ -148,7 +148,7 @@ class ParameditWidget(QWidget):
         # Add color to alternate the rim of the widget.
         LayoutUtil.alternate_color(self._dynreconf_clients.itervalues(),
                                    [Qt.white, Qt.lightGray, Qt.gray])
-                      
+
     def close(self):
         for dc in self._dynreconf_clients:
             # Clear out the old widget
@@ -156,16 +156,15 @@ class ParameditWidget(QWidget):
             dc = None
 
             self._paramedit_scrollarea.deleteLater()
-    
+
     def filter_param(self, filter_key):
         """
         :type filter_key:
         """
-        
+
         #TODO Pick nodes that match filter_key.
-        
-        #TODO For the nodes that are kept in previous step, call 
-        #     DynreconfWidget.filter_param for all of its existing 
-        #     instances. 
+
+        #TODO For the nodes that are kept in previous step, call
+        #     DynreconfWidget.filter_param for all of its existing
+        #     instances.
         pass
-    

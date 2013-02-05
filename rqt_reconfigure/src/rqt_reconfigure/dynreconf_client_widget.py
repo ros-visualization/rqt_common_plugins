@@ -32,7 +32,6 @@
 #
 # Author: Isaac Saito, Ze'ev Klapow
 
-import dynamic_reconfigure.client
 import rospy
 
 from .param_editors import EditorWidget
@@ -69,7 +68,7 @@ class DynreconfClientWidget(GroupWidget):
          
         if config is not None:
             # TODO: should use config.keys but this method doesnt exist
-            names = [name for name, v in config.items()]
+            names = [name for name in config.items()]
 
             for widget in self.editor_widgets:
                 if isinstance(widget, EditorWidget):

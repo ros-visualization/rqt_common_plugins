@@ -51,20 +51,25 @@ EDITOR_TYPES = {
     'double': 'DoubleEditor',
 }
 
-# These .ui files are frequently loaded multiple times. Since file access 
+# These .ui files are frequently loaded multiple times. Since file access
 # costs a lot, only load each file once.
 rp = rospkg.RosPack()
-ui_bool = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'editor_bool.ui')
-ui_str = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'editor_string.ui')
-ui_num = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'editor_number.ui')
-ui_int = ui_num 
-ui_enum = os.path.join(rp.get_path('rqt_reconfigure'), 'resource', 'editor_enum.ui')
+ui_bool = os.path.join(rp.get_path('rqt_reconfigure'), 'resource',
+                       'editor_bool.ui')
+ui_str = os.path.join(rp.get_path('rqt_reconfigure'), 'resource',
+                      'editor_string.ui')
+ui_num = os.path.join(rp.get_path('rqt_reconfigure'), 'resource',
+                      'editor_number.ui')
+ui_int = ui_num
+ui_enum = os.path.join(rp.get_path('rqt_reconfigure'), 'resource',
+                       'editor_enum.ui')
+
 
 class EditorWidget(QWidget):
 
     def __init__(self, updater, config):
         """
-        :param updater: 
+        :param updater:
         :type updater: rqt_reconfigure.ParamUpdater
         """
 
@@ -85,12 +90,12 @@ class EditorWidget(QWidget):
         pass
 
     def update_configuration(self, value):
-        self.updater.update({self.param_name : value})
+        self.updater.update({self.param_name: value})
 
     def display(self, grid, row):
         """
         Should be overridden in subclass.
-    
+
         :type grid: QFormLayout
         :type row: ???
         """
@@ -101,6 +106,7 @@ class EditorWidget(QWidget):
         Should be overridden in subclass.
         """
         pass
+
 
 class BooleanEditor(EditorWidget):
     def __init__(self, updater, config):
@@ -115,6 +121,7 @@ class BooleanEditor(EditorWidget):
 
     def display(self, grid, row):
         grid.addRow(QLabel(self.param_name), self)
+
 
 class StringEditor(EditorWidget):
     def __init__(self, updater, config):
@@ -131,6 +138,7 @@ class StringEditor(EditorWidget):
 
     def display(self, grid, row):
         grid.addRow(QLabel(self.param_name), self)
+
 
 class IntegerEditor(EditorWidget):
     def __init__(self, updater, config):
@@ -153,7 +161,8 @@ class IntegerEditor(EditorWidget):
                                                            self.max, self))
         self._paramval_lineEdit.editingFinished.connect(self.editing_finished)
 
-        # TODO: This should not always get set to the default it should be the current value
+        # TODO: This should not always get set to the default it should be the
+        # current value
         self._paramval_lineEdit.setText(str(config['default']))
         self._slider_horizontal.setSliderPosition(int(config['default']))
 
@@ -178,6 +187,7 @@ class IntegerEditor(EditorWidget):
 #        grid.addWidget(QLabel(self.param_name), row, 0, Qt.AlignRight)
 #        grid.addWidget(self, row, 1)
         grid.addRow(QLabel(self.param_name), self)
+
 
 class DoubleEditor(EditorWidget):
     def __init__(self, updater, config):
@@ -250,6 +260,7 @@ class DoubleEditor(EditorWidget):
 
     def display(self, grid, row):
         grid.addRow(QLabel(self.param_name), self)
+
 
 class EnumEditor(EditorWidget):
     def __init__(self, updater, config):
