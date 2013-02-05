@@ -37,11 +37,11 @@ Modifying rosaction.__init__.py to add functionality for ROS Action.
 
 Implements rosaction command-line tools.
 
-The code API of the rosaction module is unstable (inheriting the status of 
+The code API of the rosaction module is unstable (inheriting the status of
 rosmsg)
 
-(2/4/2013) Most of codes are not tested with actinlib. There's 
-"#NOT_TESTED_FROM_HERE" sign in the code below. 
+(2/4/2013) Most of codes are not tested with actinlib. There's
+"#NOT_TESTED_FROM_HERE" sign in the code below.
 """
 
 from __future__ import print_function
@@ -72,28 +72,30 @@ MAX_DEFAULT_NON_FLOW_ITEMS = 4
 
 MODE_ACTION = '.action'
 
+
 def rosaction_cmd_list(mode, full, argv=None):
     if argv is None:
         argv = sys.argv[1:]
-    parser = OptionParser(usage="usage: ros%s list"%mode[1:])
+    parser = OptionParser(usage="usage: ros%s list" % mode[1:])
     options, args = parser.parse_args(argv[1:])
     if mode == MODE_ACTION:
         subdir = 'action'
     else:
-        raise ValueError('Unknown mode for iterate_packages: %s'%mode)
+        raise ValueError('Unknown mode for iterate_packages: %s' % mode)
 
     rospack = rospkg.RosPack()
     packs = sorted([x for x in iterate_packages(rospack, mode)])
     for (p, direc) in packs:
-        for file in _list_types(direc, subdir, mode):
-            print( "%s/%s"%(p, file))
+        for file_ in _list_types(direc, subdir, mode):
+            rospy.loginfo("%s/%s" % (p, file_))
+
 
 def _get_action_class_genpy(type_str, message_type, reload_on_error=False):
     """
     Taken from genpy.message._get_message_or_service_class
-    
+
     Utility for retrieving message/service class instances. Used by
-    get_message_class and get_service_class. 
+    get_message_class and get_service_class.
     :param type_str: 'msg' or 'srv', ``str``
     :param message_type: type name of message/service, ``str``
     :returns: Message/Service  for message/service type or None, ``class``
@@ -105,11 +107,12 @@ def _get_action_class_genpy(type_str, message_type, reload_on_error=False):
         if base_type == 'Header':
             package = 'std_msgs'
         else:
-            raise ValueError("message type is missing package name: %s"%str(message_type))
+            raise ValueError("message type is missing package name: %s"
+                             % str(message_type))
     pypkg = val = None
-    try: 
+    try:
         # import the package and return the class
-        pypkg = __import__('%s.%s'%(package, type_str))
+        pypkg = __import__('%s.%s' % (package, type_str))
         val = getattr(getattr(pypkg, type_str), base_type)
     except ImportError:
         val = None
@@ -122,10 +125,11 @@ cache for get_message_class
 """
 _message_class_cache_genpy = {}
 
+
 def get_message_class_genpy(message_type, reload_on_error=False):
     """
     Taken from genpy.message.get_message_class
-    
+
     Get the message class. NOTE: this function maintains a
     local cache of results to improve performance.
     :param message_type: type name of message, ``str``
@@ -137,36 +141,39 @@ def get_message_class_genpy(message_type, reload_on_error=False):
     """
     if message_type in _message_class_cache_genpy:
         return _message_class_cache_genpy[message_type]
-    cls = _get_action_class_genpy('action', message_type, reload_on_error=reload_on_error)
+    cls = _get_action_class_genpy('action', message_type,
+                                  reload_on_error=reload_on_error)
     if cls:
         _message_class_cache_genpy[message_type] = cls
     return cls
+
 
 def _get_action_class(type_str, message_type, reload_on_error=False):
     """
     Taken from roslib.message._get_message_or_service_class
     """
-    
+
     ## parse package and local type name for import
     package, base_type = genmsg.package_resource_name(message_type)
     if not package:
         if base_type == 'Header':
             package = 'std_msgs'
         else:
-            raise ValueError("message type is missing package name: %s"%str(message_type))
+            raise ValueError("message type is missing package name: %s" %
+                             str(message_type))
     pypkg = val = None
-    try:        
+    try:
         # bootstrap our sys.path
         roslib.launcher.load_manifest(package)
-        
+
         rospy.loginfo('package={} type_str={} base_type={}'.format(
                                          package, type_str, base_type))
-                
+
         # import the package and return the class
-        pypkg = __import__('%s/%s'%(package, type_str))
+        pypkg = __import__('%s/%s' % (package, type_str))
         #pypkg = __import__('%s.%s'%(package, type_str))
         val = getattr(getattr(pypkg, type_str), base_type)
-        
+
     except rospkg.ResourceNotFound:
         val = None
         rospy.loginfo('_get_action_class except 1')
@@ -194,22 +201,24 @@ Taken from roslib.message
 ## cache for get_message_class
 _action_class_cache = {}
 
+
 def get_action_class(action_type, reload_on_error=False):
     """
     Taken from roslib.message.get_action_class
     """
-    
+
     if action_type in _action_class_cache:
         return _action_class_cache[action_type]
     # try w/o bootstrapping
     cls = get_message_class_genpy(action_type, reload_on_error=reload_on_error)
     if cls is None:
         # try old loader w/ bootstrapping
-        cls = _get_action_class('action', action_type, 
+        cls = _get_action_class('action', action_type,
                                             reload_on_error=reload_on_error)
     if cls:
         _action_class_cache[action_type] = cls
     return cls
+
 
 def iterate_packages(rospack, mode):
     """
@@ -219,12 +228,13 @@ def iterate_packages(rospack, mode):
     if mode == MODE_ACTION:
         subdir = 'action'
     else:
-        raise ValueError('Unknown mode for iterate_packages: %s'%mode)
+        raise ValueError('Unknown mode for iterate_packages: %s' % mode)
     pkgs = rospack.list()
     for p in pkgs:
         d = os.path.join(rospack.get_path(p), subdir)
         if os.path.isdir(d):
             yield p, d
+
 
 def _msg_filter(ext):
     def mfilter(f):
@@ -235,11 +245,13 @@ def _msg_filter(ext):
         return os.path.isfile(f) and f.endswith(ext)
     return mfilter
 
+
 def _list_resources(path, rfilter=os.path.isfile):
     """
     List resources in a package directory within a particular
     subdirectory. This is useful for listing messages, services, etc...
-    :param rfilter: resource filter function that returns true if filename is the desired resource type, ``fn(filename)->bool``
+    :param rfilter: resource filter function that returns true if filename is
+    the desired resource type, ``fn(filename)->bool``
     """
     resources = []
     if os.path.isdir(path):
@@ -248,20 +260,23 @@ def _list_resources(path, rfilter=os.path.isfile):
         resources = []
     return resources
 
+
 def _list_types(path, subdir, ext):
     """
     List all messages in the specified package
     :param package str: name of package to search
-    :param include_depends bool: if True, will also list messages in package dependencies
+    :param include_depends bool: if True, will also list messages in package
+                                 dependencies
     :returns [str]: message type names
     """
     types = _list_resources(path, _msg_filter(ext))
     result = [x[:-len(ext)] for x in types]
     result.sort()
-    
-    rospy.loginfo('_list_types result={}'.format(result))    
-        
+
+    rospy.loginfo('_list_types result={}'.format(result))
+
     return result
+
 
 def list_types(package, mode=MODE_ACTION):
     """
@@ -270,19 +285,20 @@ def list_types(package, mode=MODE_ACTION):
     :param mode: MODE_ACTION. Defaults to msgs, ``str``
     :returns: list of msgs/srv in package, ``[str]``
     """
-       
+
     rospack = rospkg.RosPack()
     if mode == MODE_ACTION:
         subdir = 'action'
     else:
-        raise ValueError('Unknown mode for list_types: %s'%mode)
+        raise ValueError('Unknown mode for list_types: %s' % mode)
     path = os.path.join(rospack.get_path(package), subdir)
-    
-    rospy.loginfo('list_types package={} mode={} path={}'.format(package, mode, 
-                                                                 path))    
-    
-    return [genmsg.resource_name(package, t) 
+
+    rospy.loginfo('list_types package={} mode={} path={}'.format(package, mode,
+                                                                 path))
+
+    return [genmsg.resource_name(package, t)
             for t in _list_types(path, subdir, mode)]
+
 
 def list_actions(package):
     """
@@ -292,10 +308,11 @@ def list_actions(package):
     """
     return list_types(package, mode=MODE_ACTION)
 
+
 def rosactionmain(mode=MODE_ACTION):
     """
     Main entry point for command-line tools (rosaction).
-    
+
     rosaction can interact with either ros messages or ros services. The mode
     param indicates which
     :param mode: MODE_ACTION or MODE_SRV, ``str``
@@ -304,10 +321,10 @@ def rosactionmain(mode=MODE_ACTION):
         if mode == MODE_ACTION:
             ext, full = mode, "message type"
         else:
-            raise ROSActionException("Invalid mode: %s"%mode)
-        
+            raise ROSActionException("Invalid mode: %s" % mode)
+
         if len(sys.argv) == 1:
-            rospy.loginfo(fullusage('ros'+mode[1:]))
+            rospy.loginfo(fullusage('ros' + mode[1:]))
             sys.exit(0)
 
         command = sys.argv[1]
@@ -322,23 +339,23 @@ def rosactionmain(mode=MODE_ACTION):
 #        elif command == 'md5':
 #            rosaction_cmd_md5(ext, full)
         elif command == '--help':
-            print(fullusage('ros'+mode[1:]))
+            print(fullusage('ros' + mode[1:]))
             sys.exit(0)
         else:
-            print(fullusage('ros'+mode[1:]))
+            print(fullusage('ros' + mode[1:]))
             sys.exit(getattr(os, 'EX_USAGE', 1))
     except KeyError as e:
-        print("Unknown message type: %s"%e, file=sys.stderr)
+        print("Unknown message type: %s" % e, file=sys.stderr)
         sys.exit(getattr(os, 'EX_USAGE', 1))
     except rospkg.ResourceNotFound as e:
-        print("Invalid package: %s"%e, file=sys.stderr)
+        print("Invalid package: %s" % e, file=sys.stderr)
         sys.exit(getattr(os, 'EX_USAGE', 1))
     except ValueError as e:
-        print("Invalid type: '%s'"%e, file=sys.stderr)
+        print("Invalid type: '%s'" % e, file=sys.stderr)
         sys.exit(getattr(os, 'EX_USAGE', 1))
     except ROSActionException as e:
         print(str(e), file=sys.stderr)
-        sys.exit(1)        
+        sys.exit(1)
     except KeyboardInterrupt:
         pass
 

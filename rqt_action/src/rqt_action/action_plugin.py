@@ -38,6 +38,7 @@ from qt_gui.plugin import Plugin
 from rqt_msg.messages_widget import MessagesWidget
 import rosaction
 
+
 class ActionPlugin(Plugin):
     def __init__(self, context):
         super(ActionPlugin, self).__init__(context)
@@ -45,7 +46,7 @@ class ActionPlugin(Plugin):
         self._widget = MessagesWidget(rosaction.MODE_ACTION)
         self._widget.setWindowTitle('Action Introspection')
         if context.serial_number() > 1:
-            self._widget.setWindowTitle(self._widget.windowTitle() + 
+            self._widget.setWindowTitle(self._widget.windowTitle() +
                                         (' (%d)' % context.serial_number()))
         context.add_widget(self._widget)
 
