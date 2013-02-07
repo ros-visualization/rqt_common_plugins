@@ -55,7 +55,6 @@ class FilterCollection:
                         time in seconds with decimals ''str'', topic ''str'',
         """
         newmessage = Message()
-        message[3] = self._proxymodel.sourceModel().timestring_to_timedata(message[3])
         message = newmessage.load_from_array(message)
         return self.test_message(message)
 

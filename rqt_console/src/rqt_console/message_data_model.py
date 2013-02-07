@@ -32,7 +32,7 @@
 
 from message_list import MessageList
 
-from python_qt_binding.QtCore import QAbstractTableModel, QDateTime, QModelIndex, Qt, qWarning
+from python_qt_binding.QtCore import QAbstractTableModel, QModelIndex, Qt, qWarning
 from python_qt_binding.QtGui import QIcon
 
 
@@ -41,7 +41,6 @@ class MessageDataModel(QAbstractTableModel):
         super(MessageDataModel, self).__init__()
         self._messages = MessageList()
 
-        self._time_format = 'hh:mm:ss.zzz (yyyy-MM-dd)'
         self._insert_message_queue = []
         self._paused = False
         self._message_limit = 20000
@@ -63,12 +62,12 @@ class MessageDataModel(QAbstractTableModel):
         messagelist = self._messages.get_message_list()
         if index.row() >= 0 and index.row() < len(messagelist):
             if index.column() >= 0 and index.column() < messagelist[index.row()].count():
-                if role == Qt.DisplayRole:
+                elements = self._messages.message_members()
+                if role == Qt.DisplayRole and elements[index.column()] == '_time':
+                    return messagelist[index.row()].time_as_string()
+                elif role == Qt.UserRole or role == Qt.DisplayRole:
                     elements = self._messages.message_members()
-                    if elements[index.column()] == '_time':
-                        return self.timedata_to_timestring(messagelist[index.row()].time_in_seconds())
-                    else:
-                        return getattr(messagelist[index.row()], elements[index.column()])
+                    return getattr(messagelist[index.row()], elements[index.column()])
                 elif role == Qt.DecorationRole and index.column() == 0:
                     msgseverity = messagelist[index.row()].get_data(1)
                     if msgseverity in (self.tr('Debug'), self.tr('Info')):
@@ -91,29 +90,6 @@ class MessageDataModel(QAbstractTableModel):
             elif orientation == Qt.Vertical:
                 return '#%d' % (section + 1)
     # END Required implementations of QAbstractTableModel functions
-
-    def timestring_to_timedata(self, timestring):
-        """
-        Converts a time string in the format of _time_format into a string
-        of format '(unix timestamp).(fraction of second)'
-        :param timestring: formatted time string ''str''
-        :returns: seconds and fractions thereof ''str''
-        """
-        timeval = QDateTime.fromString(timestring, self._time_format).toTime_t()
-        return str(timeval) + '.' + timestring[9:12]   # append '.(msecs)'
-
-    def timedata_to_timestring(self, timedata):
-        """
-        Converts a string in the format of '(unix timestamp).(fraction of second)'
-        into a string of format _time_format
-        :param timedata:  seconds and fractions thereof ''str''
-        :returns: formatted time string''str''
-        """
-        sec, fraction = timedata.split('.')
-        if len(fraction) < 3:
-            raise RuntimeError('Malformed timestring in timedata_to_timestring()')
-        micro = int(fraction[:3])
-        return QDateTime.fromTime_t(long(sec)).addMSecs(micro).toString(self._time_format)
 
     def insert_rows(self, msgs):
         """
@@ -198,7 +174,7 @@ class MessageDataModel(QAbstractTableModel):
         min_ = float("inf")
         max_ = float("-inf")
         for row in rowlist:
-            item = self.get_message_list()[row].time_in_seconds()
+            item = self.get_message_list()[row].time_as_datestamp()
             if float(item) > float(max_):
                 max_ = item
             if float(item) < float(min_):

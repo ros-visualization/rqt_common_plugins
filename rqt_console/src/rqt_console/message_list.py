@@ -40,6 +40,7 @@ class MessageList(object):
     """
     def __init__(self):
         self._messagelist = []
+        self._time_format = 'hh:mm:ss.zzz (yyyy-MM-dd)'
 
     def column_count(self):
         return len(Message.get_message_members())
@@ -72,7 +73,17 @@ class MessageList(object):
         return list(uniques_list)
 
     def add_message(self, msg):
-        self._messagelist.append(Message(msg))
+        message = Message(msg)
+        message.set_time_format(self._time_format)
+        self._messagelist.append(message)
+
+    def set_time_format(self, format):
+        """
+        :param format: formatting characters are defined in the QDateTime documentation ''str''
+        """
+        self._time_format = format
+        for message in self._messagelist:
+            message.set_time_format(self._time_format)
 
     def header_print(self):
         return Message.header_print()
@@ -88,7 +99,7 @@ class MessageList(object):
         message_list = self.get_message_list()
         time_range_list = []
         for message in message_list:
-            msg_time = message.time_in_seconds()
+            msg_time = message.time_as_datestamp()
             if float(msg_time) >= float(start_time) and (end_time is None or float(msg_time) <= float(end_time)):
                 time_range_list.append(message)
         return time_range_list

@@ -74,6 +74,7 @@ class ConsoleWidget(QWidget):
         :param minimal: if true the load, save and column buttons will be hidden as well as the filter splitter, ''bool''
         """
         super(ConsoleWidget, self).__init__()
+
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_console'), 'resource', 'console_widget.ui')
         loadUi(ui_file, self, {'ConsoleTableView': ConsoleTableView})
@@ -87,7 +88,7 @@ class ConsoleWidget(QWidget):
         self._proxymodel = proxymodel
         self._datamodel = proxymodel.sourceModel()
 
-        self._columnwidth = (600, 140, 200, 430, 200, 600)
+        self._columnwidth = (600, 140, 200, 200, 200, 600)
         for idx, width in enumerate(self._columnwidth):
             self.table_view.horizontalHeader().resizeSection(idx, width)
         self.table_view.sortByColumn(3, Qt.DescendingOrder)

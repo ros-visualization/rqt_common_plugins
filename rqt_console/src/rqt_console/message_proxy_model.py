@@ -49,6 +49,8 @@ class MessageProxyModel(QSortFilterProxyModel):
 
         self._exclude_filters = FilterCollection(self)
         self._highlight_filters = FilterCollection(self)
+        self.setFilterRole(Qt.UserRole)
+        self.setSortRole(Qt.UserRole)
 
     # BEGIN Required implementations of QSortFilterProxyModel functions
     def filterAcceptsRow(self, sourcerow, sourceparent):
@@ -59,7 +61,7 @@ class MessageProxyModel(QSortFilterProxyModel):
         """
         rowdata = []
         for index in range(self.sourceModel().columnCount()):
-            rowdata.append(self.sourceModel().index(sourcerow, index, sourceparent).data())
+            rowdata.append(self.sourceModel().index(sourcerow, index, sourceparent).data(Qt.UserRole))
 
         if self._exclude_filters.test_message_array(rowdata):
             return False
@@ -89,6 +91,7 @@ class MessageProxyModel(QSortFilterProxyModel):
                             return severity_levels[data]
                         else:
                             raise KeyError('Unknown severity type: %s' % data)
+                    # TODO rework this so we are not calling the test filters constantly and resetting the color
                     if self._highlight_filters.count_enabled_filters() > 0:
                         if not self._highlight_filters.test_message(messagelist[index.row()]):
                             return QBrush(Qt.gray)
@@ -96,6 +99,9 @@ class MessageProxyModel(QSortFilterProxyModel):
     # END Required implementations of QSortFilterProxyModel functions
 
     def handle_filters_changed(self):
+        """
+        Invalidates filters and triggers refiltering
+        """
         self.invalidate()
 
     def add_exclude_filter(self, newfilter):

@@ -44,13 +44,27 @@ class Message(QObject):
         super(Message, self).__init__()
         self._messagemembers = self.get_message_members()
         self._severity = {1: self.tr('Debug'), 2: self.tr('Info'), 4: self.tr('Warn'), 8: self.tr('Error'), 16: self.tr('Fatal')}
+        self._time_format = None
         if msg is not None:
             self._message = msg.msg
             self._severity = self._severity[msg.level]
             self._node = msg.name
-            self._time = (msg.header.stamp.secs, msg.header.stamp.nsecs)
+            self._time = self.datestamp_to_qdatetime(msg.header.stamp.secs, msg.header.stamp.nsecs)
             self._topics = ', '.join(msg.topics)
             self._location = msg.file + ':' + msg.function + ':' + str(msg.line)
+
+    def _get_time(self):
+        return self.__time
+
+    def _set_time(self, time):
+        """
+        :param time: date and time to set ''QDateTime''
+        """
+        self.__time = time
+        if self._time_format:
+            self._time_string = self._time.toString(self._time_format)
+
+    _time = property(_get_time, _set_time)
 
     @staticmethod
     def get_message_members():
@@ -70,20 +84,38 @@ class Message(QObject):
     def count(self):
         return len(self._messagemembers)
 
-    def time_in_seconds(self):
+    def set_time_format(self, format):
         """
-        :returns: seconds with decimal fractions of a second to the 9th decimal place, ''str''
+        :param format: formatting characters are defined in the QDateTime documentation ''str''
         """
-        return str(self._time[0]) + '.' + str(self._time[1]).zfill(9)
+        self._time_format = format
+        self._time_string = self._time.toString(self._time_format)
 
-    def time_as_qdatetime(self):
+    def time_as_string(self):
         """
-        :returns: time with msecs included, ''QDateTime''
+        :returns: time in the format provided ''str''
         """
-        time = QDateTime()
-        time.setTime_t(int(self._time[0]))
-        time = time.addMSecs(int(str(self._time[1]).zfill(9)[:3]))
-        return time
+        return self._time.toString(self._time_format)
+
+    def time_as_datestamp(self):
+        """
+        :returns: seconds with decimal fractions of a second, ''str''
+        """
+        seconds = self._time.toTime_t()
+        seconds_in_qdate = QDateTime()
+        seconds_in_qdate.setTime_t(seconds)
+        msecs = seconds_in_qdate.msecsTo(self._time)
+        return seconds + '.' + msecs
+
+    def datestamp_to_qdatetime(self, secs, nsecs):
+        """
+        :param secs: seconds from a datestamp ''int''
+        :param nsecs: nanoseconds from a datestamp ''int''
+        :returns: converted time ''QDateTime''
+        """
+        temp_time = QDateTime()
+        temp_time.setTime_t(int(secs))
+        return temp_time.addMSecs(int(str(nsecs).zfill(9)[:3]))
 
     def load_from_array(self, rowdata):
         """
@@ -98,7 +130,7 @@ class Message(QObject):
         self._message = rowdata[0]
         self._severity = rowdata[1]
         self._node = rowdata[2]
-        self._time = rowdata[3].split('.')
+        self._time = rowdata[3]
         self._topics = rowdata[4]
         self._location = rowdata[5]
         return self
@@ -117,7 +149,7 @@ class Message(QObject):
         if sc_index == -1:
             raise ValueError('File format is incorrect, missing ";" marker')
         sec, nsec = text[:sc_index].split('.')
-        self._time = (sec, nsec)
+        self._time = self.datestamp_to_qdatetime(sec, nsec)
         text = text[text.find('";"') + 3:]
         sc_index = text.find('";"')
         if sc_index == -1:
@@ -140,7 +172,7 @@ class Message(QObject):
 
     def file_print(self):
         text = '"' + self._node + '";'
-        text += '"' + self.time_in_seconds() + '";'
+        text += '"' + self.time_as_datestamp() + '";'
         text += '"' + self._severity + '";'
         text += '"' + self._topics + '";'
         text += '"' + self._location + '";'
@@ -150,7 +182,7 @@ class Message(QObject):
 
     def pretty_print(self):
         text = self.tr('Node: ') + self._node + '\n'
-        text += self.tr('Time: ') + self.time_in_seconds() + '\n'
+        text += self.tr('Time: ') + self.time_as_datestamp() + '\n'
         text += self.tr('Severity: ') + self._severity + '\n'
         text += self.tr('Published Topics: ') + self._topics + '\n'
         text += '\n' + self._message + '\n'
