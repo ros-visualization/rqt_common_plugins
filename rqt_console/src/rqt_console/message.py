@@ -35,7 +35,7 @@ from python_qt_binding.QtCore import QDateTime, QObject
 
 class Message(QObject):
     """
-    Basic Message object.To directly access members use the get_data() function.
+    Basic Message object. To directly access members use the get_data() function.
     """
     def __init__(self, msg=None):
         """
@@ -45,6 +45,7 @@ class Message(QObject):
         self._messagemembers = self.get_message_members()
         self._severity = {1: self.tr('Debug'), 2: self.tr('Info'), 4: self.tr('Warn'), 8: self.tr('Error'), 16: self.tr('Fatal')}
         self._time_format = None
+        self.__color = 'black'
         if msg is not None:
             self._message = msg.msg
             self._severity = self._severity[msg.level]
@@ -52,6 +53,18 @@ class Message(QObject):
             self._time = self.datestamp_to_qdatetime(msg.header.stamp.secs, msg.header.stamp.nsecs)
             self._topics = ', '.join(msg.topics)
             self._location = msg.file + ':' + msg.function + ':' + str(msg.line)
+
+    def set_color(self, color):
+        """
+        :param color: Color Keyword ''str''
+        """
+        self.__color = color
+
+    def get_color(self):
+        """
+        :returns: Color Keyword ''str''
+        """
+        return self.__color
 
     def _get_time(self):
         return self.__time
@@ -105,7 +118,7 @@ class Message(QObject):
         seconds_in_qdate = QDateTime()
         seconds_in_qdate.setTime_t(seconds)
         msecs = seconds_in_qdate.msecsTo(self._time)
-        return seconds + '.' + msecs
+        return str(seconds) + '.' + str(msecs)
 
     def datestamp_to_qdatetime(self, secs, nsecs):
         """

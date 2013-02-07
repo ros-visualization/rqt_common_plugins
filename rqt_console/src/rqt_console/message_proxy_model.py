@@ -31,7 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from python_qt_binding.QtCore import Qt, qWarning
-from python_qt_binding.QtGui import QBrush, QSortFilterProxyModel
+from python_qt_binding.QtGui import QBrush, QColor, QSortFilterProxyModel
 
 from .filters.filter_collection import FilterCollection
 
@@ -68,7 +68,11 @@ class MessageProxyModel(QSortFilterProxyModel):
         if self._highlight_filters.count_enabled_filters() == 0:
             return True
         match = self._highlight_filters.test_message_array(rowdata)
-
+        if match:
+            color = 'black'
+        else:
+            color = 'gray'
+        self.sourceModel()._messages.get_message_list()[sourcerow].set_color(color)
         return not self._show_highlighted_only or match
 
     def data(self, index, role=None):
@@ -91,10 +95,10 @@ class MessageProxyModel(QSortFilterProxyModel):
                             return severity_levels[data]
                         else:
                             raise KeyError('Unknown severity type: %s' % data)
-                    # TODO rework this so we are not calling the test filters constantly and resetting the color
                     if self._highlight_filters.count_enabled_filters() > 0:
-                        if not self._highlight_filters.test_message(messagelist[index.row()]):
-                            return QBrush(Qt.gray)
+                        return QBrush(QColor(messagelist[index.row()].get_color()))
+                    else:
+                        return QBrush(Qt.black)
         return self.sourceModel().data(index, role)
     # END Required implementations of QSortFilterProxyModel functions
 
