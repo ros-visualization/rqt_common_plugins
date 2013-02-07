@@ -34,11 +34,9 @@
 
 from __future__ import division
 
-import dynamic_reconfigure.client
 from python_qt_binding.QtCore import Qt, Signal
 from python_qt_binding.QtGui import QSortFilterProxyModel
 import rospy
-from rqt_py_common.data_items import ReadonlyItem
 
 #from .rqt_ros_graph import RqtRosGraph
 #from .treenode_status import TreenodeStatus
@@ -97,11 +95,13 @@ class FilterChildrenModel(QSortFilterProxyModel):
         curr_qstd_item = src_model.itemFromIndex(curr_qmindex)
 
         if isinstance(curr_qstd_item, TreenodeQstdItem):
-            # if ReadonlyItem, this means items are the parameters, not nodes.
+            # if TreenodeQstdItem, get GRN name
             nodename_fullpath = curr_qstd_item.get_raw_param_name()
             text_filter_target = nodename_fullpath
             rospy.logdebug('   Nodename full={} '.format(nodename_fullpath))
         else:
+            # if ReadonlyItem, this means items are the parameters,
+            # not a part of node name. So, get param name.
             text_filter_target = curr_qstd_item.data(Qt.DisplayRole)
 
         regex = self.filterRegExp()
@@ -174,65 +174,6 @@ class FilterChildrenModel(QSortFilterProxyModel):
 #        curr_qstd_item.insertColumn(1, list_colitems)
 #        self._parent._std_model.setItem(src_row, 1, curr_qstd_item)
 
-    def _filter_row_precedent(self, src_row, src_parent_qmindex):
-        """
-        Check treenodes in top-down direction.
-        Bottom-up direction is impossible due to QSortFilterProxyModel's
-        design/limitation.
-        """
-        curr_qmindex = self.sourceModel().index(src_row, 0, src_parent_qmindex)
-
-        # Generate Treenode instance
-        curr_id = curr_qmindex.internalId()
-        if self._treenodes.has_key(curr_id):
-            curr_treenode = self._treenodes.get(curr_id)
-
-            if not curr_qmindex.internalId == self._toplv_parent_prev.internalId:
-                curr_treenode.set_is_eval_done(True)
-            else:
-                # Reset treenode instance
-                curr_treenode.set_is_eval_done(False)
-
-        else:
-            self._treenodes[curr_id](TreenodeStatus(curr_id))
-            self._toplv_parent_prev = self._get_toplevel_parent_recur(
-                                                                  curr_qmindex)
-
-        flag = False
-        # From curr_qmindex (QModelIndex), obtain terminal item that also
-        # contains full path node name.
-        node_names = RqtRosGraph.get_full_grn_recur(curr_qmindex, False)
-        rospy.logdebug('Nodes len={}'.format(len(node_names)))
-
-        #TODO Add creation of all subsequent treenodes. Only occurs when
-        #     the current qmindex is top level treenode.
-#        if not src_parent_qmindex == -1:
-#            self._gen_children_treenodes(curr_id)
-
-        regex = self.filterRegExp()
-        i_debug = 0
-        # Loop per all sub children full path nodes.
-        for node_name_selected in node_names:
-            rospy.logdebug('i={} {}'.format(i_debug, node_name_selected))
-            #regex = self.filterRegExp()
-            i = regex.indexIn(node_name_selected)
-            if i >= 0:  # Query hit.
-                flag = True
-                # Set all subsequent treenodes True
-                rospy.logdebug(' FCModel.filterAcceptsRow src_row={}'.format(
-                                 src_row) + ' parent row={} data={}'.format(
-                                 src_parent_qmindex.row(),
-                                 src_parent_qmindex.data()) +
-                              ' filterRegExp={}'.format(regex))
-            else:  # Query didn't hit.
-                #flag = False
-
-                # Turn the TreenodeStatus' of all parents _shows flag to False
-                rospy.loginfo(" xxxxxx query didn't match node={}".format(
-                                                           node_name_selected))
-            i_debug += 1
-        return flag
-
     def _get_toplevel_parent_recur(self, qmindex):
         p = qmindex.parent()
         if p.isValid():
@@ -250,3 +191,9 @@ class FilterChildrenModel(QSortFilterProxyModel):
             source_column) + 'parent col={} row={} data={}'.format(
             source_parent.column(), source_parent.row(), source_parent.data()))
         return True
+
+    def set_filter(self, filter_):
+        self._filter = filter_
+
+        # By calling setFilterRegExp, filterAccepts* methods get kicked.
+        self.setFilterRegExp(self._filter.get_regexp())

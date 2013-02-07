@@ -129,7 +129,7 @@ class TreenodeQstdItem(ReadonlyItem):
                            http://www.ros.org/wiki/Names).
                            Example: /paramname/subpara/subsubpara/...
         """
-        rospy.loginfo('_set_param_name param_name={} '.format(param_name))
+        rospy.logdebug('_set_param_name param_name={} '.format(param_name))
 
         #  separate param_name by forward slash
         self._list_paramname = param_name.split('/')

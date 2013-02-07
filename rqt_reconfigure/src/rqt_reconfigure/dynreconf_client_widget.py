@@ -38,6 +38,7 @@ from .param_editors import EditorWidget
 from .param_groups import GroupWidget
 from .param_updater import ParamUpdater
 
+
 class DynreconfClientWidget(GroupWidget):
     """
     A wrapper of dynamic_reconfigure.client instance.
@@ -49,10 +50,10 @@ class DynreconfClientWidget(GroupWidget):
         :type reconf: dynamic_reconfigure.client
         :type node_name: str
         """
-        
+
         group_desc = reconf.get_group_descriptions()
         rospy.logdebug('DynreconfClientWidget.group_desc=%s', group_desc)
-        super(DynreconfClientWidget, self).__init__(ParamUpdater(reconf), 
+        super(DynreconfClientWidget, self).__init__(ParamUpdater(reconf),
                                                     group_desc, node_name)
 
         self.setMinimumWidth(150)
@@ -60,12 +61,12 @@ class DynreconfClientWidget(GroupWidget):
         self.reconf = reconf
 
         self.updater.start()
-        
+
         self.reconf.config_callback = self.config_callback
 
     def config_callback(self, config):
         #TODO(Isaac) Think about replacing callback architecture with signals.
-         
+
         if config is not None:
             # TODO: should use config.keys but this method doesnt exist
             names = [name for name in config.items()]
@@ -73,7 +74,7 @@ class DynreconfClientWidget(GroupWidget):
             for widget in self.editor_widgets:
                 if isinstance(widget, EditorWidget):
                     if widget.param_name in names:
-                        rospy.logdebug('EDITOR widget.param_name=%s', 
+                        rospy.logdebug('EDITOR widget.param_name=%s',
                                        widget.param_name)
                         widget.update_value(config[widget.param_name])
                 elif isinstance(widget, GroupWidget):

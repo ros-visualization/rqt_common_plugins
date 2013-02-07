@@ -39,12 +39,12 @@ import os
 
 import dynamic_reconfigure as dyn_reconf
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import QRegExp, Qt, QTimer, Signal
-from python_qt_binding.QtGui import QHeaderView, QItemSelectionModel, QStandardItemModel, QWidget
+from python_qt_binding.QtCore import QRegExp, Qt, Signal
+from python_qt_binding.QtGui import (QHeaderView, QItemSelectionModel, 
+                                     QStandardItemModel, QWidget)
 import rospkg
 import rospy
 import rosservice
-from rqt_py_common.data_items import ReadonlyItem
 
 from .filter_children_model import FilterChildrenModel
 from .treenode_qstditem import TreenodeQstdItem
@@ -253,7 +253,7 @@ class NodeSelectorWidget(QWidget):
             for node_name_grn in nodes:
 
                 ####(Begin) For DEBUG ONLY; skip some dynreconf creation
-#                if i_node_curr % 94 != 0:
+#                if i_node_curr % 34 != 0:
 #                    i_node_curr += 1
 #                    continue
                 #### (End) For DEBUG ONLY. ####
@@ -343,7 +343,7 @@ class NodeSelectorWidget(QWidget):
         rospy.logdebug(" in close_node")
         # TODO(Isaac) Figure out if dynamic_reconfigure needs to be closed.
 
-    def filter_key_changed(self, text):
+    def filterkey_changed(self, text):
         """
         Slot that accepts filtering key.
 
@@ -372,3 +372,10 @@ class NodeSelectorWidget(QWidget):
         syntax = QRegExp.PatternSyntax(syntax_nr)
         regExp = QRegExp(text, Qt.CaseInsensitive, syntax)
         self._proxy_model.setFilterRegExp(regExp)
+
+    def set_filter(self, filter_):
+        """
+        Pass fileter instance to the child proxymodel.
+        :type filter_: BaseFilter
+        """
+        self._proxy_model.set_filter(filter_)

@@ -34,15 +34,16 @@
 
 from __future__ import division
 
-import os
 import sys
 
-from python_qt_binding import loadUi
-from python_qt_binding.QtGui import (QLabel, QHBoxLayout, QLineEdit, QSplitter,
+from python_qt_binding.QtCore import Signal
+from python_qt_binding.QtGui import (QLabel, QHBoxLayout, QSplitter,
                                      QVBoxLayout, QWidget)
 
 from rqt_reconfigure.node_selector_widget import NodeSelectorWidget
 from rqt_reconfigure.paramedit_widget import ParameditWidget
+from rqt_reconfigure.text_filter import TextFilter
+from rqt_reconfigure.text_filter_widget import TextFilterWidget
 
 
 class ParamWidget(QWidget):
@@ -65,7 +66,7 @@ class ParamWidget(QWidget):
         self.setObjectName(self._TITLE_PLUGIN)
         self.setWindowTitle(self._TITLE_PLUGIN)
 
-        #TODO(Isaac) .ui file needs to replace the GUI components declaration
+        #TODO: .ui file needs to replace the GUI components declaration
         #            below. For unknown reason, referring to another .ui files
         #            from a .ui that is used in this class failed. So for now,
         #            I decided not use .ui in this class.
@@ -78,24 +79,26 @@ class ParamWidget(QWidget):
         _vlayout_nodesel_side = QVBoxLayout()
         _hlayout_filter_widget = QWidget(self)
         _hlayout_filter = QHBoxLayout()
-        self.filter_lineedit = QLineEdit(self)
+        #self.filter_lineedit = QLineEdit(self)
+        self._text_filter = TextFilter()
+        self.filter_lineedit = TextFilterWidget(self._text_filter)
         self.filterkey_label = QLabel("&Filter key:")
         self.filterkey_label.setBuddy(self.filter_lineedit)
         _hlayout_filter.addWidget(self.filterkey_label)
         _hlayout_filter.addWidget(self.filter_lineedit)
         _hlayout_filter_widget.setLayout(_hlayout_filter)
-        nodesel_widget = NodeSelectorWidget()
+        self._nodesel_widget = NodeSelectorWidget()
         _vlayout_nodesel_side.addWidget(_hlayout_filter_widget)
-        _vlayout_nodesel_side.addWidget(nodesel_widget)
+        _vlayout_nodesel_side.addWidget(self._nodesel_widget)
         _vlayout_nodesel_side.setSpacing(1)
         _vlayout_nodesel_widget.setLayout(_vlayout_nodesel_side)
 
-        paramitems = nodesel_widget.get_paramitems()
+        paramitems = self._nodesel_widget.get_paramitems()
 
         reconf_widget = ParameditWidget(paramitems)
         #reconf_widget.set_nodes(paramitems)
 
-        #self._splitter.insertWidget(0, nodesel_widget)
+        #self._splitter.insertWidget(0, self._nodesel_widget)
         self._splitter.insertWidget(0, _vlayout_nodesel_widget)
         self._splitter.insertWidget(1, reconf_widget)
         # 1st column, _vlayout_nodesel_widget, to minimize width.
@@ -104,21 +107,22 @@ class ParamWidget(QWidget):
         self._splitter.setStretchFactor(1, 0)
 
         # Pass name of node to editor widget
-        nodesel_widget.sig_node_selected.connect(reconf_widget.show_reconf)
+        self._nodesel_widget.sig_node_selected.connect(
+                                                     reconf_widget.show_reconf)
 
-        if node is not None:
-            title = self._TITLE_PLUGIN + ' %s' % node
-        else:
+        if node is None:
             title = self._TITLE_PLUGIN
+        else:
+            title = self._TITLE_PLUGIN + ' %s' % node
         self.setObjectName(title)
 
         #Connect filter signal-slots.
-        self.filter_lineedit.textChanged.connect(
-                                             nodesel_widget.filter_key_changed)
-        self.filter_lineedit.textChanged.connect(reconf_widget.filter_param)
+        self._text_filter.filter_changed_signal.connect(
+                                      #self._nodesel_widget.filter_key_changed)
+                                            self._filter_key_changed)
 
     def shutdown(self):
-        #TODO(Isaac) Needs implemented. Trigger dynamic_reconfigure to unlatch
+        #TODO: Needs implemented. Trigger dynamic_reconfigure to unlatch
         #            subscriber.
         pass
 
@@ -137,6 +141,8 @@ class ParamWidget(QWidget):
         """
         return self.filter_lineedit.text()
 
+    def _filter_key_changed(self):
+        self._nodesel_widget.set_filter(self._text_filter)
 
 if __name__ == '__main__':
     # main should be used only for debug purpose.
