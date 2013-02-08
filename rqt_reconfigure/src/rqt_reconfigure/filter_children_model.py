@@ -38,8 +38,8 @@ from python_qt_binding.QtCore import Qt, Signal
 from python_qt_binding.QtGui import QSortFilterProxyModel
 import rospy
 
-#from .rqt_ros_graph import RqtRosGraph
-#from .treenode_status import TreenodeStatus
+# from .rqt_ros_graph import RqtRosGraph
+# from .treenode_status import TreenodeStatus
 from .treenode_qstditem import TreenodeQstdItem
 
 
@@ -65,7 +65,7 @@ class FilterChildrenModel(QSortFilterProxyModel):
 
         # :Key: Internal ID of QModelIndex of each treenode.
         # :Value: TreenodeStatus
-        #self._treenodes = OrderedDict()
+        # self._treenodes = OrderedDict()
 
         self._parent = parent
         self._toplv_parent_prev = None
@@ -80,9 +80,7 @@ class FilterChildrenModel(QSortFilterProxyModel):
         :type src_row: int
         :type src_parent_qmindex: QModelIndex
         """
-
         rospy.logdebug('filerAcceptRow 1')
-
         return self._filter_row_recur(src_row, src_parent_qmindex)
 
     def _filter_row_recur(self, src_row, src_parent_qmindex):
@@ -92,17 +90,18 @@ class FilterChildrenModel(QSortFilterProxyModel):
         """
         src_model = self.sourceModel()
         curr_qmindex = src_model.index(src_row, 0, src_parent_qmindex)
-        curr_qstd_item = src_model.itemFromIndex(curr_qmindex)
+        curr_qitem = src_model.itemFromIndex(curr_qmindex)
 
-        if isinstance(curr_qstd_item, TreenodeQstdItem):
+        if isinstance(curr_qitem, TreenodeQstdItem):
             # if TreenodeQstdItem, get GRN name
-            nodename_fullpath = curr_qstd_item.get_raw_param_name()
+            nodename_fullpath = curr_qitem.get_raw_param_name()
             text_filter_target = nodename_fullpath
             rospy.logdebug('   Nodename full={} '.format(nodename_fullpath))
         else:
             # if ReadonlyItem, this means items are the parameters,
             # not a part of node name. So, get param name.
-            text_filter_target = curr_qstd_item.data(Qt.DisplayRole)
+
+            text_filter_target = curr_qitem.data(Qt.DisplayRole)
 
         regex = self.filterRegExp()
         pos_hit = regex.indexIn(text_filter_target)
@@ -120,12 +119,12 @@ class FilterChildrenModel(QSortFilterProxyModel):
                               src_parent_qmindex.data()) +
                            ' filterRegExp={}'.format(regex))
 
-            #TODO If the index is the terminal treenode, parameters that hit
+            # TODO If the index is the terminal treenode, parameters that hit
             # the query are displayed on column 1 at the root tree.
             child = curr_qmindex.child(0, 0)
             if ((not child.isValid()) and
-                (isinstance(curr_qstd_item, TreenodeQstdItem))):
-                self._show_params_view(src_row, curr_qstd_item)
+                (isinstance(curr_qitem, TreenodeQstdItem))):
+                self._show_params_view(src_row, curr_qitem)
 
             # Once we find a treenode that hits the query, no need to further
             # traverse since what this method wants to know with the given
@@ -133,7 +132,7 @@ class FilterChildrenModel(QSortFilterProxyModel):
             # Thus, just return True here.
             return True
 
-        if not isinstance(curr_qstd_item, TreenodeQstdItem):
+        if not isinstance(curr_qitem, TreenodeQstdItem):
             return False  # If parameters, no need for recursive filtering.
 
         # Evaluate children recursively.
@@ -149,9 +148,9 @@ class FilterChildrenModel(QSortFilterProxyModel):
             row_child += 1
         return False
 
-    def _show_params_view(self, src_row, curr_qstd_item):
+    def _show_params_view(self, src_row, curr_qitem):
         """
-        :type curr_qstd_item: QStandardItem
+        :type curr_qitem: QStandardItem
         """
 
 #        cols = self._parent._std_model.columnCount()
@@ -163,16 +162,16 @@ class FilterChildrenModel(QSortFilterProxyModel):
 #            self._parent.setHeaderHidden(False)
 
         rospy.logdebug('_show_params_view data={}'.format(
-                                  curr_qstd_item.data(Qt.DisplayRole)))
-        curr_qstd_item.enable_param_items()
+                                  curr_qitem.data(Qt.DisplayRole)))
+        curr_qitem.enable_param_items()
         # Set column for params.
 #        param_col_item = ReadonlyItem('Paramo')
 #        param_col_item_2 = ReadonlyItem('Paramo_2')
 #        list_colitems = []
 #        list_colitems.append(param_col_item)
 #        list_colitems.append(param_col_item_2)
-#        curr_qstd_item.insertColumn(1, list_colitems)
-#        self._parent._std_model.setItem(src_row, 1, curr_qstd_item)
+#        curr_qitem.insertColumn(1, list_colitems)
+#        self._parent._std_model.setItem(src_row, 1, curr_qitem)
 
     def _get_toplevel_parent_recur(self, qmindex):
         p = qmindex.parent()

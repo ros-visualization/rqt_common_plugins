@@ -34,7 +34,6 @@
 
 import time
 
-from python_qt_binding import loadUi
 from python_qt_binding.QtCore import QSize, Qt
 from python_qt_binding.QtGui import (QFont, QFormLayout, QHBoxLayout, QIcon,
                                      QGroupBox, QLabel, QPushButton, QTabWidget,
@@ -97,7 +96,7 @@ class GroupWidget(QWidget):
 
         #TODO figure out what data type 'config' is. It is afterall returned
         #     from dynamic_reconfigure.client.get_parameter_descriptions()
-        #     http://ros.org/doc/api/dynamic_reconfigure/html/dynamic_reconfigure.client-pysrc.html#Client
+        # http://ros.org/doc/api/dynamic_reconfigure/html/dynamic_reconfigure.client-pysrc.html#Client
 
         super(GroupWidget, self).__init__()
         self.state = config['state']

@@ -35,14 +35,11 @@
 import math
 import os
 
-from dynamic_reconfigure.msg import Config as ConfigMsg
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt, Signal
-from python_qt_binding.QtGui import QCheckBox, QComboBox, QDoubleValidator, QIntValidator, QHBoxLayout, QLabel, QLineEdit, QPainter, QSlider, QWidget
+from python_qt_binding.QtGui import (QDoubleValidator, QIntValidator, QLabel, 
+                                     QWidget)
 import rospkg
 import rospy
-
-from .param_updater import ParamUpdater
 
 EDITOR_TYPES = {
     'bool': 'BooleanEditor',

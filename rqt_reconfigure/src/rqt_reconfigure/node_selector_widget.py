@@ -36,6 +36,7 @@ from __future__ import division
 
 from collections import OrderedDict
 import os
+import time
 
 import dynamic_reconfigure as dyn_reconf
 from python_qt_binding import loadUi
@@ -250,17 +251,15 @@ class NodeSelectorWidget(QWidget):
         if not nodes == self._nodes_previous:
             i_node_curr = 1
             num_nodes = len(nodes)
+            elapsedtime_overall = 0.0
             for node_name_grn in nodes:
+                time_siglenode_loop = time.time()
 
                 ####(Begin) For DEBUG ONLY; skip some dynreconf creation
-#                if i_node_curr % 34 != 0:
+#                if i_node_curr % 2 != 0:
 #                    i_node_curr += 1
 #                    continue
                 #### (End) For DEBUG ONLY. ####
-
-                # Please don't remove - this is not a debug print.
-                rospy.loginfo('rqt_reconfigure loading #{}/{} node={}'.format(
-                                        i_node_curr, num_nodes, node_name_grn))
 
                 paramitem_full_nodename = TreenodeQstdItem(
                                  node_name_grn, TreenodeQstdItem.NODE_FULLPATH)
@@ -278,6 +277,16 @@ class NodeSelectorWidget(QWidget):
                 self._add_tree_node(paramitem_full_nodename,
                                     self._rootitem,
                                     names)
+
+                time_siglenode_loop = time.time() - time_siglenode_loop
+                elapsedtime_overall += time_siglenode_loop
+                # NOT a debug print - please don't remove.
+                # This print works as progress notification when loading takes
+                # long time.
+                rospy.loginfo('reconf ' +
+                  'loading #{}/{} {} / {}sec node={}'.format(
+                         i_node_curr, num_nodes, round(time_siglenode_loop, 2),
+                         round(elapsedtime_overall, 2), node_name_grn))
 
     def _add_tree_node(self, param_item_full,
                        stditem_parent, child_names_left):

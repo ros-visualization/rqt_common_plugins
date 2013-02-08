@@ -35,7 +35,7 @@
 from __future__ import division
 
 import dynamic_reconfigure.client
-from python_qt_binding.QtCore import Qt, QVariant
+from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtGui import QBrush, QWidget
 import rospy
 from rqt_py_common.data_items import ReadonlyItem
