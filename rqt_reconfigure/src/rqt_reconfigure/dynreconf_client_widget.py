@@ -65,11 +65,14 @@ class DynreconfClientWidget(GroupWidget):
         self.reconf.config_callback = self.config_callback
 
     def config_callback(self, config):
-        #TODO(Isaac) Think about replacing callback architecture with signals.
+        #TODO: Think about replacing callback architecture with signals.
 
         if config is not None:
             # TODO: should use config.keys but this method doesnt exist
-            names = [name for name in config.items()]
+
+            names = [name for name, v in config.items()]
+            # v isn't used but necessary to get key and put it into dict.
+            rospy.logdebug('config_callback name={} v={}'.format(name, v))
 
             for widget in self.editor_widgets:
                 if isinstance(widget, EditorWidget):
@@ -78,8 +81,8 @@ class DynreconfClientWidget(GroupWidget):
                                        widget.param_name)
                         widget.update_value(config[widget.param_name])
                 elif isinstance(widget, GroupWidget):
-                    cfg = find_cfg(config, widget.param_name)
-                    rospy.logdebug('GROUP widget.param_name=%s', 
+                    cfg = self.find_cfg(config, widget.param_name)
+                    rospy.logdebug('GROUP widget.param_name=%s',
                                    widget.param_name)
                     widget.update_group(cfg)
 
