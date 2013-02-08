@@ -36,7 +36,7 @@ import math
 import os
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import (QDoubleValidator, QIntValidator, QLabel, 
+from python_qt_binding.QtGui import (QDoubleValidator, QIntValidator, QLabel,
                                      QWidget)
 import rospkg
 import rospy
@@ -84,6 +84,11 @@ class EditorWidget(QWidget):
             self.old_value = value
 
     def update_value(self, value):
+        """
+        To be overridden in subclass.
+
+        Update the value of the arbitrary components based on user's input.
+        """
         pass
 
     def update_configuration(self, value):
@@ -128,9 +133,12 @@ class StringEditor(EditorWidget):
         self._paramval_lineedit.editingFinished.connect(self.edit_finished)
 
     def update_value(self, value):
+        rospy.logdebug('StringEditor update_value={}'.format(value))
         self._paramval_lineedit.setText(value)
 
     def edit_finished(self):
+        rospy.logdebug('StringEditor edit_finished val={}'.format(
+                                              self._paramval_lineedit.text()))
         self._update(self._paramval_lineedit.text())
 
     def display(self, grid, row):
@@ -151,9 +159,10 @@ class IntegerEditor(EditorWidget):
         self._slider_horizontal.setRange(self.min, self.max)
         self._slider_horizontal.sliderReleased.connect(self.slider_released)
         self._slider_horizontal.sliderMoved.connect(self.update_text)
+        self._slider_horizontal.valueChanged.connect(self.update_value)
 
-        # TODO(Isaac) Fix that the naming of _paramval_lineEdit instance is not
-        #            consistent among Editor's subclasses.
+        # TODO: Fix that the naming of _paramval_lineEdit instance is not
+        #       consistent among Editor's subclasses.
         self._paramval_lineEdit.setValidator(QIntValidator(self.min,
                                                            self.max, self))
         self._paramval_lineEdit.editingFinished.connect(self.editing_finished)
@@ -179,6 +188,8 @@ class IntegerEditor(EditorWidget):
     def update_value(self, val):
         self._slider_horizontal.setSliderPosition(int(val))
         self._paramval_lineEdit.setText(str(val))
+        rospy.logdebug(' IntegerEditor.update_val val=%s', str(val))
+        self._update(self._slider_horizontal.value())
 
     def display(self, grid, row):
 #        grid.addWidget(QLabel(self.param_name), row, 0, Qt.AlignRight)
@@ -244,6 +255,7 @@ class DoubleEditor(EditorWidget):
 
     def update_text(self, value):
         self._paramval_lineEdit.setText(str(self.get_value()))
+        rospy.logdebug(' DblEditor.update_text val=%s', str(value))
 
     def editing_finished(self):
         self._slider_horizontal.setSliderPosition(
@@ -268,7 +280,7 @@ class EnumEditor(EditorWidget):
         try:
             enum = eval(config['edit_method'])['enum']
         except:
-            print("Malformed enum")
+            rospy.logerr("reconfig EnumEditor) Malformed enum")
             return
 
         self.names = [item['name'] for item in enum]
