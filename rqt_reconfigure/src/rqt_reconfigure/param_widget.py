@@ -96,7 +96,8 @@ class ParamWidget(QWidget):
         paramitems = self._nodesel_widget.get_paramitems()
 
         reconf_widget = ParameditWidget(paramitems)
-        #reconf_widget.set_nodes(paramitems)
+        reconf_widget.sig_node_disabled_selected.connect(
+                                       self._nodesel_widget.node_deselected)
 
         #self._splitter.insertWidget(0, self._nodesel_widget)
         self._splitter.insertWidget(0, _vlayout_nodesel_widget)

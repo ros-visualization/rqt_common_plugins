@@ -100,7 +100,6 @@ class FilterChildrenModel(QSortFilterProxyModel):
         else:
             # if ReadonlyItem, this means items are the parameters,
             # not a part of node name. So, get param name.
-
             text_filter_target = curr_qitem.data(Qt.DisplayRole)
 
         regex = self.filterRegExp()
@@ -193,6 +192,12 @@ class FilterChildrenModel(QSortFilterProxyModel):
 
     def set_filter(self, filter_):
         self._filter = filter_
+
+        # If filtered text is '' (0-length str), invalidate current
+        # filtering, in the hope of making filtering process faster.
+        if filter_.get_text == '':
+            self.invalidate()
+            rospy.loginfo('filter invalidated.')
 
         # By calling setFilterRegExp, filterAccepts* methods get kicked.
         self.setFilterRegExp(self._filter.get_regexp())

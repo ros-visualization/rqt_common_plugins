@@ -34,20 +34,19 @@
 
 from __future__ import division
 
-import time
-
 from python_qt_binding.QtCore import Qt
 import rospy
 
 
 class RqtRosGraph(object):
-    # TODO(Isaac) Consider moving this to rqt_py_common.
 
     DELIM_GRN = '/'
 
     @staticmethod
-    def get_full_grn_recur(model_index):
+    def get_full_grn(model_index):
         """
+        @deprecated: Not completed.
+
         Create full path format of GRN (Graph Resource Names, see
         http://www.ros.org/wiki/Names). Build GRN by recursively transcending
         parents & children of a given QModelIndex instance.
@@ -61,7 +60,7 @@ class RqtRosGraph(object):
         :type model_index: QModelIndex
         :type str_grn: str
         :param str_grn: This could be an incomplete or a complete GRN format.
-        :rtype: str[]
+        :rtype: str
         """
 
         children_grn_list = RqtRosGraph.get_lower_grn_dfs(model_index)
@@ -77,7 +76,13 @@ class RqtRosGraph(object):
                 grn_list.append(grn_full)
         else:
             grn_list = children_grn_list
-        return grn_list
+
+        #Create a string where namespace is delimited by slash.
+        grn = ''
+        for s in grn_list:
+            grn += RqtRosGraph.DELIM_GRN + s
+
+        return grn
 
     @staticmethod
     def get_lower_grn_dfs(model_index, grn_prev=''):

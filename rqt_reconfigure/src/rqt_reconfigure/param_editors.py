@@ -76,7 +76,6 @@ class EditorWidget(QWidget):
         self.param_name = config['name']
 
         self.old_value = None
-        #self.rp = rospkg.RosPack()
 
     def _update(self, value):
         if value != self.old_value:
@@ -159,6 +158,7 @@ class IntegerEditor(EditorWidget):
         self._slider_horizontal.setRange(self.min, self.max)
         self._slider_horizontal.sliderReleased.connect(self.slider_released)
         self._slider_horizontal.sliderMoved.connect(self.update_text)
+        # valueChanged gets called when groove is clicked on.
         self._slider_horizontal.valueChanged.connect(self.update_value)
 
         # TODO: Fix that the naming of _paramval_lineEdit instance is not
@@ -192,8 +192,6 @@ class IntegerEditor(EditorWidget):
         self._update(self._slider_horizontal.value())
 
     def display(self, grid, row):
-#        grid.addWidget(QLabel(self.param_name), row, 0, Qt.AlignRight)
-#        grid.addWidget(self, row, 1)
         grid.addRow(QLabel(self.param_name), self)
 
 

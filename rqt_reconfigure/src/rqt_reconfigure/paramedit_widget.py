@@ -37,16 +37,13 @@ from collections import OrderedDict
 
 import dynamic_reconfigure.client
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import (QSpacerItem, QStandardItemModel, 
-                                     QVBoxLayout, QWidget, QWidgetItem)
+from python_qt_binding.QtCore import Qt, Signal
+from python_qt_binding.QtGui import QVBoxLayout, QWidget, QWidgetItem
 from rqt_py_common.layout_util import LayoutUtil
 import rospkg
 import rospy
 
 from .dynreconf_client_widget import DynreconfClientWidget
-#from .node_delegate import NodeDelegate
-from .param_updater import ParamUpdater
 
 
 class ParameditWidget(QWidget):
@@ -55,6 +52,9 @@ class ParameditWidget(QWidget):
     nodes are shown. In rqt_reconfigure, this pane occupies right half of the
     entire visible area.
     """
+
+    # public signal
+    sig_node_disabled_selected = Signal(str)
 
     def __init__(self, paramitems_dict):
         """
@@ -71,19 +71,10 @@ class ParameditWidget(QWidget):
 
         self._dynreconf_clients = OrderedDict()
 
-        #self.node_delegate = NodeDelegate(self, paramitems_dict)
-        #self.listview.setItemDelegate(self.node_delegate)
-
-        #self.set_nodes(paramitems_dict)
-        #self.std_model = QStandardItemModel()
-        #self.listview.setModel(self.std_model) # QListView
-
         # Adding the list of Items
-        #self.std_model.insertColumn(0, paramitems_dict.values())
         self.vlayout = QVBoxLayout(self.scrollarea_holder_widget)
 
-        #self._set_index_widgets(self.listview, paramitems_dict) #causes error
-
+        #self._set_index_widgets(self.listview, paramitems_dict) # causes error
         self.destroyed.connect(self.close)  # func in mercurial?
 
     def _set_index_widgets(self, view, paramitems_dict):
@@ -128,16 +119,11 @@ class ParameditWidget(QWidget):
 
             self._dynreconf_clients.__setitem__(node_grn, _dynreconf_client)
             self.vlayout.addWidget(_dynreconf_client)
+            _dynreconf_client.sig_node_disabled_selected.connect(
+                                                           self._node_disabled)
 
         else:  # If there has one already existed, remove it.
-            i = self._dynreconf_clients.keys().index(node_grn)
-            item = self.vlayout.itemAt(i)
-            if isinstance(item, QWidgetItem):
-                item.widget().close()
-            w = self._dynreconf_clients.pop(node_grn)
-
-            rospy.logdebug('popped={} Len of left clients={}'.format(
-                                              w, len(self._dynreconf_clients)))
+            self._remove_node(node_grn)
             #LayoutUtil.clear_layout(self.vlayout)
 
             # Re-add the rest of existing items to layout.
@@ -168,3 +154,18 @@ class ParameditWidget(QWidget):
         #     DynreconfWidget.filter_param for all of its existing
         #     instances.
         pass
+
+    def _remove_node(self, node_grn):
+        i = self._dynreconf_clients.keys().index(node_grn)
+        item = self.vlayout.itemAt(i)
+        if isinstance(item, QWidgetItem):
+                item.widget().close()
+        w = self._dynreconf_clients.pop(node_grn)
+
+        rospy.logdebug('popped={} Len of left clients={}'.format(
+                                            w, len(self._dynreconf_clients)))
+
+    def _node_disabled(self, node_grn):
+        rospy.loginfo('paramedit_w _node_disabled grn={}'.format(node_grn))
+        self.sig_node_disabled_selected.emit(node_grn)
+        self._remove_node(node_grn)
