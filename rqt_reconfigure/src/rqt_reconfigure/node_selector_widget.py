@@ -114,18 +114,27 @@ class NodeSelectorWidget(QWidget):
                                           self._current_selection_changed_slot)
 
     def node_deselected(self, grn):
+        """
+        Deselect the index that corresponds to the given GRN.
+
+        :type grn: str
+        """
+
+        # Obtain the corresponding index.
         qindex_tobe_deselected = self._item_model.get_index_from_grn(grn)
         rospy.loginfo('NodeSelWidt node_deselected qindex={} data={}'.format(
                                 qindex_tobe_deselected,
                                 qindex_tobe_deselected.data(Qt.DisplayRole)))
 
+        # Obtain all indices currently selected.
         indexes_selected = self.selectionModel.selectedIndexes()
         for index in indexes_selected:
             grn_from_selectedindex = RqtRosGraph.get_upper_grn(index, '')
             rospy.logdebug(' Compare given grn={} grn from selected={}'.format(
                                                   grn, grn_from_selectedindex))
+            # If GRN retrieved from selected index matches the given one.
             if grn == grn_from_selectedindex:
-                #self.selectionModel.select(qindex_tobe_deselected.index(),
+                # Deselect the index.
                 self.selectionModel.select(index, QItemSelectionModel.Deselect)
 
     def _selection_deselected(self, index_current, rosnode_name_selected):
