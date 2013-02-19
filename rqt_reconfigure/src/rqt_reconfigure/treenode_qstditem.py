@@ -79,7 +79,8 @@ class TreenodeQstdItem(ReadonlyItem):
         return self._dynreconf_client
 
     def connect_param_server(self):
-        self._connect_param_server(self._param_name_raw)
+        self._dynreconf_client = self._connect_param_server(
+                                                          self._param_name_raw)
 
     def _connect_param_server(self, nodename_grn_full):
         """
@@ -104,9 +105,9 @@ class TreenodeQstdItem(ReadonlyItem):
             #TODO: Needs to show err msg on GUI too.
             return
 
-        dynreconf_widget = DynreconfClientWidget(_dynreconf_client,
+        _dynreconf_widget = DynreconfClientWidget(_dynreconf_client,
                                                  nodename_grn_full)
-        return dynreconf_widget
+        return _dynreconf_widget
 
     def enable_param_items(self):
         """
@@ -115,7 +116,7 @@ class TreenodeQstdItem(ReadonlyItem):
         """
         if self._dynreconf_client == None:
             return None
-        paramnames = self._dynreconf_client.get_param_names()
+        paramnames = self._dynreconf_client.get_treenode_names()
         paramnames_items = []
         brush = QBrush(Qt.lightGray)
         for paramname in paramnames:
@@ -135,16 +136,16 @@ class TreenodeQstdItem(ReadonlyItem):
         rospy.logdebug('_set_param_name param_name={} '.format(param_name))
 
         #  separate param_name by forward slash
-        self._list_paramname = param_name.split('/')
+        self._list_treenode_names = param_name.split('/')
 
         #  Deleting the 1st elem which is zero-length str.
-        del self._list_paramname[0]
+        del self._list_treenode_names[0]
 
-        self._toplevel_treenode_name = self._list_paramname[0]
+        self._toplevel_treenode_name = self._list_treenode_names[0]
 
         rospy.logdebug('paramname={} nodename={} _list_params[-1]={}'.format(
                        param_name, self._toplevel_treenode_name,
-                       self._list_paramname[-1]))
+                       self._list_treenode_names[-1]))
 
     def get_param_name_toplv(self):
         """
@@ -156,13 +157,13 @@ class TreenodeQstdItem(ReadonlyItem):
     def get_raw_param_name(self):
         return self._param_name_raw
 
-    def get_param_names(self):
+    def get_treenode_names(self):
         """
         :rtype: List of string. Null if param
         """
 
-        #TODO: what if self._list_paramname is empty or null?
-        return self._list_paramname
+        #TODO: what if self._list_treenode_names is empty or null?
+        return self._list_treenode_names
 
     def get_node_name(self):
         """

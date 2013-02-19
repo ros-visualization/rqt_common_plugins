@@ -224,7 +224,7 @@ class NodeSelectorWidget(QWidget):
             rospy.logerr('Nothing selected? Not ideal to reach here')
             return
 
-        index_current = ''
+        index_current = None
         if len(selected.indexes()) > 0:
             index_current = selected.indexes()[0]
         elif len(deselected.indexes()) == 1:
@@ -277,17 +277,17 @@ class NodeSelectorWidget(QWidget):
                 time_siglenode_loop = time.time()
 
                 ####(Begin) For DEBUG ONLY; skip some dynreconf creation
-#                if i_node_curr % 9 != 0:
+#                if i_node_curr % 2 != 0:
 #                    i_node_curr += 1
 #                    continue
                 #### (End) For DEBUG ONLY. ####
 
                 treenodeitem_toplevel = TreenodeQstdItem(
                                  node_name_grn, TreenodeQstdItem.NODE_FULLPATH)
-                names = treenodeitem_toplevel.get_param_names()
+                _treenode_names = treenodeitem_toplevel.get_treenode_names()
                 self._nodeitems[node_name_grn] = treenodeitem_toplevel
                 self._add_children_treenode(treenodeitem_toplevel,
-                                            self._rootitem, names)
+                                            self._rootitem, _treenode_names)
 
                 time_siglenode_loop = time.time() - time_siglenode_loop
                 elapsedtime_overall += time_siglenode_loop

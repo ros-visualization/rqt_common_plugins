@@ -232,7 +232,7 @@ class GroupWidget(QWidget):
         for w in self.editor_widgets:
             w.close()
 
-    def get_param_names(self):
+    def get_treenode_names(self):
         """
         :rtype: str[]
         """
