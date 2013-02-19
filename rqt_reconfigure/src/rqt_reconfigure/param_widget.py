@@ -99,7 +99,6 @@ class ParamWidget(QWidget):
         reconf_widget.sig_node_disabled_selected.connect(
                                        self._nodesel_widget.node_deselected)
 
-        #self._splitter.insertWidget(0, self._nodesel_widget)
         self._splitter.insertWidget(0, _vlayout_nodesel_widget)
         self._splitter.insertWidget(1, reconf_widget)
         # 1st column, _vlayout_nodesel_widget, to minimize width.

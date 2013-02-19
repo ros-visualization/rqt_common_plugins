@@ -110,8 +110,10 @@ class NodeSelectorWidget(QWidget):
 
         # Setting slot for when user clicks on QTreeView.
         self.selectionModel = self._node_selector_view.selectionModel()
-        self.selectionModel.currentChanged.connect(
-                                          self._current_selection_changed_slot)
+        # Note: self.selectionModel.currentChanged doesn't work to deselect
+        # a treenode as expected. Need to use selectionChanged.
+        self.selectionModel.selectionChanged.connect(
+                                                  self._selection_changed_slot)
 
     def node_deselected(self, grn):
         """
@@ -122,7 +124,7 @@ class NodeSelectorWidget(QWidget):
 
         # Obtain the corresponding index.
         qindex_tobe_deselected = self._item_model.get_index_from_grn(grn)
-        rospy.loginfo('NodeSelWidt node_deselected qindex={} data={}'.format(
+        rospy.logdebug('NodeSelWidt node_deselected qindex={} data={}'.format(
                                 qindex_tobe_deselected,
                                 qindex_tobe_deselected.data(Qt.DisplayRole)))
 
@@ -142,6 +144,8 @@ class NodeSelectorWidget(QWidget):
         Intended to be called from _selection_changed_slot.
         """
         self.selectionModel.select(index_current, QItemSelectionModel.Deselect)
+
+        # Signal to notify other pane that also contains node widget.
         self.sig_node_selected.emit(rosnode_name_selected)
 
     def _selection_selected(self, index_current, rosnode_name_selected):
@@ -152,21 +156,26 @@ class NodeSelectorWidget(QWidget):
 
         # Determine if it's terminal treenode.
         found_node = False
-        for n in self._nodeitems.itervalues():
-            name = n.data(Qt.DisplayRole)
-            name_sel = rosnode_name_selected[
+        for nodeitem in self._nodeitems.itervalues():
+            name_nodeitem = nodeitem.data(Qt.DisplayRole)
+            name_rosnode_leaf = rosnode_name_selected[
                        rosnode_name_selected.rfind(RqtRosGraph.DELIM_GRN) + 1:]
-            if ((name == rosnode_name_selected) and
-                (name[name.rfind(RqtRosGraph.DELIM_GRN) + 1:] == name_sel)):
-                rospy.logdebug('terminal str {} MATCH {}'.format(name,
-                                                                 name_sel))
+
+            # If name of the leaf in the given name & the name taken from
+            # nodeitem list matches.
+            if ((name_nodeitem == rosnode_name_selected) and
+                (name_nodeitem[name_nodeitem.rfind(RqtRosGraph.DELIM_GRN) + 1:]
+                 == name_rosnode_leaf)):
+                rospy.logdebug('terminal str {} MATCH {}'.format(
+                                             name_nodeitem, name_rosnode_leaf))
                 found_node = True
                 break
-        if not found_node:  # Only when it's a terminal, move forward.
+        if not found_node:  # Only when it's NOT a terminal we deselect it.
             self.selectionModel.select(index_current,
                                        QItemSelectionModel.Deselect)
             return
 
+        # Only when it's a terminal we move forward.
         item_child = self._item_model.itemFromIndex(index_current.child(0, 0))
         rospy.logdebug('item_selected={} item_child={} r={} c={}'.format(
                        index_current, item_child,
@@ -180,16 +189,24 @@ class NodeSelectorWidget(QWidget):
     def _current_selection_changed_slot(self, qindex_curr, qindex_prev):
 
         rosnode_name_selected = RqtRosGraph.get_upper_grn(qindex_curr, '')
+        rospy.loginfo(' index.data={} rosnode_name_selected={}'.format(
+                      qindex_curr.data(Qt.DisplayRole),
+                      rosnode_name_selected))
         if not rosnode_name_selected in self._nodeitems.keys():
             # De-select the selected item.
             self.selectionModel.select(qindex_curr,
                                        QItemSelectionModel.Deselect)
+
+            #TODO: Remove next line that is just testing code.
+            self.selectionModel.select(qindex_prev,
+                                       QItemSelectionModel.Deselect)
+
             return
 
         self._selection_selected(qindex_curr, rosnode_name_selected)
 
         #TODO: Detect deselection?
-        #self._selection_deselected(index_current, rosnode_name_selected)
+        #self._selection_deselected(qindex_curr, rosnode_name_selected)
 
     def _selection_changed_slot(self, selected, deselected):
         """
@@ -204,7 +221,7 @@ class NodeSelectorWidget(QWidget):
 
         ## Getting the index where user just selected. Should be single.
         if len(selected.indexes()) < 0 and len(deselected.indexes()) < 0:
-            rospy.loginfo('Nothing selected? Not ideal to reach here')
+            rospy.logerr('Nothing selected? Not ideal to reach here')
             return
 
         if len(selected.indexes()) > 0:
@@ -218,6 +235,8 @@ class NodeSelectorWidget(QWidget):
             index_current = deselected.indexes()[0]
 
         rosnode_name_selected = RqtRosGraph.get_upper_grn(index_current, '')
+
+        # If retrieved node name isn't in the list of all nodes.
         if not rosnode_name_selected in self._nodeitems.keys():
             # De-select the selected item.
             self.selectionModel.select(index_current,

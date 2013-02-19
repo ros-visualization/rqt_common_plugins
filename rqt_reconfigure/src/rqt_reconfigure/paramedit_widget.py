@@ -156,7 +156,20 @@ class ParameditWidget(QWidget):
         pass
 
     def _remove_node(self, node_grn):
-        i = self._dynreconf_clients.keys().index(node_grn)
+        try:
+            i = self._dynreconf_clients.keys().index(node_grn)
+        except ValueError:
+            # ValueError occurring here means that the specified key is not
+            # found, most likely already removed, which is possible in the
+            # following situation/sequence:
+            #
+            # Node widget on ParameditWidget removed by clicking disable button
+            # --> Node deselected on tree widget gets updated
+            # --> Tree widget detects deselection
+            # --> Tree widget emits deselection signal, which is captured by
+            #     ParameditWidget's slot. Thus reaches this method again.
+            return
+
         item = self.vlayout.itemAt(i)
         if isinstance(item, QWidgetItem):
                 item.widget().close()
@@ -166,6 +179,11 @@ class ParameditWidget(QWidget):
                                             w, len(self._dynreconf_clients)))
 
     def _node_disabled(self, node_grn):
-        rospy.loginfo('paramedit_w _node_disabled grn={}'.format(node_grn))
+        rospy.logdebug('paramedit_w _node_disabled grn={}'.format(node_grn))
+
+        # Signal to notify other GUI components (eg. nodes tree pane) that
+        # a node widget is disabled.
         self.sig_node_disabled_selected.emit(node_grn)
+
+        # Remove the selected node widget from the internal list of nodes.
         self._remove_node(node_grn)

@@ -128,7 +128,7 @@ class GroupWidget(QWidget):
         _bt_disable_node.setToolTip('Hide this node')
         _bt_disable_node_size = QSize(36, 24)
         _bt_disable_node.setFixedSize(_bt_disable_node_size)
-        _bt_disable_node.pressed.connect(self._node_disabled)
+        _bt_disable_node.pressed.connect(self._node_disable_bt_clicked)
 
         _h_layout_nodeheader.addWidget(self.nodename_qlabel)
         _h_layout_nodeheader.addWidget(_bt_disable_node)
@@ -238,8 +238,8 @@ class GroupWidget(QWidget):
         """
         return self._param_names
 
-    def _node_disabled(self):
-        rospy.logdebug('param_gs _node_disabled')
+    def _node_disable_bt_clicked(self):
+        rospy.logdebug('param_gs _node_disable_bt_clicked')
         self.sig_node_disabled_selected.emit(self._nodename)
 
 
