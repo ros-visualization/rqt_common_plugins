@@ -75,7 +75,7 @@ class ParameditWidget(QWidget):
         self.vlayout = QVBoxLayout(self.scrollarea_holder_widget)
 
         #self._set_index_widgets(self.listview, paramitems_dict) # causes error
-        self.destroyed.connect(self.close)  # func in mercurial?
+        self.destroyed.connect(self.close)
 
     def _set_index_widgets(self, view, paramitems_dict):
         """

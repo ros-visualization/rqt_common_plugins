@@ -84,7 +84,7 @@ class NodeSelectorWidget(QWidget):
 
         # Calling this method updates the list of the node.
         # Initially done only once.
-        self._update_nodetree()
+        self._update_nodetree_pernode()
 
         # TODO(Isaac): Needs auto-update function enabled, once another
         #             function that updates node tree with maintaining
@@ -224,6 +224,7 @@ class NodeSelectorWidget(QWidget):
             rospy.logerr('Nothing selected? Not ideal to reach here')
             return
 
+        index_current = ''
         if len(selected.indexes()) > 0:
             index_current = selected.indexes()[0]
         elif len(deselected.indexes()) == 1:
@@ -255,7 +256,7 @@ class NodeSelectorWidget(QWidget):
         """
         return self._nodeitems
 
-    def _update_nodetree(self):
+    def _update_nodetree_pernode(self):
         """
         """
 
@@ -276,7 +277,7 @@ class NodeSelectorWidget(QWidget):
                 time_siglenode_loop = time.time()
 
                 ####(Begin) For DEBUG ONLY; skip some dynreconf creation
-#                if i_node_curr % 19 != 0:
+#                if i_node_curr % 9 != 0:
 #                    i_node_curr += 1
 #                    continue
                 #### (End) For DEBUG ONLY. ####
@@ -303,8 +304,9 @@ class NodeSelectorWidget(QWidget):
         """
         Evaluate current treenode and the previous treenode at the same depth.
         If the name of both nodes is the same, current node instance is
-        ignored. If not, the current node gets added to the same parent node.
-        At the end, this function gets called recursively going down 1 level.
+        ignored (that means children will be added to the same parent). If not,
+        the current node gets added to the same parent node. At the end, this
+        function gets called recursively going 1 level deeper.
 
         :type treenodeitem_toplevel: TreenodeQstdItem
         :type treenodeitem_parent: TreenodeQstdItem.
@@ -314,10 +316,10 @@ class NodeSelectorWidget(QWidget):
         """
         # TODO(Isaac): Consider moving this method to rqt_py_common.
 
-        name_curr = child_names_left.pop(0)
+        name_currentnode = child_names_left.pop(0)
         grn_curr = treenodeitem_toplevel.get_raw_param_name()
-        stditem_curr = TreenodeQstdItem(grn_curr,
-                                        TreenodeQstdItem.NODE_FULLPATH)
+        stditem_currentnode = TreenodeQstdItem(grn_curr,
+                                               TreenodeQstdItem.NODE_FULLPATH)
 
         # item at the bottom is your most recent node.
         row_index_parent = treenodeitem_parent.rowCount() - 1
@@ -330,11 +332,12 @@ class NodeSelectorWidget(QWidget):
             name_prev = stditem_prev.text()
 
         stditem = None
-        if name_prev != name_curr:
-            stditem_curr.setText(name_curr)
-
-            treenodeitem_parent.appendRow(stditem_curr)
-            stditem = stditem_curr
+        # If the name of both nodes is the same, current node instance is
+        # ignored (that means children will be added to the same parent)
+        if name_prev != name_currentnode:
+            stditem_currentnode.setText(name_currentnode)
+            treenodeitem_parent.appendRow(stditem_currentnode)
+            stditem = stditem_currentnode
         else:
             stditem = stditem_prev
 
@@ -344,13 +347,13 @@ class NodeSelectorWidget(QWidget):
             #       the other does model.
             self._add_children_treenode(treenodeitem_toplevel, stditem,
                                         child_names_left)
-        else:  # Terminal node.
-            self._item_model.set_item_from_index(
-                                 grn_curr,
-                                 stditem.index())
+        else:  # Selectable ROS Node.
+            #TODO: Accept even non-terminal treenode as long as it's ROS Node.
+            self._item_model.set_item_from_index(grn_curr, stditem.index())
+            stditem.connect_param_server()
 
     def _refresh_nodes(self):
-        # TODO(Isaac) In the future, do NOT remove all nodes. Instead,
+        # TODO: In the future, do NOT remove all nodes. Instead,
         #            remove only the ones that are gone. And add new ones too.
 
         model = self._rootitem
@@ -359,7 +362,7 @@ class NodeSelectorWidget(QWidget):
             model.removeRows(0, row_count)
             rospy.logdebug("ParamWidget _refresh_nodes row_count=%s",
                            row_count)
-        self._update_nodetree()
+        self._update_nodetree_pernode()
 
     def close_node(self):
         rospy.logdebug(" in close_node")

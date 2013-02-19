@@ -36,7 +36,7 @@ from __future__ import division
 
 import dynamic_reconfigure.client
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QBrush, QWidget
+from python_qt_binding.QtGui import QBrush, QStandardItem, QWidget
 import rospy
 from rqt_py_common.data_items import ReadonlyItem
 
@@ -53,27 +53,24 @@ class TreenodeQstdItem(ReadonlyItem):
 
     def __init__(self, *args):
         """
-        :param args: 1st elem: str (will become 1st arg of QStandardItem)
-                     2nd elem: integer value that indicates whether this class
+        :param args[0]: str (will become 1st arg of QStandardItem)
+        :param args[1]: integer value that indicates whether this class
                                is node that has GRN (Graph Resource Names, see
                                http://www.ros.org/wiki/Names). This can be None
         """
-        #super(TreenodeQstdItem, self).__init__(*args)
-        treenode_name = args[0]
-        self._param_name_raw = treenode_name
-        self._set_param_name(treenode_name)  # self._nodename = treenode_name
-        super(TreenodeQstdItem, self).__init__(treenode_name)
+        grn_current_treenode = args[0]
+        self._param_name_raw = grn_current_treenode
+        self._set_param_name(grn_current_treenode)
+        super(TreenodeQstdItem, self).__init__(grn_current_treenode)
 
-        self.node_full = False
         self._dynreconf_client = None
+        self._is_rosnode = False
 
         try:
             if args[1] != None:
-                self.node_full = True
-                self._dynreconf_client = self._create_paramclient(
-                                                                 treenode_name)
-        except IndexError as e:  # tuple index out of range etc.
-                rospy.logdebug('TreenodeQstdItem fullpath=F')
+                self._is_rosnode = True
+        except IndexError:  # tuple index out of range etc.
+                rospy.logerr('TreenodeQstdItem IndexError')
 
     def get_widget(self):
         """
@@ -81,28 +78,34 @@ class TreenodeQstdItem(ReadonlyItem):
         """
         return self._dynreconf_client
 
-    def _create_paramclient(self, nodename):
+    def connect_param_server(self):
+        self._connect_param_server(self._param_name_raw)
+
+    def _connect_param_server(self, nodename_grn_full):
         """
         Callback when user chooses a node.
 
-        :param nodename: GRN (Graph Resource Names,
+        :param nodename_grn_full: GRN (Graph Resource Names,
                          see http://www.ros.org/wiki/Names) of node name.
         :type node: str
+        :return None if the treenode doesn't represent ROS Node.
         :rtype: DynreconfClientWidget
         """
+        # If the treenode doesn't represent ROS Node, return None.
+        if not self._is_rosnode:
+            return None
+
         try:
             _dynreconf_client = dynamic_reconfigure.client.Client(
-                                                   str(nodename), timeout=5.0)
+                                           str(nodename_grn_full), timeout=5.0)
         except rospy.exceptions.ROSException:
             rospy.logerr("TreenodeQstdItem. Couldn't connect to {}".format(
-                                                                     nodename))
-            #TODO(Isaac) Needs to show err msg on GUI too.
+                                                            nodename_grn_full))
+            #TODO: Needs to show err msg on GUI too.
             return
-#        finally:
-#            if self._dynreconf_client:
-#                self._dynreconf_client.close() #Close old GUI client.
 
-        dynreconf_widget = DynreconfClientWidget(_dynreconf_client, nodename)
+        dynreconf_widget = DynreconfClientWidget(_dynreconf_client,
+                                                 nodename_grn_full)
         return dynreconf_widget
 
     def enable_param_items(self):
@@ -137,10 +140,11 @@ class TreenodeQstdItem(ReadonlyItem):
         #  Deleting the 1st elem which is zero-length str.
         del self._list_paramname[0]
 
-        self._nodename = self._list_paramname[0]
+        self._toplevel_treenode_name = self._list_paramname[0]
 
         rospy.logdebug('paramname={} nodename={} _list_params[-1]={}'.format(
-                       param_name, self._nodename, self._list_paramname[-1]))
+                       param_name, self._toplevel_treenode_name,
+                       self._list_paramname[-1]))
 
     def get_param_name_toplv(self):
         """
@@ -157,7 +161,7 @@ class TreenodeQstdItem(ReadonlyItem):
         :rtype: List of string. Null if param
         """
 
-        #TODO what if self._list_paramname is empty or null?
+        #TODO: what if self._list_paramname is empty or null?
         return self._list_paramname
 
     def get_node_name(self):
@@ -166,7 +170,7 @@ class TreenodeQstdItem(ReadonlyItem):
                  Ex. suppose fullpath name is /top/sub/subsub/subsubsub and you
                      are at 2nd from top, the return value is subsub.
         """
-        return self._nodename
+        return self._toplevel_treenode_name
 
     def type(self):
         return QStandardItem.UserType

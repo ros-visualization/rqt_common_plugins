@@ -104,7 +104,7 @@ class GroupWidget(QWidget):
         super(GroupWidget, self).__init__()
         self.state = config['state']
         self.name = config['name']
-        self._nodename = nodename
+        self._toplevel_treenode_name = nodename
 
         # TODO: .ui file needs to be back into usage in later phase.
 #        rp = rospkg.RosPack()
@@ -240,7 +240,7 @@ class GroupWidget(QWidget):
 
     def _node_disable_bt_clicked(self):
         rospy.logdebug('param_gs _node_disable_bt_clicked')
-        self.sig_node_disabled_selected.emit(self._nodename)
+        self.sig_node_disabled_selected.emit(self._toplevel_treenode_name)
 
 
 class BoxGroup(GroupWidget):

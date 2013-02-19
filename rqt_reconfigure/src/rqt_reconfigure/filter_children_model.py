@@ -38,9 +38,7 @@ from python_qt_binding.QtCore import Qt, Signal
 from python_qt_binding.QtGui import QSortFilterProxyModel
 import rospy
 
-# from .rqt_ros_graph import RqtRosGraph
-# from .treenode_status import TreenodeStatus
-from .treenode_qstditem import TreenodeQstdItem
+from rqt_reconfigure.treenode_qstditem import TreenodeQstdItem
 
 
 class FilterChildrenModel(QSortFilterProxyModel):
@@ -88,18 +86,18 @@ class FilterChildrenModel(QSortFilterProxyModel):
         :type src_row: int
         :type src_parent_qmindex: QModelIndex
         """
-        src_model = self.sourceModel()
-        curr_qmindex = src_model.index(src_row, 0, src_parent_qmindex)
-        curr_qitem = src_model.itemFromIndex(curr_qmindex)
+        _src_model = self.sourceModel()
+        curr_qmindex = _src_model.index(src_row, 0, src_parent_qmindex)
+        curr_qitem = _src_model.itemFromIndex(curr_qmindex)
 
         if isinstance(curr_qitem, TreenodeQstdItem):
-            # if TreenodeQstdItem, get GRN name
+            # If selectable ROS Node, get GRN name
             nodename_fullpath = curr_qitem.get_raw_param_name()
             text_filter_target = nodename_fullpath
             rospy.logdebug('   Nodename full={} '.format(nodename_fullpath))
         else:
-            # if ReadonlyItem, this means items are the parameters,
-            # not a part of node name. So, get param name.
+            # If ReadonlyItem, this means items are the parameters, not a part
+            # of node name. So, get param name.
             text_filter_target = curr_qitem.data(Qt.DisplayRole)
 
         regex = self.filterRegExp()
@@ -118,8 +116,8 @@ class FilterChildrenModel(QSortFilterProxyModel):
                               src_parent_qmindex.data()) +
                            ' filterRegExp={}'.format(regex))
 
-            # TODO If the index is the terminal treenode, parameters that hit
-            # the query are displayed on column 1 at the root tree.
+            # If the index is the terminal treenode, parameters that hit
+            # the query are displayed at the root tree.
             child = curr_qmindex.child(0, 0)
             if ((not child.isValid()) and
                 (isinstance(curr_qitem, TreenodeQstdItem))):
@@ -152,25 +150,9 @@ class FilterChildrenModel(QSortFilterProxyModel):
         :type curr_qitem: QStandardItem
         """
 
-#        cols = self._parent._std_model.columnCount()
-#        if 2 > cols: # columns = 2 means params are shown.
-#            self._parent._std_model.setColumnCount(2)
-
-#        if self._parent.isHeaderHidden():
-#            rospy.loginfo('_show_params_view 1')
-#            self._parent.setHeaderHidden(False)
-
         rospy.logdebug('_show_params_view data={}'.format(
                                   curr_qitem.data(Qt.DisplayRole)))
         curr_qitem.enable_param_items()
-        # Set column for params.
-#        param_col_item = ReadonlyItem('Paramo')
-#        param_col_item_2 = ReadonlyItem('Paramo_2')
-#        list_colitems = []
-#        list_colitems.append(param_col_item)
-#        list_colitems.append(param_col_item_2)
-#        curr_qitem.insertColumn(1, list_colitems)
-#        self._parent._std_model.setItem(src_row, 1, curr_qitem)
 
     def _get_toplevel_parent_recur(self, qmindex):
         p = qmindex.parent()
@@ -181,6 +163,8 @@ class FilterChildrenModel(QSortFilterProxyModel):
     def filterAcceptsColumn(self, source_column, source_parent):
         """
         Overridden.
+
+        Doing nothing really since columns are not in use.
 
         :type source_column: int
         :type source_parent: QModelIndex
