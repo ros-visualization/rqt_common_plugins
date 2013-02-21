@@ -79,8 +79,19 @@ class TreenodeQstdItem(ReadonlyItem):
         return self._dynreconf_client
 
     def connect_param_server(self):
-        self._dynreconf_client = self._connect_param_server(
+        """
+        Connect to parameter server using dynamic_reconfigure client.
+        Behavior is delegated to a private method _connect_param_server, and
+        its return value, client, is set to member variable.
+
+        @return void
+        @raise ROSException:
+        """
+        try:
+            self._dynreconf_client = self._connect_param_server(
                                                           self._param_name_raw)
+        except rospy.exceptions.ROSException as e:
+            raise e
 
     def _connect_param_server(self, nodename_grn_full):
         """
@@ -99,11 +110,10 @@ class TreenodeQstdItem(ReadonlyItem):
         try:
             _dynreconf_client = dynamic_reconfigure.client.Client(
                                            str(nodename_grn_full), timeout=5.0)
-        except rospy.exceptions.ROSException:
-            rospy.logerr("TreenodeQstdItem. Couldn't connect to {}".format(
+        except rospy.exceptions.ROSException as e:
+            raise type(e)(e.message +
+                          "TreenodeQstdItem. Couldn't connect to {}".format(
                                                             nodename_grn_full))
-            #TODO: Needs to show err msg on GUI too.
-            return
 
         _dynreconf_widget = DynreconfClientWidget(_dynreconf_client,
                                                  nodename_grn_full)

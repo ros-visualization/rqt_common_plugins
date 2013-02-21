@@ -350,7 +350,14 @@ class NodeSelectorWidget(QWidget):
         else:  # Selectable ROS Node.
             #TODO: Accept even non-terminal treenode as long as it's ROS Node.
             self._item_model.set_item_from_index(grn_curr, stditem.index())
-            stditem.connect_param_server()
+
+            try:
+                stditem.connect_param_server()
+            except rospy.exceptions.ROSException as e:
+                rospy.logerr(e.message)
+                #Remove item that fails to connect to its node from parent item
+                treenodeitem_parent.takeRow(stditem.row())
+                #TODO: Needs to show err msg on GUI too.
 
     def _refresh_nodes(self):
         # TODO: In the future, do NOT remove all nodes. Instead,
