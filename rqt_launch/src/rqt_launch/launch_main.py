@@ -32,13 +32,14 @@
 #
 # Author: Isaac Saito
 
-import os, sys
+import os
+import sys
 
 import roslaunch
 import rospkg
 
 from rqt_launch.launch_widget import LaunchWidget
-from rqt_py_common.roslaunch_accessor import RoslaunchAccesor
+from rqt_py_common.rqt_roscomm_util import RqtRoscommUtil
 
 
 class LaunchMain(object):
@@ -69,7 +70,7 @@ class LaunchMain(object):
         print self._config.summary()
         print "MASTER", self._config.master.uri
 
-        RoslaunchAccesor.load_parameters(self._config, '/rqt_launch')
+        RqtRoscommUtil.load_parameters(self._config, '/rqt_launch')
 
     def get_widget(self):
         return self._mainwidget

@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>ROS Launch GUI</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="_vlayout">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
@@ -52,21 +52,10 @@
     </layout>
    </item>
    <item>
-    <widget class="QTreeView" name="_treeview"/>
-   </item>
-   <item>
     <widget class="QWidget" name="_process_widget" native="true"/>
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>LaunchWidget</class>
-   <extends>QDialog</extends>
-   <header>rqt_launch.launch_widget</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

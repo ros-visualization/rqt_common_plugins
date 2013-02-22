@@ -33,13 +33,14 @@
 # Author: Isaac Saito
 
 import os
+import sys
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import QSize, Qt, Signal
-from python_qt_binding.QtGui import (QDialog, QGridLayout, QGroupBox, QLabel,
-                                     QHBoxLayout, QLineEdit, QPlainTextEdit,
-                                     QPushButton, QScrollArea, QSplitter,
-                                     QStyle, QToolButton, QVBoxLayout, QWidget)
+from python_qt_binding.QtCore import QSize
+from python_qt_binding.QtGui import (QDialog, QGridLayout, QLabel, QLineEdit,
+                                     QPushButton, QStyle, QToolButton, QWidget)
+import roslaunch
+from roslaunch.core import RLException
 import rospkg
 import rospy
 
@@ -48,6 +49,7 @@ from rqt_launch.node_controller import NodeController
 from rqt_launch.node_gui import NodeGui
 from rqt_launch.name_surrogate import NamesSurrogate
 from rqt_launch.status_indicator import StatusIndicator
+from rqt_py_common.rqt_roscomm_util import RqtRoscommUtil
 
 
 class LaunchWidget(QDialog):
@@ -66,19 +68,88 @@ class LaunchWidget(QDialog):
 
         self.run_id = None
         rospy.loginfo(self._config.summary())
-        #rospy.loginfo("MASTER", self._config.master.uri)  # Sheds error.
+        # rospy.loginfo("MASTER", self._config.master.uri)  # Sheds error.
+        #TODO: Replace 'print' with ROS-y method.
         print "MASTER", self._config.master.uri
 
         rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_launch'),
-                               'resource', 'launch_widget.ui')
+        ui_file = os.path.join(rp.get_path('rqt_launch'), 'resource',
+                               'launch_widget.ui')
         loadUi(ui_file, self)
 
+        #TODO: this layout is temporary. Need to be included in .ui.
+        self._process_layout = None
+
         self._pushbutton_start_stop_all.clicked.connect(self._parent.start_all)
+        # Bind package selection with .launch file selection.
+        self._combobox_pkg.currentIndexChanged[str].connect(
+                                                 self._refresh_launchfiles)
+        # Bind a launch file selection with launch GUI generation.
+        self._combobox_launchfile_name.currentIndexChanged[str].connect(
+                                                 self._load_launchfile_slot)
+        self._refresh_packages()
+
+    def _load_launchfile_slot(self, launchfile_name):
+        _config = None
+        try:
+            _config = self._create_launchconfig(launchfile_name)
+        except IndexError as e:
+            #TODO: Show error msg on GUI
+            rospy.logerr('IndexError={} launchfile_name={}'.format(
+                                                e.message, launchfile_name))
+            return
+        except RLException as e:
+            #TODO: Show error msg on GUI
+            rospy.logerr('RLException={} launchfile_name={}'.format(
+                                                e.message, launchfile_name))
+            return
+
+        self._create_gui_for_launchfile(_config)
+
+    def _create_launchconfig(self, launchfile_name):
+        """
+        @raises IndexError:
+        @raises RLException: raised by roslaunch.config.load_config_default.
+        """
+        pkg_name = self._combobox_pkg.currentText()
+        folder_name = 'launch'  # TODO: Should be able to specify arbitrarily.
+        rp = rospkg.RosPack()
+        try:
+            launchfile = os.path.join(rp.get_path(pkg_name),
+                                      folder_name, launchfile_name)
+        except IndexError as e:
+            #TODO: Return exception to show error msg on GUI
+            raise e
+
+        try:
+            launch_config = roslaunch.config.load_config_default([launchfile],
+                                                            11311)
+        except RLException as e:
+            raise e
+
+        return launch_config
+
+    def _create_gui_for_launchfile(self, config):
+        """
+        """
+        self._config = config
+
+        # Renew the layout of nodes
+        #TODO this layout is temporary. Need to be included in .ui.
+        self._vlayout.removeWidget(self._process_widget)
+        _process_widget_previous = self._process_widget
+        _process_widget_previous.hide()
+        del self._process_widget
+        self._process_widget = QWidget(self)
+        self._vlayout.insertWidget(1, self._process_widget)
+        _process_layout_prev = self._process_widget.layout()
+#        _process_layout_prev = None
+#        del _process_layout_prev
+        del self._process_layout
+        self._process_layout = QGridLayout()
 
         # Creates the process grid
         self._node_controllers = []
-        process_layout = QGridLayout()
         # Loop per node
         for i, node_config in enumerate(self._config.nodes):
             _proxy = NodeProxy(self.run_id, self._config.master.uri,
@@ -107,12 +178,12 @@ class LaunchWidget(QDialog):
             node_controller = NodeController(_proxy, gui)
             self._node_controllers.append(node_controller)
 
-            #TODO(Isaac) These need to be commented in in order to function as
+            # TODO(Isaac) These need to be commented in in order to function as
             # originally intended.
             start_button.clicked.connect(node_controller.start)
             stop_button.clicked.connect(node_controller.stop)
 
-            #resolved_node_name = roslib.names.ns_join(_proxy.config.namespace,
+            # resolved_node_name = roslib.names.ns_join(_proxy.config.namespace,
             # _proxy.config.name)
             rospy.loginfo('loop #%d _proxy.config.namespace=%s ' +
                           '_proxy.config.name=%s',
@@ -121,45 +192,81 @@ class LaunchWidget(QDialog):
                                                         _proxy.config.name)
 
             j = 0
-            process_layout.addWidget(status, i, j)
-            process_layout.setColumnMinimumWidth(j, 20);  j += 1
-            process_layout.addWidget(QLabel(resolved_node_name), i, j);  j += 1
-            process_layout.addWidget(spawn_count_label, i, j)
-            process_layout.setColumnMinimumWidth(j, 30)              ;  j += 1
-            process_layout.setColumnMinimumWidth(j, 30)    ;  j += 1  # Spacer
-            process_layout.addWidget(start_button, i, j);  j += 1
-            process_layout.addWidget(stop_button, i, j) ;  j += 1
-            process_layout.addWidget(respawn_toggle, i, j) ;  j += 1
-            process_layout.setColumnMinimumWidth(j, 20) ;  j += 1  # Spacer
-            process_layout.addWidget(QLabel(_proxy.config.package), i, j);j += 1
-            process_layout.addWidget(QLabel(_proxy.config.type), i, j);  j += 1
-            process_layout.addWidget(launch_prefix_edit, i, j)  ;  j += 1
+            self._process_layout.addWidget(status, i, j)
+            self._process_layout.setColumnMinimumWidth(j, 20);  j += 1
+            self._process_layout.addWidget(QLabel(resolved_node_name), i, j);  j += 1
+            self._process_layout.addWidget(spawn_count_label, i, j)
+            self._process_layout.setColumnMinimumWidth(j, 30)              ;  j += 1
+            self._process_layout.setColumnMinimumWidth(j, 30)    ;  j += 1  # Spacer
+            self._process_layout.addWidget(start_button, i, j);  j += 1
+            self._process_layout.addWidget(stop_button, i, j) ;  j += 1
+            self._process_layout.addWidget(respawn_toggle, i, j) ;  j += 1
+            self._process_layout.setColumnMinimumWidth(j, 20) ;  j += 1  # Spacer
+            self._process_layout.addWidget(QLabel(_proxy.config.package), i, j);j += 1
+            self._process_layout.addWidget(QLabel(_proxy.config.type), i, j);  j += 1
+            self._process_layout.addWidget(launch_prefix_edit, i, j)  ;  j += 1
 
         self._parent.set_node_controllers(self._node_controllers)
-        #process_scroll.setMinimumWidth(process_layout.sizeHint().width())
+        # process_scroll.setMinimumWidth(self._process_layout.sizeHint().width())
         # Doesn't work properly.  Too small
-        self._process_widget.setLayout(process_layout)
+
+        self._process_widget.setLayout(self._process_layout)
 
         # Creates the log display area
-        self.log_text = QPlainTextEdit()
+#        self.log_text = QPlainTextEdit()
+#
+#        # Sets up the overall layout
+#        process_log_splitter = QSplitter()
+#        process_log_splitter.setOrientation(Qt.Vertical)
+#        process_log_splitter.addWidget(self.log_text)
+#        main_layout = QVBoxLayout()
+#        # main_layout.addWidget(process_scroll, stretch=10)
+#        # main_layout.addWidget(self.log_text, stretch=30)
+#        main_layout.addWidget(process_log_splitter)
+#        self.setLayout(main_layout)
 
-        # Sets up the overall layout
-        process_log_splitter = QSplitter()
-        process_log_splitter.setOrientation(Qt.Vertical)
-        process_log_splitter.addWidget(self.log_text)
-        main_layout = QVBoxLayout()
-        #main_layout.addWidget(process_scroll, stretch=10)
-        #main_layout.addWidget(self.log_text, stretch=30)
-        main_layout.addWidget(process_log_splitter)
-        self.setLayout(main_layout)
+    def _refresh_packages(self):
+        """
+        Inspired by rqt_msg.MessageWidget._refresh_packages
+        """
+        packages = sorted([pkg_tuple[0]
+                           for pkg_tuple
+                           in RqtRoscommUtil.iterate_packages('launch')])
+        self._package_list = packages
+        rospy.loginfo('pkgs={}'.format(self._package_list))
+        self._combobox_pkg.clear()
+        self._combobox_pkg.addItems(self._package_list)
+        self._combobox_pkg.setCurrentIndex(0)
+
+    def _refresh_launchfiles(self, package=None):
+        """
+        Inspired by rqt_msg.MessageWidget._refresh_msgs
+        """
+        if package is None or len(package) == 0:
+            return
+        self._launchfile_instances = []  # Launch[]
+        #TODO: RqtRoscommUtil.list_files's 2nd arg 'subdir' should NOT be
+        # hardcoded later.
+        _launch_instance_list = RqtRoscommUtil.list_files(package,
+                                                         'launch')
+
+        rospy.logdebug('_refresh_launches package={} instance_list={}'.format(
+                                                       package,
+                                                       _launch_instance_list))
+
+        self._launchfile_instances = [x.split('/')[1]
+                                      for x in _launch_instance_list]
+
+        self._combobox_launchfile_name.clear()
+        self._combobox_launchfile_name.addItems(self._launchfile_instances)
 
     def shutdown(self):
-        #TODO: Needs implemented. Trigger dynamic_reconfigure to unlatch
+        # TODO: Needs implemented. Trigger dynamic_reconfigure to unlatch
         #            subscriber.
         pass
 
     def save_settings(self, plugin_settings, instance_settings):
-        #instance_settings.set_value('splitter', self._splitter.saveState())
+        # instance_settings.set_value('splitter', self._splitter.saveState())
         pass
 
     def restore_settings(self, plugin_settings, instance_settings):
