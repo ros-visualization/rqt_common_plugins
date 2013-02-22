@@ -1,0 +1,14 @@
+<library path="src">
+  <class name="Launch" type="rqt_launch.launch_plugin.LaunchPlugin" 
+         base_class_type="rqt_gui_py::Plugin">
+    <description>
+      A Python GUI plugin for for edit launch file, run and stop nodes.
+    </description>
+    <qtgui>
+      <label>Launch</label>
+      <icon type="theme">mail-message-new</icon>
+      <statustip>A Python GUI plugin for for edit launch file, run and stop 
+      nodes.</statustip>
+    </qtgui>
+  </class>
+</library>
