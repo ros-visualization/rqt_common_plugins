@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>_widget_top</class>
- <widget class="QWidget" name="_widget_top">
+ <widget class="QDialog" name="_widget_top">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -54,8 +54,19 @@
    <item>
     <widget class="QTreeView" name="_treeview"/>
    </item>
+   <item>
+    <widget class="QWidget" name="_process_widget" native="true"/>
+   </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>LaunchWidget</class>
+   <extends>QDialog</extends>
+   <header>rqt_launch.launch_widget</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
