@@ -3,7 +3,7 @@
   <name>rqt_launch</name>
   <version>0.0.1</version>
   <description>This rqt plugin ROS package provides easy view, hierarchy of 
-  .launch files. User can also start & end node by node that are defined in
+  .launch files. User can also start and end node by node that are defined in
   those files. 
   </description>
 
