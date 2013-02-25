@@ -33,6 +33,7 @@
 # Author: Isaac Saito
 
 import os
+import sys
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import QSize
@@ -65,6 +66,9 @@ class LaunchWidget(QDialog):
         self._parent = parent
         self._config = config
 
+        #TODO: should be configurable from gui
+        self._port_roscore = 11311
+
         self.run_id = None
         rospy.loginfo(self._config.summary())
         # rospy.loginfo("MASTER", self._config.master.uri)  # Sheds error.
@@ -78,7 +82,7 @@ class LaunchWidget(QDialog):
         loadUi(ui_file, self)
 
         #TODO: this layout is temporary. Need to be included in .ui.
-        self._process_layout = None
+        self._gridlayout_process = None
 
         self._pushbutton_start_stop_all.clicked.connect(self._parent.start_all)
         # Bind package selection with .launch file selection.
@@ -88,9 +92,6 @@ class LaunchWidget(QDialog):
         self._combobox_launchfile_name.currentIndexChanged[str].connect(
                                                  self._load_launchfile_slot)
         self._refresh_packages()
-
-        #TODO: should be configurable from gui
-        self._port_roscore = 11311
 
     def _load_launchfile_slot(self, launchfile_name):
 
@@ -156,17 +157,13 @@ class LaunchWidget(QDialog):
         #TODO this layout is temporary. Need to be included in .ui.
         self._vlayout.removeWidget(self._process_widget)
         _process_widget_previous = self._process_widget
-        # QWidget.hide() wass necessary in order NOT to show the previous 
+        # QWidget.hide() was necessary in order NOT to show the previous
         # widgets. See http://goo.gl/9hjFz
         _process_widget_previous.hide()
-        del self._process_widget
+        #del self._process_widget
         self._process_widget = QWidget(self)
         self._vlayout.insertWidget(1, self._process_widget)
-        _process_layout_prev = self._process_widget.layout()
-#        _process_layout_prev = None
-#        del _process_layout_prev
-        del self._process_layout
-        self._process_layout = QGridLayout()
+        self._gridlayout_process = QGridLayout()
 
         # Creates the process grid
         self._node_controllers = []
@@ -198,39 +195,51 @@ class LaunchWidget(QDialog):
             node_controller = NodeController(_proxy, gui)
             self._node_controllers.append(node_controller)
 
-            # TODO(Isaac) These need to be commented in in order to function as
+            # TODO: These need to be commented in in order to function as
             # originally intended.
             start_button.clicked.connect(node_controller.start)
             stop_button.clicked.connect(node_controller.stop)
 
-            # resolved_node_name = roslib.names.ns_join(_proxy.config.namespace,
-            # _proxy.config.name)
             rospy.loginfo('loop #%d _proxy.config.namespace=%s ' +
                           '_proxy.config.name=%s',
                           i, _proxy.config.namespace, _proxy.config.name)
-            resolved_node_name = NamesSurrogate.ns_join(_proxy.config.namespace,
-                                                        _proxy.config.name)
+            resolved_node_name = NamesSurrogate.ns_join(
+                                   _proxy.config.namespace, _proxy.config.name)
 
             j = 0
-            self._process_layout.addWidget(status, i, j)
-            self._process_layout.setColumnMinimumWidth(j, 20);  j += 1
-            self._process_layout.addWidget(QLabel(resolved_node_name), i, j);  j += 1
-            self._process_layout.addWidget(spawn_count_label, i, j)
-            self._process_layout.setColumnMinimumWidth(j, 30)              ;  j += 1
-            self._process_layout.setColumnMinimumWidth(j, 30)    ;  j += 1  # Spacer
-            self._process_layout.addWidget(start_button, i, j);  j += 1
-            self._process_layout.addWidget(stop_button, i, j) ;  j += 1
-            self._process_layout.addWidget(respawn_toggle, i, j) ;  j += 1
-            self._process_layout.setColumnMinimumWidth(j, 20) ;  j += 1  # Spacer
-            self._process_layout.addWidget(QLabel(_proxy.config.package), i, j);j += 1
-            self._process_layout.addWidget(QLabel(_proxy.config.type), i, j);  j += 1
-            self._process_layout.addWidget(launch_prefix_edit, i, j)  ;  j += 1
+            self._gridlayout_process.addWidget(status, i, j)
+            self._gridlayout_process.setColumnMinimumWidth(j, 20)
+            j += 1
+            self._gridlayout_process.addWidget(QLabel(resolved_node_name),
+                                               i, j)
+            j += 1
+            self._gridlayout_process.addWidget(spawn_count_label, i, j)
+            self._gridlayout_process.setColumnMinimumWidth(j, 30)
+            j += 1
+            self._gridlayout_process.setColumnMinimumWidth(j, 30)
+            j += 1  # Spacer
+            self._gridlayout_process.addWidget(start_button, i, j)
+            j += 1
+            self._gridlayout_process.addWidget(stop_button, i, j)
+            j += 1
+            self._gridlayout_process.addWidget(respawn_toggle, i, j)
+            j += 1
+            self._gridlayout_process.setColumnMinimumWidth(j, 20)
+            j += 1  # Spacer
+            self._gridlayout_process.addWidget(QLabel(_proxy.config.package),
+                                               i, j)
+            j += 1
+            self._gridlayout_process.addWidget(QLabel(_proxy.config.type),
+                                               i, j)
+            j += 1
+            self._gridlayout_process.addWidget(launch_prefix_edit, i, j)
+            j += 1
 
         self._parent.set_node_controllers(self._node_controllers)
-        # process_scroll.setMinimumWidth(self._process_layout.sizeHint().width())
+        # process_scroll.setMinimumWidth(self._gridlayout_process.sizeHint().width())
         # Doesn't work properly.  Too small
 
-        self._process_widget.setLayout(self._process_layout)
+        self._process_widget.setLayout(self._gridlayout_process)
 
         # Creates the log display area
 #        self.log_text = QPlainTextEdit()
@@ -295,3 +304,12 @@ class LaunchWidget(QDialog):
 #        else:
 #            self._splitter.setSizes([100, 100, 200])
         pass
+
+
+if __name__ == '__main__':
+    # main should be used only for debug purpose.
+    # This launches this QWidget as a standalone rqt gui.
+    from rqt_gui.main import Main
+
+    main = Main()
+    sys.exit(main.main(sys.argv, standalone='rqt_launch'))

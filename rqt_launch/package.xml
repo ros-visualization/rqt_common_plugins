@@ -18,6 +18,7 @@
   <author>Stuart Glacer</author>
   
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>rqt_py_common</build_depend>
   <run_depend>roslaunch</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>rqt_gui</run_depend>

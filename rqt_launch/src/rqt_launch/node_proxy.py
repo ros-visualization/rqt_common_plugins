@@ -32,18 +32,18 @@
 #
 # Author: Isaac Saito
 
-import sys
-
 from python_qt_binding.QtCore import Signal
 from python_qt_binding.QtGui import (QDialog, QGridLayout, QGroupBox, QLabel,
-                                     QHBoxLayout,
-                                     QPushButton,
-                                     QSplitter,
+                                     QHBoxLayout, QPushButton, QSplitter,
                                      QVBoxLayout, QWidget)
-import roslaunch
+from roslaunch import nodeprocess
 
 
 class NodeProxy(object):
+    """
+    Works as a proxy between ROS Node & GUI.
+    """
+
     __slots__ = ['run_id', 'master_uri', 'config', 'process']
 
     def __init__(self, run_id, master_uri, config):
@@ -58,7 +58,13 @@ class NodeProxy(object):
         return self.process.started and self.process.is_alive()
 
     def has_died(self):
-        return self.process.started and not self.process.stopped and not self.process.is_alive()
+        return (self.process.started and
+                not self.process.stopped and
+                not self.process.is_alive())
 
     def recreate_process(self):
-        self.process = roslaunch.nodeprocess.create_node_process(self.run_id, self.config, self.master_uri)
+        """
+        Create and set roslaunch.nodeprocess.LocalProcess to member variable.
+        """
+        self.process = nodeprocess.create_node_process(
+                                     self.run_id, self.config, self.master_uri)
