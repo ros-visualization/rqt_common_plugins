@@ -33,7 +33,6 @@
 # Author: Isaac Saito
 
 import os
-import sys
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import QSize
@@ -72,9 +71,10 @@ class LaunchWidget(QDialog):
         #TODO: Replace 'print' with ROS-y method.
         print "MASTER", self._config.master.uri
 
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_launch'), 'resource',
-                               'launch_widget.ui')
+        self._rospack = rospkg.RosPack()
+
+        ui_file = os.path.join(self._rospack.get_path('rqt_launch'),
+                               'resource', 'launch_widget.ui')
         loadUi(ui_file, self)
 
         #TODO: this layout is temporary. Need to be included in .ui.
@@ -89,10 +89,24 @@ class LaunchWidget(QDialog):
                                                  self._load_launchfile_slot)
         self._refresh_packages()
 
+        #TODO: should be configurable from gui
+        self._port_roscore = 11311
+
     def _load_launchfile_slot(self, launchfile_name):
+
+        # Not yet sure why, but everytime combobox.currentIndexChanged occurs,
+        # this method gets called twice with launchfile_name=='' in 1st call.
+        if launchfile_name == None or launchfile_name == '':
+            return
+
         _config = None
+
+        rospy.loginfo('_load_launchfile_slot launchfile_name={}'.format(
+                                                launchfile_name))
+
         try:
-            _config = self._create_launchconfig(launchfile_name)
+            _config = self._create_launchconfig(launchfile_name,
+                                                self._port_roscore)
         except IndexError as e:
             #TODO: Show error msg on GUI
             rospy.logerr('IndexError={} launchfile_name={}'.format(
@@ -106,24 +120,28 @@ class LaunchWidget(QDialog):
 
         self._create_gui_for_launchfile(_config)
 
-    def _create_launchconfig(self, launchfile_name):
+    def _create_launchconfig(self, launchfile_name,
+                             port_roscore=11311,
+                             folder_name_launchfile='launch'):
         """
         @raises IndexError:
         @raises RLException: raised by roslaunch.config.load_config_default.
         """
+
+        #TODO: folder_name_launchfile foShould be able to specify arbitrarily.
+
         pkg_name = self._combobox_pkg.currentText()
-        folder_name = 'launch'  # TODO: Should be able to specify arbitrarily.
-        rp = rospkg.RosPack()
+
         try:
-            launchfile = os.path.join(rp.get_path(pkg_name),
-                                      folder_name, launchfile_name)
+            launchfile = os.path.join(self._rospack.get_path(pkg_name),
+                                      folder_name_launchfile, launchfile_name)
         except IndexError as e:
             #TODO: Return exception to show error msg on GUI
             raise e
 
         try:
             launch_config = roslaunch.config.load_config_default([launchfile],
-                                                            11311)
+                                                                 port_roscore)
         except RLException as e:
             raise e
 
@@ -138,6 +156,8 @@ class LaunchWidget(QDialog):
         #TODO this layout is temporary. Need to be included in .ui.
         self._vlayout.removeWidget(self._process_widget)
         _process_widget_previous = self._process_widget
+        # QWidget.hide() wass necessary in order NOT to show the previous 
+        # widgets. See http://goo.gl/9hjFz
         _process_widget_previous.hide()
         del self._process_widget
         self._process_widget = QWidget(self)
