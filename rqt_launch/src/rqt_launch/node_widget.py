@@ -32,10 +32,17 @@
 #
 # Author: Isaac Saito
 
+import os
+
+from python_qt_binding import loadUi
+from python_qt_binding.QtGui import QLineEdit, QWidget
 from roslaunch import nodeprocess
+import rospy
+
+from rqt_launch.name_surrogate import NamesSurrogate
 
 
-class NodeProxy(object):
+class NodeWidget(QWidget):
     """
     Works as a proxy between ROS Node
     (more in particular, roslaunch.nodeprocess) & GUI.
@@ -43,12 +50,37 @@ class NodeProxy(object):
 
     __slots__ = ['_run_id', 'master_uri', 'config', 'process']
 
-    def __init__(self, run_id, master_uri, config):
-        self._run_id = run_id
-        self.master_uri = master_uri
-        self.config = config
+    def __init__(self, launch_node, rospack, master_uri, launch_config,
+                 label_status):
+        """
+        @type launch_node: roslaunch.core.Node
+        @type launch_config: roslaunch.core.Config
+        @type label_status: StatusIndicator
+        """
+        super(NodeWidget, self).__init__()
+        self._rospack = rospack
+        self._master_uri = master_uri
+        self._launch_config = launch_config
 
-        self.recreate_process()
+        ui_file = os.path.join(self._rospack.get_path('rqt_launch'),
+                               'resource', 'node_widget.ui')
+        loadUi(ui_file, self)
+
+        # TODO: consider using QIcon.fromTheme()
+        self.label_status = label_status  # Public
+        #stop_button = QPushButton(self.style().standardIcon(
+        #                                             QStyle.SP_MediaStop), "")
+        self._respawn_toggle.setChecked(self._launch_config.respawn)
+        self._lineEdit_launch_prefix = QLineEdit(
+                                             self._launch_config.launch_prefix)
+
+        rospy.loginfo('_proxy.conf.namespace={} _launch_config.name={}'.format(
+                      self._launch_config.namespace, self._launch_config.name))
+        resolved_node_name = NamesSurrogate.ns_join(
+                       self._launch_config.namespace, self._launch_config.name)
+        self._label_status.setText(resolved_node_name)
+        self._label_pkg_name.setText(self._launch_config.package)
+        self._label_name_executable.setText(self._launch_config.type)
 
     # LocalProcess.is_alive() does not do what you would expect
     def is_running(self):
@@ -64,4 +96,7 @@ class NodeProxy(object):
         Create and set roslaunch.nodeprocess.LocalProcess to member variable.
         """
         self.process = nodeprocess.create_node_process(
-                                     self._run_id, self.config, self.master_uri)
+                           self._run_id, self._launch_config, self._master_uri)
+
+    def connect_start_stop_button(self, slot):
+        self._pushbutton_start_stop_node.clicked.connect(slot)

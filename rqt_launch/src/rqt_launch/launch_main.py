@@ -37,6 +37,7 @@ import sys
 
 import roslaunch
 import rospkg
+import rospy
 
 from rqt_launch.launch_widget import LaunchWidget
 from rqt_py_common.rqt_roscomm_util import RqtRoscommUtil
@@ -61,14 +62,15 @@ class LaunchMain(object):
             sys.stderr.write("Please give a launch file\n")
             sys.exit(1)
 
+        # Obtain ROSLaunchConfig
         self._config = roslaunch.config.load_config_default([launchfile],
                                                             11311)
         self._mainwidget = LaunchWidget(self._config, self)
 
-        self.run_id = None
+        self._run_id = None
 
-        print self._config.summary()
-        print "MASTER", self._config.master.uri
+        rospy.loginfo('Config.summary:'.format(self._config.summary()))
+        rospy.loginfo('ROS MASTER: {}'.format(self._config.master.uri))
 
         RqtRoscommUtil.load_parameters(self._config, '/rqt_launch')
 

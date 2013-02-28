@@ -36,9 +36,11 @@ import os
 import sys
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import QSize
+from python_qt_binding.QtCore import QModelIndex, QSize
 from python_qt_binding.QtGui import (QDialog, QGridLayout, QLabel, QLineEdit,
-                                     QPushButton, QStyle, QToolButton, QWidget)
+                                     QPushButton, QStandardItem,
+                                     QStandardItemModel, QStyle, QToolButton,
+                                     QWidget)
 import roslaunch
 from roslaunch.core import RLException
 import rospkg
@@ -46,8 +48,9 @@ import rospy
 
 from rqt_launch.node_proxy import NodeProxy
 from rqt_launch.node_controller import NodeController
-from rqt_launch.node_gui import NodeGui
+#from rqt_launch.node_gui import NodeGui
 from rqt_launch.name_surrogate import NamesSurrogate
+from rqt_launch.node_delegate import NodeDelegate
 from rqt_launch.status_indicator import StatusIndicator
 from rqt_py_common.rqt_roscomm_util import RqtRoscommUtil
 
@@ -69,7 +72,7 @@ class LaunchWidget(QDialog):
         #TODO: should be configurable from gui
         self._port_roscore = 11311
 
-        self.run_id = None
+        self._run_id = None
         rospy.loginfo(self._config.summary())
         # rospy.loginfo("MASTER", self._config.master.uri)  # Sheds error.
         #TODO: Replace 'print' with ROS-y method.
@@ -81,8 +84,17 @@ class LaunchWidget(QDialog):
                                'resource', 'launch_widget.ui')
         loadUi(ui_file, self)
 
+        self._datamodel = QStandardItemModel()
+        self._treeview.setModel(self._datamodel)
+
         #TODO: this layout is temporary. Need to be included in .ui.
-        self._gridlayout_process = None
+        #self._gridlayout_process = None
+
+        self._delegate = NodeDelegate(self._config.master.uri, self._rospack)
+        self._treeview.setItemDelegate(self._delegate)
+
+        # NodeController used in controller class for launch operation.
+        self._node_controllers = []
 
         self._pushbutton_start_stop_all.clicked.connect(self._parent.start_all)
         # Bind package selection with .launch file selection.
@@ -91,7 +103,10 @@ class LaunchWidget(QDialog):
         # Bind a launch file selection with launch GUI generation.
         self._combobox_launchfile_name.currentIndexChanged[str].connect(
                                                  self._load_launchfile_slot)
-        self._refresh_packages()
+        self._update_pkgs_contain_launchfiles()
+
+        # Used for removing previous nodes
+        self._num_nodes_previous = 0
 
     def _load_launchfile_slot(self, launchfile_name):
 
@@ -119,12 +134,13 @@ class LaunchWidget(QDialog):
                                                 e.message, launchfile_name))
             return
 
-        self._create_gui_for_launchfile(_config)
+        #self._create_gui_for_launchfile(_config)
+        self._create_widgets_for_launchfile(_config)
 
-    def _create_launchconfig(self, launchfile_name,
-                             port_roscore=11311,
+    def _create_launchconfig(self, launchfile_name, port_roscore=11311,
                              folder_name_launchfile='launch'):
         """
+        @rtype: ROSLaunchConfig
         @raises IndexError:
         @raises RLException: raised by roslaunch.config.load_config_default.
         """
@@ -148,115 +164,66 @@ class LaunchWidget(QDialog):
 
         return launch_config
 
-    def _create_gui_for_launchfile(self, config):
-        """
-        """
+    def _create_widgets_for_launchfile(self, config):
         self._config = config
 
+        #TODO: Might need to be uncommented.
         # Renew the layout of nodes
         #TODO this layout is temporary. Need to be included in .ui.
-        self._vlayout.removeWidget(self._process_widget)
-        _process_widget_previous = self._process_widget
+        #self._vlayout.removeWidget(self._process_widget)
+        #_process_widget_previous = self._process_widget
         # QWidget.hide() was necessary in order NOT to show the previous
-        # widgets. See http://goo.gl/9hjFz
-        _process_widget_previous.hide()
-        #del self._process_widget
-        self._process_widget = QWidget(self)
-        self._vlayout.insertWidget(1, self._process_widget)
-        self._gridlayout_process = QGridLayout()
 
-        # Creates the process grid
-        self._node_controllers = []
-        # Loop per node
-        for i, node_config in enumerate(self._config.nodes):
-            _proxy = NodeProxy(self.run_id, self._config.master.uri,
-                              node_config)
+        # widgets. See http://goo.gl/9hjFz
+        #_process_widget_previous.hide()
+        #self._process_widget = QWidget(self)
+        #self._vlayout.insertWidget(2, self._process_widget)
+        #self._gridlayout_process = QGridLayout()
+
+        # Delete old nodes' GUIs.
+        for node_controller in self._node_controllers:
+            node_widget = node_controller.get_node_widget()
+            if not node_widget == None:
+                node_widget.hide()
+                del node_widget
+
+        # Need to store the num of nodes outside of the loop -- this will
+        # be used for removing excessive previous node rows.
+        row = 0
+        for row, node in enumerate(self._config.nodes):  # Loop per node
+            _proxy = NodeProxy(self._run_id, self._config.master.uri, node)
 
             # TODO: consider using QIcon.fromTheme()
-            status = StatusIndicator()
-            start_button = QPushButton(self.style().standardIcon(
-                                                      QStyle.SP_MediaPlay), "")
-            start_button.setIconSize(QSize(16, 16))
-            stop_button = QPushButton(self.style().standardIcon(
-                                                      QStyle.SP_MediaStop), "")
-            stop_button.setIconSize(QSize(16, 16))
-            respawn_toggle = QToolButton()
-            respawn_toggle.setIcon(self.style().standardIcon(
-                                                      QStyle.SP_BrowserReload))
-            respawn_toggle.setIconSize(QSize(16, 16))
-            respawn_toggle.setCheckable(True)
-            respawn_toggle.setChecked(_proxy.config.respawn)
-            spawn_count_label = QLabel("(0)")
-            launch_prefix_edit = QLineEdit(_proxy.config.launch_prefix)
+            _status_label = StatusIndicator()
 
-            gui = NodeGui(status, respawn_toggle, spawn_count_label,
-                          launch_prefix_edit)
+            #TODO: Ideally remove the next block.
+            #BEGIN If these lines are missing, widget won't be shown either.
+            std_item = QStandardItem()
+            self._datamodel.setItem(row, 0, std_item)
+            #END If these lines are missing, widget won't be shown either.
+
+            qindex = self._datamodel.index(row, 0, QModelIndex())
+            gui = self._delegate.create_node_widget(qindex, node, _proxy.config,
+                                                    _status_label)
+            self._treeview.setIndexWidget(qindex, gui)
 
             node_controller = NodeController(_proxy, gui)
             self._node_controllers.append(node_controller)
 
-            # TODO: These need to be commented in in order to function as
-            # originally intended.
-            start_button.clicked.connect(node_controller.start)
-            stop_button.clicked.connect(node_controller.stop)
+            gui.connect_start_stop_button(node_controller.start)
+            #stop_button.clicked.connect(node_controller.stop)
 
             rospy.loginfo('loop #%d _proxy.config.namespace=%s ' +
                           '_proxy.config.name=%s',
-                          i, _proxy.config.namespace, _proxy.config.name)
-            resolved_node_name = NamesSurrogate.ns_join(
-                                   _proxy.config.namespace, _proxy.config.name)
+                          row, _proxy.config.namespace, _proxy.config.name)
 
-            j = 0
-            self._gridlayout_process.addWidget(status, i, j)
-            self._gridlayout_process.setColumnMinimumWidth(j, 20)
-            j += 1
-            self._gridlayout_process.addWidget(QLabel(resolved_node_name),
-                                               i, j)
-            j += 1
-            self._gridlayout_process.addWidget(spawn_count_label, i, j)
-            self._gridlayout_process.setColumnMinimumWidth(j, 30)
-            j += 1
-            self._gridlayout_process.setColumnMinimumWidth(j, 30)
-            j += 1  # Spacer
-            self._gridlayout_process.addWidget(start_button, i, j)
-            j += 1
-            self._gridlayout_process.addWidget(stop_button, i, j)
-            j += 1
-            self._gridlayout_process.addWidget(respawn_toggle, i, j)
-            j += 1
-            self._gridlayout_process.setColumnMinimumWidth(j, 20)
-            j += 1  # Spacer
-            self._gridlayout_process.addWidget(QLabel(_proxy.config.package),
-                                               i, j)
-            j += 1
-            self._gridlayout_process.addWidget(QLabel(_proxy.config.type),
-                                               i, j)
-            j += 1
-            self._gridlayout_process.addWidget(launch_prefix_edit, i, j)
-            j += 1
+        self._num_nodes_previous = row
 
         self._parent.set_node_controllers(self._node_controllers)
-        # process_scroll.setMinimumWidth(self._gridlayout_process.sizeHint().width())
-        # Doesn't work properly.  Too small
 
-        self._process_widget.setLayout(self._gridlayout_process)
-
-        # Creates the log display area
-#        self.log_text = QPlainTextEdit()
-#
-#        # Sets up the overall layout
-#        process_log_splitter = QSplitter()
-#        process_log_splitter.setOrientation(Qt.Vertical)
-#        process_log_splitter.addWidget(self.log_text)
-#        main_layout = QVBoxLayout()
-#        # main_layout.addWidget(process_scroll, stretch=10)
-#        # main_layout.addWidget(self.log_text, stretch=30)
-#        main_layout.addWidget(process_log_splitter)
-#        self.setLayout(main_layout)
-
-    def _refresh_packages(self):
+    def _update_pkgs_contain_launchfiles(self):
         """
-        Inspired by rqt_msg.MessageWidget._refresh_packages
+        Inspired by rqt_msg.MessageWidget._update_pkgs_contain_launchfiles
         """
         packages = sorted([pkg_tuple[0]
                            for pkg_tuple
