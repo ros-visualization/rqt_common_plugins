@@ -188,6 +188,10 @@ class NodeSelectorWidget(QWidget):
 
     def _current_selection_changed_slot(self, qindex_curr, qindex_prev):
 
+        # Obtaining the intended qindex is tricky. See  http://goo.gl/P6J5p
+        # Here, instead of using Qt's standard way, I made a custom way to
+        # get the corresponding qindex.
+
         rosnode_name_selected = RqtRosGraph.get_upper_grn(qindex_curr, '')
         rospy.loginfo(' index.data={} rosnode_name_selected={}'.format(
                       qindex_curr.data(Qt.DisplayRole),
@@ -196,11 +200,6 @@ class NodeSelectorWidget(QWidget):
             # De-select the selected item.
             self.selectionModel.select(qindex_curr,
                                        QItemSelectionModel.Deselect)
-
-            #TODO: Remove next line that is just testing code.
-            self.selectionModel.select(qindex_prev,
-                                       QItemSelectionModel.Deselect)
-
             return
 
         self._selection_selected(qindex_curr, rosnode_name_selected)
