@@ -40,7 +40,7 @@ from python_qt_binding.QtCore import QModelIndex, QSize
 from python_qt_binding.QtGui import (QDialog, QGridLayout, QLabel, QLineEdit,
                                      QPushButton, QStandardItem,
                                      QStandardItemModel, QStyle, QToolButton,
-                                     QTreeView, QWidget)
+                                     QWidget)
 import roslaunch
 from roslaunch.core import RLException
 import rospkg
@@ -168,6 +168,9 @@ class LaunchWidget(QDialog):
         self._node_controllers = []
 
         # This seems to remove indexWidgets set on treeview.
+        #TODO: Consider using beginResetModel() and endResetModel() as
+        # suggested in API doc.
+        # http://qt-project.org/doc/qt-4.8/qabstractitemmodel.html#reset
         self._datamodel.reset()
 
         # Need to store the num of nodes outside of the loop -- this will
