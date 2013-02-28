@@ -40,7 +40,7 @@ from python_qt_binding.QtCore import QModelIndex, QSize
 from python_qt_binding.QtGui import (QDialog, QGridLayout, QLabel, QLineEdit,
                                      QPushButton, QStandardItem,
                                      QStandardItemModel, QStyle, QToolButton,
-                                     QWidget)
+                                     QTreeView, QWidget)
 import roslaunch
 from roslaunch.core import RLException
 import rospkg
@@ -49,7 +49,6 @@ import rospy
 from rqt_launch.node_proxy import NodeProxy
 from rqt_launch.node_controller import NodeController
 #from rqt_launch.node_gui import NodeGui
-from rqt_launch.name_surrogate import NamesSurrogate
 from rqt_launch.node_delegate import NodeDelegate
 from rqt_launch.status_indicator import StatusIndicator
 from rqt_py_common.rqt_roscomm_util import RqtRoscommUtil
@@ -85,12 +84,10 @@ class LaunchWidget(QDialog):
         loadUi(ui_file, self)
 
         self._datamodel = QStandardItemModel()
-        self._treeview.setModel(self._datamodel)
-
         #TODO: this layout is temporary. Need to be included in .ui.
         #self._gridlayout_process = None
-
         self._delegate = NodeDelegate(self._config.master.uri, self._rospack)
+        self._treeview.setModel(self._datamodel)
         self._treeview.setItemDelegate(self._delegate)
 
         # NodeController used in controller class for launch operation.
@@ -167,25 +164,11 @@ class LaunchWidget(QDialog):
     def _create_widgets_for_launchfile(self, config):
         self._config = config
 
-        #TODO: Might need to be uncommented.
-        # Renew the layout of nodes
-        #TODO this layout is temporary. Need to be included in .ui.
-        #self._vlayout.removeWidget(self._process_widget)
-        #_process_widget_previous = self._process_widget
-        # QWidget.hide() was necessary in order NOT to show the previous
-
-        # widgets. See http://goo.gl/9hjFz
-        #_process_widget_previous.hide()
-        #self._process_widget = QWidget(self)
-        #self._vlayout.insertWidget(2, self._process_widget)
-        #self._gridlayout_process = QGridLayout()
-
         # Delete old nodes' GUIs.
-        for node_controller in self._node_controllers:
-            node_widget = node_controller.get_node_widget()
-            if not node_widget == None:
-                node_widget.hide()
-                del node_widget
+        self._node_controllers = []
+
+        # This seems to remove indexWidgets set on treeview.
+        self._datamodel.reset()
 
         # Need to store the num of nodes outside of the loop -- this will
         # be used for removing excessive previous node rows.
@@ -203,7 +186,8 @@ class LaunchWidget(QDialog):
             #END If these lines are missing, widget won't be shown either.
 
             qindex = self._datamodel.index(row, 0, QModelIndex())
-            gui = self._delegate.create_node_widget(qindex, node, _proxy.config,
+            gui = self._delegate.create_node_widget(qindex, node,
+                                                    _proxy.config,
                                                     _status_label)
             self._treeview.setIndexWidget(qindex, gui)
 
