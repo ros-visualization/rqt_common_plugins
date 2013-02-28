@@ -168,10 +168,12 @@ class LaunchWidget(QDialog):
         self._node_controllers = []
 
         # This seems to remove indexWidgets set on treeview.
-        #TODO: Consider using beginResetModel() and endResetModel() as
-        # suggested in API doc.
+        # Per suggestion in API doc, we are not using reset(). Instead,
+        # using 2 methods below without any operation in between, which
+        # I suspect might be inproper.
         # http://qt-project.org/doc/qt-4.8/qabstractitemmodel.html#reset
-        self._datamodel.reset()
+        self._datamodel.beginResetModel()
+        self._datamodel.endResetModel()
 
         # Need to store the num of nodes outside of the loop -- this will
         # be used for removing excessive previous node rows.
