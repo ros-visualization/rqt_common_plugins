@@ -50,7 +50,7 @@ class NodeWidget(QWidget):
 
     __slots__ = ['_run_id', 'master_uri', 'config', 'process']
 
-    def __init__(self, launch_node, rospack, master_uri, launch_config,
+    def __init__(self, rospack, master_uri, launch_config,
                  label_status):
         """
         @type launch_node: roslaunch.core.Node

@@ -191,8 +191,7 @@ class LaunchWidget(QDialog):
             #END If these lines are missing, widget won't be shown either.
 
             qindex = self._datamodel.index(row, 0, QModelIndex())
-            gui = self._delegate.create_node_widget(qindex, node,
-                                                    _proxy.config,
+            gui = self._delegate.create_node_widget(qindex, _proxy.config,
                                                     _status_label)
             self._treeview.setIndexWidget(qindex, gui)
 

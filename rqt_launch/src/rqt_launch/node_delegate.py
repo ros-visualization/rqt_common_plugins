@@ -81,12 +81,12 @@ class NodeDelegate(QStyledItemDelegate):
         """Overridden"""
         editor.setGeometry(option.rect)
 
-    def create_node_widget(self, qindex, launch_node, launch_config,
+    def create_node_widget(self, qindex, launch_config,
                            status_label):
         """
         @type status_label: StatusIndicator
         """
-        nodewidget = NodeWidget(launch_node, self._rospack,
+        nodewidget = NodeWidget(self._rospack,
                                 self._master_uri, launch_config,
                                 status_label)
         self._nodewidget_dict[qindex] = nodewidget
