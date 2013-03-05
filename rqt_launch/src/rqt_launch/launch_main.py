@@ -38,8 +38,8 @@ import sys
 import roslaunch
 import rospkg
 import rospy
-
 from rqt_launch.launch_widget import LaunchWidget
+from rqt_py_common.plugin_container_widget import PluginContainerWidget
 from rqt_py_common.rqt_roscomm_util import RqtRoscommUtil
 
 
@@ -65,7 +65,8 @@ class LaunchMain(object):
         # Obtain ROSLaunchConfig
         self._config = roslaunch.config.load_config_default([launchfile],
                                                             11311)
-        self._mainwidget = LaunchWidget(self._config, self)
+        _main_launch_widget = LaunchWidget(self._config, self)
+        self._mainwidget = PluginContainerWidget(_main_launch_widget)
 
         self._run_id = None
 
@@ -109,3 +110,10 @@ class LaunchMain(object):
 #        else:
 #            self._splitter.setSizes([100, 100, 200])
         pass
+
+if __name__ == '__main__':
+    # main should be used only for debug purpose.
+    # This launches this QWidget as a standalone rqt gui.
+    from rqt_gui.main import Main
+    main = Main()
+    sys.exit(main.main(sys.argv, standalone='rqt_launch'))

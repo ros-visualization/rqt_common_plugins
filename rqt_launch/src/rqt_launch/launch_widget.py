@@ -48,9 +48,9 @@ import rospy
 
 from rqt_launch.node_proxy import NodeProxy
 from rqt_launch.node_controller import NodeController
-#from rqt_launch.node_gui import NodeGui
 from rqt_launch.node_delegate import NodeDelegate
 from rqt_launch.status_indicator import StatusIndicator
+from rqt_py_common.plugin_container_widget import PluginContainerWidget
 from rqt_py_common.rqt_roscomm_util import RqtRoscommUtil
 
 
@@ -73,7 +73,7 @@ class LaunchWidget(QDialog):
 
         self._run_id = None
         rospy.loginfo(self._config.summary())
-        # rospy.loginfo("MASTER", self._config.master.uri)  # Sheds error.
+        # rospy.loginfo("MASTER", self._config.master.uri)  # Makes error.
         #TODO: Replace 'print' with ROS-y method.
         print "MASTER", self._config.master.uri
 
@@ -82,6 +82,9 @@ class LaunchWidget(QDialog):
         ui_file = os.path.join(self._rospack.get_path('rqt_launch'),
                                'resource', 'launch_widget.ui')
         loadUi(ui_file, self)
+
+        # Apply to plugin container widget
+        #self._sys_status_widget = PluginContainerWidget(self)
 
         self._datamodel = QStandardItemModel()
         #TODO: this layout is temporary. Need to be included in .ui.
