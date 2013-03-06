@@ -48,32 +48,12 @@ class LaunchMain(object):
         super(LaunchMain, self).__init__()
         self._plugin_context = plugin_context
 
-        #TODO: launch file name is obtained here. This should be replaced by
-        # generic method that enables choosing .launch files that exist in
-        # the local file system.
-        rp = rospkg.RosPack()
-        try:
-            launchfile = os.path.join(rp.get_path(
-                          #'rqt_launch'), 'test', 'test.launch')
-                          #'runtime_monitor'), 'test', 'runtime_mon_test.launch')
-                          #'gazebo_worlds'), 'launch', 'empty_world_paused.launch')
-                          'turtle_tf'), 'launch', 'turtle_tf_demo.launch')
-        except IndexError:
-            sys.stderr.write("Please give a launch file\n")
-            sys.exit(1)
-
-        # Obtain ROSLaunchConfig
-        self._config = roslaunch.config.load_config_default([launchfile],
-                                                            11311)
-        _main_launch_widget = LaunchWidget(self._config, self)
+        _main_launch_widget = LaunchWidget(self)
         self._mainwidget = PluginContainerWidget(_main_launch_widget)
 
         self._run_id = None
 
-        rospy.loginfo('Config.summary:'.format(self._config.summary()))
-        rospy.loginfo('ROS MASTER: {}'.format(self._config.master.uri))
-
-        RqtRoscommUtil.load_parameters(self._config, '/rqt_launch')
+        #RqtRoscommUtil.load_parameters(self._config, '/rqt_launch')
 
     def get_widget(self):
         return self._mainwidget

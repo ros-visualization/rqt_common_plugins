@@ -41,6 +41,7 @@ from python_qt_binding.QtGui import (QDialog, QGridLayout, QLabel, QLineEdit,
                                      QPushButton, QStandardItem,
                                      QStandardItemModel, QStyle, QToolButton,
                                      QWidget)
+from rosgraph import rosenv
 import roslaunch
 from roslaunch.core import RLException
 import rospkg
@@ -59,26 +60,21 @@ class LaunchWidget(QDialog):
     #TODO: comment
     """
 
-    def __init__(self, config, parent):
+    def __init__(self, parent):
         """
         @type parent: LaunchMain
-        @type config: ?
         """
         super(LaunchWidget, self).__init__()
         self._parent = parent
-        self._config = config
+
+        self._config = None
 
         #TODO: should be configurable from gui
         self._port_roscore = 11311
 
         self._run_id = None
-        rospy.loginfo(self._config.summary())
-        # rospy.loginfo("MASTER", self._config.master.uri)  # Makes error.
-        #TODO: Replace 'print' with ROS-y method.
-        print "MASTER", self._config.master.uri
 
         self._rospack = rospkg.RosPack()
-
         ui_file = os.path.join(self._rospack.get_path('rqt_launch'),
                                'resource', 'launch_widget.ui')
         loadUi(ui_file, self)
@@ -89,7 +85,10 @@ class LaunchWidget(QDialog):
         self._datamodel = QStandardItemModel()
         #TODO: this layout is temporary. Need to be included in .ui.
         #self._gridlayout_process = None
-        self._delegate = NodeDelegate(self._config.master.uri, self._rospack)
+        master_uri = rosenv.get_master_uri()
+        rospy.loginfo('LaunchWidget master_uri={}'.format(master_uri))
+        self._delegate = NodeDelegate(master_uri,
+                                      self._rospack)
         self._treeview.setModel(self._datamodel)
         self._treeview.setItemDelegate(self._delegate)
 
