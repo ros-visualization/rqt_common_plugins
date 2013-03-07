@@ -74,7 +74,7 @@ class NodeWidget(QWidget):
         self._lineEdit_launch_prefix = QLineEdit(
                                              self._launch_config.launch_prefix)
 
-        rospy.loginfo('_proxy.conf.namespace={} _launch_config.name={}'.format(
+        rospy.logdebug('_proxy.conf.namespace={} launch_config={}'.format(
                       self._launch_config.namespace, self._launch_config.name))
         resolved_node_name = NamesSurrogate.ns_join(
                        self._launch_config.namespace, self._launch_config.name)

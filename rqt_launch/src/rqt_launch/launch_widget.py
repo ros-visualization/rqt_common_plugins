@@ -36,11 +36,10 @@ import os
 import sys
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import QModelIndex, QSize
+from python_qt_binding.QtCore import QModelIndex, QSize, Signal
 from python_qt_binding.QtGui import (QDialog, QGridLayout, QLabel, QLineEdit,
                                      QPushButton, QStandardItem,
-                                     QStandardItemModel, QStyle, QToolButton,
-                                     QWidget)
+                                     QStandardItemModel, QToolButton)
 from rosgraph import rosenv
 import roslaunch
 from roslaunch.core import RLException
@@ -56,9 +55,11 @@ from rqt_py_common.rqt_roscomm_util import RqtRoscommUtil
 
 
 class LaunchWidget(QDialog):
+    """#TODO: comment
     """
-    #TODO: comment
-    """
+
+    # To be connected to PluginContainerWidget
+    sig_sysmsg = Signal(str)
 
     def __init__(self, parent):
         """
@@ -108,7 +109,6 @@ class LaunchWidget(QDialog):
         self._num_nodes_previous = 0
 
     def _load_launchfile_slot(self, launchfile_name):
-
         # Not yet sure why, but everytime combobox.currentIndexChanged occurs,
         # this method gets called twice with launchfile_name=='' in 1st call.
         if launchfile_name == None or launchfile_name == '':
@@ -116,24 +116,28 @@ class LaunchWidget(QDialog):
 
         _config = None
 
-        rospy.loginfo('_load_launchfile_slot launchfile_name={}'.format(
-                                                launchfile_name))
+        rospy.logdebug('_load_launchfile_slot launchfile_name={}'.format(
+                                                           launchfile_name))
 
         try:
             _config = self._create_launchconfig(launchfile_name,
                                                 self._port_roscore)
+            #TODO: folder_name_launchfile should be able to specify arbitrarily
+            # _create_launchconfig takes 3rd arg for it.
+
         except IndexError as e:
-            #TODO: Show error msg on GUI
-            rospy.logerr('IndexError={} launchfile_name={}'.format(
-                                                e.message, launchfile_name))
+            msg = 'IndexError={} launchfile={}'.format(e.message,
+                                                       launchfile_name)
+            rospy.logerr(msg)
+            self.sig_sysmsg.emit(msg)
             return
         except RLException as e:
-            #TODO: Show error msg on GUI
-            rospy.logerr('RLException={} launchfile_name={}'.format(
-                                                e.message, launchfile_name))
+            msg = 'RLException={} launchfile={}'.format(e.message,
+                                                        launchfile_name)
+            rospy.logerr(msg)
+            self.sig_sysmsg.emit(msg)
             return
 
-        #self._create_gui_for_launchfile(_config)
         self._create_widgets_for_launchfile(_config)
 
     def _create_launchconfig(self, launchfile_name, port_roscore=11311,
@@ -143,8 +147,6 @@ class LaunchWidget(QDialog):
         @raises IndexError:
         @raises RLException: raised by roslaunch.config.load_config_default.
         """
-
-        #TODO: folder_name_launchfile foShould be able to specify arbitrarily.
 
         pkg_name = self._combobox_pkg.currentText()
 
@@ -158,6 +160,8 @@ class LaunchWidget(QDialog):
         try:
             launch_config = roslaunch.config.load_config_default([launchfile],
                                                                  port_roscore)
+        except rospkg.common.ResourceNotFound as e:
+            raise RLException('ResourceNotFound: {}'.format(e.message))
         except RLException as e:
             raise e
 
@@ -203,7 +207,7 @@ class LaunchWidget(QDialog):
             gui.connect_start_stop_button(node_controller.start)
             #stop_button.clicked.connect(node_controller.stop)
 
-            rospy.loginfo('loop #%d _proxy.config.namespace=%s ' +
+            rospy.logdebug('loop #%d _proxy.config.namespace=%s ' +
                           '_proxy.config.name=%s',
                           row, _proxy.config.namespace, _proxy.config.name)
 
@@ -219,7 +223,7 @@ class LaunchWidget(QDialog):
                            for pkg_tuple
                            in RqtRoscommUtil.iterate_packages('launch')])
         self._package_list = packages
-        rospy.loginfo('pkgs={}'.format(self._package_list))
+        rospy.logdebug('pkgs={}'.format(self._package_list))
         self._combobox_pkg.clear()
         self._combobox_pkg.addItems(self._package_list)
         self._combobox_pkg.setCurrentIndex(0)

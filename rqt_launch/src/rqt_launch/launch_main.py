@@ -32,11 +32,8 @@
 #
 # Author: Isaac Saito
 
-import os
 import sys
 
-import roslaunch
-import rospkg
 import rospy
 from rqt_launch.launch_widget import LaunchWidget
 from rqt_py_common.plugin_container_widget import PluginContainerWidget
@@ -49,7 +46,8 @@ class LaunchMain(object):
         self._plugin_context = plugin_context
 
         _main_launch_widget = LaunchWidget(self)
-        self._mainwidget = PluginContainerWidget(_main_launch_widget)
+        self._mainwidget = PluginContainerWidget(_main_launch_widget, True,
+                                                 False)
 
         self._run_id = None
 
@@ -62,12 +60,12 @@ class LaunchMain(object):
         self._node_controllers = node_controllers
 
     def start_all(self):
-        print "Starting all nodes"
+        rospy.loginfo("Starting all nodes")
         for n in self._node_controllers:
             n.start(restart=False)
 
     def stop_all(self):
-        print "Stopping all nodes"
+        rospy.loginfo("Stopping all nodes")
         for n in self._node_controllers:
             n.stop()
 
