@@ -36,10 +36,9 @@ import os
 import sys
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import QModelIndex, QSize, Signal
-from python_qt_binding.QtGui import (QDialog, QGridLayout, QLabel, QLineEdit,
-                                     QPushButton, QStandardItem,
-                                     QStandardItemModel, QToolButton)
+from python_qt_binding.QtCore import QModelIndex, Signal
+from python_qt_binding.QtGui import (QDialog, QStandardItem,
+                                     QStandardItemModel)
 from rosgraph import rosenv
 import roslaunch
 from roslaunch.core import RLException
@@ -50,7 +49,6 @@ from rqt_launch.node_proxy import NodeProxy
 from rqt_launch.node_controller import NodeController
 from rqt_launch.node_delegate import NodeDelegate
 from rqt_launch.status_indicator import StatusIndicator
-from rqt_py_common.plugin_container_widget import PluginContainerWidget
 from rqt_py_common.rqt_roscomm_util import RqtRoscommUtil
 
 
@@ -80,12 +78,8 @@ class LaunchWidget(QDialog):
                                'resource', 'launch_widget.ui')
         loadUi(ui_file, self)
 
-        # Apply to plugin container widget
-        #self._sys_status_widget = PluginContainerWidget(self)
-
         self._datamodel = QStandardItemModel()
         #TODO: this layout is temporary. Need to be included in .ui.
-        #self._gridlayout_process = None
         master_uri = rosenv.get_master_uri()
         rospy.loginfo('LaunchWidget master_uri={}'.format(master_uri))
         self._delegate = NodeDelegate(master_uri,
@@ -144,7 +138,6 @@ class LaunchWidget(QDialog):
                              folder_name_launchfile='launch'):
         """
         @rtype: ROSLaunchConfig
-        @raises IndexError:
         @raises RLException: raised by roslaunch.config.load_config_default.
         """
 
@@ -154,8 +147,7 @@ class LaunchWidget(QDialog):
             launchfile = os.path.join(self._rospack.get_path(pkg_name),
                                       folder_name_launchfile, launchfile_name)
         except IndexError as e:
-            #TODO: Return exception to show error msg on GUI
-            raise e
+            raise RLException('IndexError: {}'.format(e.message))
 
         try:
             launch_config = roslaunch.config.load_config_default([launchfile],
@@ -183,35 +175,37 @@ class LaunchWidget(QDialog):
 
         # Need to store the num of nodes outside of the loop -- this will
         # be used for removing excessive previous node rows.
-        row = 0
-        for row, node in enumerate(self._config.nodes):  # Loop per node
-            _proxy = NodeProxy(self._run_id, self._config.master.uri, node)
+        order_xmlelement = 0
+        # Loop per xml element
+        for order_xmlelement, node in enumerate(self._config.nodes):
+            proxy = NodeProxy(self._run_id, self._config.master.uri, node)
 
             # TODO: consider using QIcon.fromTheme()
-            _status_label = StatusIndicator()
+            status_label = StatusIndicator()
 
             #TODO: Ideally remove the next block.
             #BEGIN If these lines are missing, widget won't be shown either.
             std_item = QStandardItem()
-            self._datamodel.setItem(row, 0, std_item)
+            self._datamodel.setItem(order_xmlelement, 0, std_item)
             #END If these lines are missing, widget won't be shown either.
 
-            qindex = self._datamodel.index(row, 0, QModelIndex())
-            gui = self._delegate.create_node_widget(qindex, _proxy.config,
-                                                    _status_label)
-            self._treeview.setIndexWidget(qindex, gui)
+            qindex = self._datamodel.index(order_xmlelement, 0, QModelIndex())
+            node_widget = self._delegate.create_node_widget(qindex,
+                                                            proxy.config,
+                                                            status_label)
+            self._treeview.setIndexWidget(qindex, node_widget)
 
-            node_controller = NodeController(_proxy, gui)
+            node_controller = NodeController(proxy, node_widget)
             self._node_controllers.append(node_controller)
 
-            gui.connect_start_stop_button(node_controller.start)
+            node_widget.connect_start_stop_button(node_controller.start)
             #stop_button.clicked.connect(node_controller.stop)
 
-            rospy.logdebug('loop #%d _proxy.config.namespace=%s ' +
-                          '_proxy.config.name=%s',
-                          row, _proxy.config.namespace, _proxy.config.name)
+            rospy.logdebug('loop #%d proxy.config.namespace=%s ' +
+                          'proxy.config.name=%s',
+                          order_xmlelement, proxy.config.namespace, proxy.config.name)
 
-        self._num_nodes_previous = row
+        self._num_nodes_previous = order_xmlelement
 
         self._parent.set_node_controllers(self._node_controllers)
 
