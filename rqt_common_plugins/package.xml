@@ -1,6 +1,6 @@
 <package>
   <name>rqt_common_plugins</name>
-  <version>0.2.10</version>
+  <version>0.2.11</version>
   <description>Metapackage of common rqt plugins for ROS.</description>
   <maintainer email="ablasdel@willowgarage.com">Aaron Blasdel</maintainer>
   <maintainer email="130s@alumni.smu.edu">Isaac Saito</maintainer>
