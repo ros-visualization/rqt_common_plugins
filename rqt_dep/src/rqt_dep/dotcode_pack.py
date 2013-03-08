@@ -61,6 +61,7 @@ class RosPackageGraphDotcodeGenerator:
         self.rosstack = rosstack
         self.stacks = {}
         self.packages = {}
+        self.package_types = {}
         self.edges = {}
         self.traversed_ancestors = {}
         self.traversed_descendants = {}
@@ -82,7 +83,9 @@ class RosPackageGraphDotcodeGenerator:
                          ranksep=0.2,  # vertical distance between layers
                          rankdir='TB',  # direction of layout (TB top > bottom, LR left > right)
                          simplify=True,  # remove double edges
-                         force_refresh=False):
+                         force_refresh=False,
+                         hide_wet=False,
+                         hide_dry=False):
         """
 
         :param hide_transitives: if true, then dependency of children to grandchildren will be hidden if parent has same dependency
@@ -107,7 +110,9 @@ class RosPackageGraphDotcodeGenerator:
             "selected_names": selected_names,
             "excludes": excludes,
             "ancestors": ancestors,
-            "descendants": descendants
+            "descendants": descendants,
+            "hide_wet": hide_wet,
+            "hide_dry": hide_dry
             }
 
         # if selection did not change, we need not build up the graph again
@@ -124,10 +129,13 @@ class RosPackageGraphDotcodeGenerator:
             self.excludes = excludes
             self.ancestors = ancestors
             self.descendants = descendants
+            self.hide_wet = hide_wet
+            self.hide_dry = hide_dry
 
         if force_refresh or selection_changed:
             self.stacks = {}
             self.packages = {}
+            self.package_types = {}
             self.edges = {}
             self.traversed_ancestors = {}
             self.traversed_descendants = {}
@@ -185,7 +193,7 @@ class RosPackageGraphDotcodeGenerator:
                                           simplify=self.simplify)
         # print("In generate", self.with_stacks, len(self.stacks), len(self.packages), len(self.edges))
         packages_in_stacks = []
-        if self.with_stacks:
+        if self.with_stacks and not self.hide_dry:
             for stackname in self.stacks:
                 color = None
                 if self.mark_selected and not '.*' in self.selected_names and matches_any(stackname, self.selected_names):
@@ -214,6 +222,8 @@ class RosPackageGraphDotcodeGenerator:
         return graph
 
     def _generate_package(self, dotcode_factory, graph, package_name, attributes=None):
+        if self._hide_package(package_name):
+            return
         color = None
         if self.mark_selected and not '.*' in self.selected_names and matches_any(package_name, self.selected_names):
             if attributes and attributes['is_catkin']:
@@ -237,17 +247,15 @@ class RosPackageGraphDotcodeGenerator:
         adds object based on package_name to self.packages
         :param parent: packagename which referenced package_name (for debugging only)
         """
+        if self._hide_package(package_name):
+            return
         if package_name in self.packages:
             return False
 
-        try:
-            package_path = self.rospack.get_path(package_name)
-        except ResourceNotFound:
-            self.packages[package_name] = {'is_catkin': True, 'not_found': True}
+        catkin_package = self._is_package_wet(package_name)
+        if catkin_package is None:
             return False
-        manifest_file = os.path.join(package_path, MANIFEST_FILE)
-        is_catkin = not os.path.exists(manifest_file)
-        self.packages[package_name] = {'is_catkin': is_catkin}
+        self.packages[package_name] = {'is_catkin': catkin_package}
 
         if self.with_stacks:
             try:
@@ -261,7 +269,30 @@ class RosPackageGraphDotcodeGenerator:
                 self.stacks[stackname]['packages'].append(package_name)
         return True
 
+    def _hide_package(self, package_name):
+        if not self.hide_wet and not self.hide_dry:
+            return False
+        catkin_package = self._is_package_wet(package_name)
+        if self.hide_wet and catkin_package:
+            return True
+        if self.hide_dry and catkin_package is False:
+            return True
+        # if type of package is unknown don't hide it
+        return False
+
+    def _is_package_wet(self, package_name):
+        if package_name not in self.package_types:
+            try:
+                package_path = self.rospack.get_path(package_name)
+                manifest_file = os.path.join(package_path, MANIFEST_FILE)
+                self.package_types[package_name] = not os.path.exists(manifest_file)
+            except ResourceNotFound:
+                pass
+        return self.package_types[package_name]
+
     def _add_edge(self, name1, name2, attributes=None):
+        if self._hide_package(name1) or self._hide_package(name2):
+            return
         self.edges[(name1, name2)] = attributes
 
     def add_package_ancestors_recursively(self, package_name, expanded_up=None, depth=None, implicit=False, parent=None):

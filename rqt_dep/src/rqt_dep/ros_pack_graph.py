@@ -129,14 +129,17 @@ class RosPackGraph(Plugin):
         self._widget.depth_combo_box.insertItem(2, self.tr('2'), 3)
         self._widget.depth_combo_box.insertItem(3, self.tr('3'), 4)
         self._widget.depth_combo_box.insertItem(4, self.tr('4'), 5)
-        self._widget.depth_combo_box.setCurrentIndex(0)
         self._widget.depth_combo_box.currentIndexChanged.connect(self._refresh_rospackgraph)
 
         self._widget.directions_combo_box.insertItem(0, self.tr('depends'), 0)
         self._widget.directions_combo_box.insertItem(1, self.tr('depends_on'), 1)
         self._widget.directions_combo_box.insertItem(2, self.tr('both'), 2)
-        self._widget.directions_combo_box.setCurrentIndex(2)
         self._widget.directions_combo_box.currentIndexChanged.connect(self._refresh_rospackgraph)
+
+        self._widget.package_type_combo_box.insertItem(0, self.tr('wet & dry'), 3)
+        self._widget.package_type_combo_box.insertItem(1, self.tr('wet only'), 2)
+        self._widget.package_type_combo_box.insertItem(2, self.tr('dry only'), 1)
+        self._widget.package_type_combo_box.currentIndexChanged.connect(self._refresh_rospackgraph)
 
         completionmodel = StackageCompletionModel(self._widget.filter_line_edit, rospack, rosstack)
         completer = RepeatedWordCompleter(completionmodel, self)
@@ -180,6 +183,7 @@ class RosPackGraph(Plugin):
     def save_settings(self, plugin_settings, instance_settings):
         instance_settings.set_value('depth_combo_box_index', self._widget.depth_combo_box.currentIndex())
         instance_settings.set_value('directions_combo_box_index', self._widget.directions_combo_box.currentIndex())
+        instance_settings.set_value('package_type_combo_box', self._widget.package_type_combo_box.currentIndex())
         instance_settings.set_value('filter_line_edit_text', self._widget.filter_line_edit.text())
         instance_settings.set_value('with_stacks_state', self._widget.with_stacks_check_box.isChecked())
         instance_settings.set_value('hide_transitives_state', self._widget.hide_transitives_check_box.isChecked())
@@ -191,11 +195,12 @@ class RosPackGraph(Plugin):
     def restore_settings(self, plugin_settings, instance_settings):
         self._widget.depth_combo_box.setCurrentIndex(int(instance_settings.value('depth_combo_box_index', 0)))
         self._widget.directions_combo_box.setCurrentIndex(int(instance_settings.value('directions_combo_box_index', 0)))
+        self._widget.package_type_combo_box.setCurrentIndex(int(instance_settings.value('package_type_combo_box', 0)))
         self._widget.filter_line_edit.setText(instance_settings.value('filter_line_edit_text', ''))
         self._widget.with_stacks_check_box.setChecked(instance_settings.value('with_stacks_state', True) in [True, 'true'])
         self._widget.mark_check_box.setChecked(instance_settings.value('mark_state', True) in [True, 'true'])
-        self._widget.colorize_check_box.setChecked(instance_settings.value('colorize_state', True) in [True, 'true'])
-        self._widget.hide_transitives_check_box.setChecked(instance_settings.value('hide_transitives_state', True) in [True, 'true'])
+        self._widget.colorize_check_box.setChecked(instance_settings.value('colorize_state', False) in [True, 'true'])
+        self._widget.hide_transitives_check_box.setChecked(instance_settings.value('hide_transitives_state', False) in [True, 'true'])
         self._widget.auto_fit_graph_check_box.setChecked(instance_settings.value('auto_fit_graph_check_box_state', True) in [True, 'true'])
         self._widget.highlight_connections_check_box.setChecked(instance_settings.value('highlight_connections_check_box_state', True) in [True, 'true'])
         self.initialized = True
@@ -205,6 +210,7 @@ class RosPackGraph(Plugin):
         # re-enable controls customizing fetched ROS graph
         self._widget.depth_combo_box.setEnabled(True)
         self._widget.directions_combo_box.setEnabled(True)
+        self._widget.package_type_combo_box.setEnabled(True)
         self._widget.filter_line_edit.setEnabled(True)
         self._widget.with_stacks_check_box.setEnabled(True)
         self._widget.mark_check_box.setEnabled(True)
@@ -216,6 +222,7 @@ class RosPackGraph(Plugin):
     def _update_options(self):
         self._options['depth'] = self._widget.depth_combo_box.itemData(self._widget.depth_combo_box.currentIndex())
         self._options['directions'] = self._widget.directions_combo_box.itemData(self._widget.directions_combo_box.currentIndex())
+        self._options['package_types'] = self._widget.package_type_combo_box.itemData(self._widget.package_type_combo_box.currentIndex())
         self._options['with_stacks'] = self._widget.with_stacks_check_box.isChecked()
         self._options['mark_selected'] = self._widget.mark_check_box.isChecked()
         self._options['hide_transitives'] = self._widget.hide_transitives_check_box.isChecked()
@@ -279,7 +286,9 @@ class RosPackGraph(Plugin):
                                                        ancestors=ancestors,
                                                        mark_selected=self._options['mark_selected'],
                                                        colortheme=self._options['colortheme'],
-                                                       hide_transitives=self._options['hide_transitives'])
+                                                       hide_transitives=self._options['hide_transitives'],
+                                                       hide_wet=self._options['package_types'] == 1,
+                                                       hide_dry=self._options['package_types'] == 2)
 
     # this runs in a non-gui thread, so don't access widgets here directly
     def _update_graph(self, dotcode):
@@ -337,6 +346,7 @@ class RosPackGraph(Plugin):
         # disable controls customizing fetched ROS graph
         self._widget.depth_combo_box.setEnabled(False)
         self._widget.directions_combo_box.setEnabled(False)
+        self._widget.package_type_combo_box.setEnabled(False)
         self._widget.filter_line_edit.setEnabled(False)
         self._widget.with_stacks_check_box.setEnabled(False)
         self._widget.mark_check_box.setEnabled(False)
