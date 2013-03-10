@@ -59,12 +59,16 @@ class DynreconfClientWidget(GroupWidget):
         self.setMinimumWidth(150)
 
         self.reconf = reconf
-
         self.updater.start()
-
         self.reconf.config_callback = self.config_callback
+        self._node_grn = node_name
+
+    def get_node_grn(self):
+
+        return self._node_grn
 
     def config_callback(self, config):
+
         #TODO: Think about replacing callback architecture with signals.
 
         if config is not None:

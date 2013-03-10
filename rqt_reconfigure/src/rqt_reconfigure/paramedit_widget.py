@@ -56,18 +56,14 @@ class ParameditWidget(QWidget):
     # public signal
     sig_node_disabled_selected = Signal(str)
 
-    def __init__(self, paramitems_dict):
-        """
-        :type paramitems_dict: OrderedDict. 1st elem is node's GRN name,
-                          2nd is TreenodeQstdItem instance (that extends
-                          QStandardItem)
-        """
+    def __init__(self):
+        """"""
         super(ParameditWidget, self).__init__()
 
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_reconfigure'),
                                'resource', 'paramedit_pane.ui')
-        loadUi(ui_file, self)
+        loadUi(ui_file, self, {'ParameditWidget': ParameditWidget})
 
         self._dynreconf_clients = OrderedDict()
 
@@ -79,14 +75,62 @@ class ParameditWidget(QWidget):
 
     def _set_index_widgets(self, view, paramitems_dict):
         """
-        :deprecated: Causes error
+        @deprecated: Causes error
         """
         i = 0
         for p in paramitems_dict:
             view.setIndexWidget(i, p)
             i += 1
 
-    def show_reconf(self, node_grn):
+    def show_reconf(self, dynreconf_widget):
+        """
+        Callback when user chooses a node.
+
+        @param dynreconf_widget:
+        """
+        node_grn = dynreconf_widget.get_node_grn()
+        rospy.logdebug('ParameditWidget.show str(node_grn)=%s', str(node_grn))
+
+        dynreconf_client = None
+
+        if not node_grn in self._dynreconf_clients.keys():
+            # Add dynreconf widget if there hasn't one existed.
+
+            #TODO think about sharing dynamic_reconfigure.client instances
+            # with NodeSelecorWidget...generating 2 instances of the same node
+            # is nothing but inefficient and bad design.
+
+            try:
+                dynreconf_client = dynamic_reconfigure.client.Client(
+                                               str(node_grn), timeout=5.0)
+            except rospy.exceptions.ROSException:
+                rospy.logerr("Could not connect to %s" % node_grn)
+                #TODO(Isaac) Needs to show err msg on GUI too.
+                return
+
+            _dynreconf_client = DynreconfClientWidget(dynreconf_client,
+                                                      node_grn)
+            # Client gets renewed every time different node_grn was clicked.
+
+            self._dynreconf_clients.__setitem__(node_grn, _dynreconf_client)
+            self.vlayout.addWidget(_dynreconf_client)
+            _dynreconf_client.sig_node_disabled_selected.connect(
+                                                           self._node_disabled)
+
+        else:  # If there has one already existed, remove it.
+            self._remove_node(node_grn)
+            #LayoutUtil.clear_layout(self.vlayout)
+
+            # Re-add the rest of existing items to layout.
+            #for k, v in self._dynreconf_clients.iteritems():
+            #    rospy.loginfo('added to layout k={} v={}'.format(k, v))
+            #    self.vlayout.addWidget(v)
+
+        # Add color to alternate the rim of the widget.
+        LayoutUtil.alternate_color(self._dynreconf_clients.itervalues(),
+                                   [Qt.white, Qt.lightGray])
+
+    def show_reconf_old(self, node_grn):
         """
         Callback when user chooses a node.
 

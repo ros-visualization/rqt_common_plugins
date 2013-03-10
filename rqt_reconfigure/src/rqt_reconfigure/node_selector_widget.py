@@ -42,7 +42,7 @@ import dynamic_reconfigure as dyn_reconf
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, Signal
 from python_qt_binding.QtGui import (QHeaderView, QItemSelectionModel,
-                                     QStandardItemModel, QWidget)
+                                     QWidget)
 import rospkg
 import rospy
 import rosservice
@@ -52,12 +52,14 @@ from rqt_reconfigure.filter_children_model import FilterChildrenModel
 from rqt_reconfigure.treenode_qstditem import TreenodeQstdItem
 from rqt_reconfigure.treenode_item_model import TreenodeItemModel
 
+from rqt_reconfigure.dynreconf_client_widget import DynreconfClientWidget
+
 
 class NodeSelectorWidget(QWidget):
     _COL_NAMES = ['Node']
 
     # public signal
-    sig_node_selected = Signal(str)
+    sig_node_selected = Signal(DynreconfClientWidget)
 
     def __init__(self):
         super(NodeSelectorWidget, self).__init__()
@@ -146,7 +148,9 @@ class NodeSelectorWidget(QWidget):
         self.selectionModel.select(index_current, QItemSelectionModel.Deselect)
 
         # Signal to notify other pane that also contains node widget.
-        self.sig_node_selected.emit(rosnode_name_selected)
+        self.sig_node_selected.emit(
+                 self._nodeitems[rosnode_name_selected].get_dynreconf_widget())
+        #self.sig_node_selected.emit(self._nodeitems[rosnode_name_selected])
 
     def _selection_selected(self, index_current, rosnode_name_selected):
         """Intended to be called from _selection_changed_slot."""
@@ -166,6 +170,7 @@ class NodeSelectorWidget(QWidget):
             if ((name_nodeitem == rosnode_name_selected) and
                 (name_nodeitem[name_nodeitem.rfind(RqtRosGraph.DELIM_GRN) + 1:]
                  == name_rosnode_leaf)):
+
                 rospy.logdebug('terminal str {} MATCH {}'.format(
                                              name_nodeitem, name_rosnode_leaf))
                 found_node = True
@@ -176,36 +181,19 @@ class NodeSelectorWidget(QWidget):
             return
 
         # Only when it's a terminal we move forward.
-        item_child = self._item_model.itemFromIndex(index_current.child(0, 0))
-        rospy.logdebug('item_selected={} item_child={} r={} c={}'.format(
-                       index_current, item_child,
-                       index_current.row(), index_current.column()))
 
-        self.sig_node_selected.emit(rosnode_name_selected)
+        # itemFromIndex returns None for some reason.
+        #item_child = self._item_model.itemFromIndex(index_current.child(0, 0))
+
+        #self.sig_node_selected.emit(rosnode_name_selected)
+        item_child = self._nodeitems[rosnode_name_selected]
+        item_widget = item_child.get_dynreconf_widget()
+        rospy.loginfo('item_selected={} child={} widget={}'.format(
+                       index_current, item_child, item_widget))
+        self.sig_node_selected.emit(item_widget)
 
         # Show the node as selected.
         #selmodel.select(index_current, QItemSelectionModel.SelectCurrent)
-
-    def _current_selection_changed_slot(self, qindex_curr, qindex_prev):
-
-        # Obtaining the intended qindex is tricky. See  http://goo.gl/P6J5p
-        # Here, instead of using Qt's standard way, I made a custom way to
-        # get the corresponding qindex.
-
-        rosnode_name_selected = RqtRosGraph.get_upper_grn(qindex_curr, '')
-        rospy.loginfo(' index.data={} rosnode_name_selected={}'.format(
-                      qindex_curr.data(Qt.DisplayRole),
-                      rosnode_name_selected))
-        if not rosnode_name_selected in self._nodeitems.keys():
-            # De-select the selected item.
-            self.selectionModel.select(qindex_curr,
-                                       QItemSelectionModel.Deselect)
-            return
-
-        self._selection_selected(qindex_curr, rosnode_name_selected)
-
-        #TODO: Detect deselection?
-        #self._selection_deselected(qindex_curr, rosnode_name_selected)
 
     def _selection_changed_slot(self, selected, deselected):
         """
@@ -233,6 +221,8 @@ class NodeSelectorWidget(QWidget):
             # Indeed this workaround leaves another issue. Question for
             # permanent solution is asked here http://goo.gl/V4DT1
             index_current = deselected.indexes()[0]
+
+        rospy.logdebug('  - - - index_current={}'.format(index_current))
 
         rosnode_name_selected = RqtRosGraph.get_upper_grn(index_current, '')
 
@@ -281,15 +271,22 @@ class NodeSelectorWidget(QWidget):
 #                    continue
                 #### (End) For DEBUG ONLY. ####
 
+                # Instantiate QStandardItem. Inside, dyn_reconf client will
+                # be generated too.
                 treenodeitem_toplevel = TreenodeQstdItem(
-                                 node_name_grn, TreenodeQstdItem.NODE_FULLPATH)
+                                node_name_grn, TreenodeQstdItem.NODE_FULLPATH)
                 _treenode_names = treenodeitem_toplevel.get_treenode_names()
+
+                # Using OrderedDict here is a workaround for StdItemModel
+                # not returning corresponding item to index.
                 self._nodeitems[node_name_grn] = treenodeitem_toplevel
+
                 self._add_children_treenode(treenodeitem_toplevel,
                                             self._rootitem, _treenode_names)
 
                 time_siglenode_loop = time.time() - time_siglenode_loop
                 elapsedtime_overall += time_siglenode_loop
+
                 # NOT a debug print - please DO NOT remove. This print works
                 # as progress notification when loading takes long time.
                 rospy.loginfo('reconf ' +

@@ -33,7 +33,7 @@
 # Author: Isaac Saito
 
 from rqt_gui_py.plugin import Plugin
-import rospy
+from rqt_py_common.plugin_container_widget import PluginContainerWidget
 
 from .param_widget import ParamWidget
 
@@ -48,7 +48,8 @@ class ParamPlugin(Plugin):
         super(ParamPlugin, self).__init__(context)
         self.setObjectName('Dynamic Reconfigure')
 
-        self._widget = ParamWidget(context)
+        self._plugin_widget = ParamWidget(context)
+        self._widget = PluginContainerWidget(self._plugin_widget)
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() +
                                         (' (%d)' % context.serial_number()))

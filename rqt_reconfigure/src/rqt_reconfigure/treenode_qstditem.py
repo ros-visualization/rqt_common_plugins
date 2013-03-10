@@ -34,13 +34,37 @@
 
 from __future__ import division
 
+import threading
+import time
+
 import dynamic_reconfigure.client
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QBrush, QStandardItem, QWidget
+from python_qt_binding.QtGui import QBrush, QStandardItem
 import rospy
+from rospy.exceptions import ROSException
 from rqt_py_common.data_items import ReadonlyItem
 
 from .dynreconf_client_widget import DynreconfClientWidget
+
+
+class ParamserverConnectThread(threading.Thread):
+    def __init__(self, parent, param_name_raw):
+        super(ParamserverConnectThread, self).__init__()
+        self._parent = parent
+        self._param_name_raw = param_name_raw
+
+    def run(self):
+        dynreconf_client = None
+        try:
+            dynreconf_client = dynamic_reconfigure.client.Client(
+                                       str(self._param_name_raw), timeout=5.0)
+            rospy.logdebug('ParamserverConnectThread dynreconf_client={}'. \
+                          format(dynreconf_client))
+            self._parent.set_dynreconf_client(dynreconf_client)
+        except rospy.exceptions.ROSException as e:
+            raise type(e)(e.message +
+                          "TreenodeQstdItem. Couldn't connect to {}".format(
+                                                         self._param_name_raw))
 
 
 class TreenodeQstdItem(ReadonlyItem):
@@ -63,8 +87,15 @@ class TreenodeQstdItem(ReadonlyItem):
         self._set_param_name(grn_current_treenode)
         super(TreenodeQstdItem, self).__init__(grn_current_treenode)
 
+        # dynamic_reconfigure.client.Client
         self._dynreconf_client = None
+        # DynreconfClientWidget
+        self._dynreconfclient_widget = None
+
         self._is_rosnode = False
+
+        self._lock = None
+        self._paramserver_connect_thread = None
 
         try:
             if args[1] != None:
@@ -72,11 +103,42 @@ class TreenodeQstdItem(ReadonlyItem):
         except IndexError:  # tuple index out of range etc.
                 rospy.logerr('TreenodeQstdItem IndexError')
 
-    def get_widget(self):
+    def set_dynreconf_client(self, dynreconf_client):
         """
-        :rtype: DynreconfClientWidget (QWidget)
+        @param dynreconf_client: dynamic_reconfigure.client.Client
         """
-        return self._dynreconf_client
+        self._dynreconf_client = dynreconf_client
+        rospy.loginfo('Qitem set dynreconf_client={} param={}'.format(
+                                                       self._dynreconf_client,
+                                                       self._param_name_raw))
+
+    def get_dynreconf_widget(self):
+        """
+        @rtype: DynreconfClientWidget (QWidget)
+        @return: None if dynreconf_client is not yet generated.
+        """
+
+        if self._dynreconfclient_widget == None:
+            rospy.logdebug('get dynreconf_client={}'.format(
+                                                       self._dynreconf_client))
+            if self._dynreconf_client == None:
+                rospy.logdebug('  --create dyn reconf client')
+                self.connect_param_server()
+                #time.sleep(1.0)
+
+            #self._lock = threading.Lock()
+            #self._lock.acquire()
+            #self._lock.release()
+            while self._dynreconf_client == None:
+                time.sleep(0.1)
+                #raise ROSException('no dyn reconf client instance found')
+
+            self._dynreconfclient_widget = DynreconfClientWidget(
+                                                       self._dynreconf_client,
+                                                       self._param_name_raw)
+        else:
+            pass
+        return self._dynreconfclient_widget
 
     def connect_param_server(self):
         """
@@ -87,46 +149,25 @@ class TreenodeQstdItem(ReadonlyItem):
         @return void
         @raise ROSException:
         """
-        try:
-            self._dynreconf_client = self._connect_param_server(
-                                                          self._param_name_raw)
-        except rospy.exceptions.ROSException as e:
-            raise e
-
-    def _connect_param_server(self, nodename_grn_full):
-        """
-        Callback when user chooses a node.
-
-        :param nodename_grn_full: GRN (Graph Resource Names,
-                         see http://www.ros.org/wiki/Names) of node name.
-        :type node: str
-        :return None if the treenode doesn't represent ROS Node.
-        :rtype: DynreconfClientWidget
-        """
         # If the treenode doesn't represent ROS Node, return None.
         if not self._is_rosnode:
-            return None
+            rospy.logerr('connect_param_server failed due to missing ' +
+                         'ROS Node. Return with nothing.')
+            return
 
-        try:
-            _dynreconf_client = dynamic_reconfigure.client.Client(
-                                           str(nodename_grn_full), timeout=5.0)
-        except rospy.exceptions.ROSException as e:
-            raise type(e)(e.message +
-                          "TreenodeQstdItem. Couldn't connect to {}".format(
-                                                            nodename_grn_full))
-
-        _dynreconf_widget = DynreconfClientWidget(_dynreconf_client,
-                                                 nodename_grn_full)
-        return _dynreconf_widget
+        if self._dynreconfclient_widget == None:
+            self._paramserver_connect_thread = ParamserverConnectThread(
+                                       self, self._param_name_raw)
+            self._paramserver_connect_thread.start()
 
     def enable_param_items(self):
         """
         Create QStdItem per parameter and addColumn them to myself.
         :rtype: None if _dynreconf_client is not initiated.
         """
-        if self._dynreconf_client == None:
+        if self._dynreconfclient_widget == None:
             return None
-        paramnames = self._dynreconf_client.get_treenode_names()
+        paramnames = self._dynreconfclient_widget.get_treenode_names()
         paramnames_items = []
         brush = QBrush(Qt.lightGray)
         for paramname in paramnames:

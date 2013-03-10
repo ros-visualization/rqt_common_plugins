@@ -49,6 +49,10 @@ from rqt_reconfigure.text_filter_widget import TextFilterWidget
 class ParamWidget(QWidget):
     _TITLE_PLUGIN = 'Dynamic Reconfigure'
 
+    # To be connected to PluginContainerWidget
+    sig_sysmsg = Signal(str)
+    sig_sysprogress = Signal(str)
+
     def __init__(self, context, node=None):
         """
         This class is intended to be called by rqt plugin framework class.
@@ -79,7 +83,6 @@ class ParamWidget(QWidget):
         _vlayout_nodesel_side = QVBoxLayout()
         _hlayout_filter_widget = QWidget(self)
         _hlayout_filter = QHBoxLayout()
-        #self.filter_lineedit = QLineEdit(self)
         self._text_filter = TextFilter()
         self.filter_lineedit = TextFilterWidget(self._text_filter)
         self.filterkey_label = QLabel("&Filter key:")
@@ -93,11 +96,7 @@ class ParamWidget(QWidget):
         _vlayout_nodesel_side.setSpacing(1)
         _vlayout_nodesel_widget.setLayout(_vlayout_nodesel_side)
 
-        paramitems = self._nodesel_widget.get_paramitems()
-
-        reconf_widget = ParameditWidget(paramitems)
-        reconf_widget.sig_node_disabled_selected.connect(
-                                       self._nodesel_widget.node_deselected)
+        reconf_widget = ParameditWidget()
 
         self._splitter.insertWidget(0, _vlayout_nodesel_widget)
         self._splitter.insertWidget(1, reconf_widget)
@@ -106,6 +105,9 @@ class ParamWidget(QWidget):
         self._splitter.setStretchFactor(0, 1)
         self._splitter.setStretchFactor(1, 0)
 
+        # Signal from paramedit widget to node selector widget.
+        reconf_widget.sig_node_disabled_selected.connect(
+                                       self._nodesel_widget.node_deselected)
         # Pass name of node to editor widget
         self._nodesel_widget.sig_node_selected.connect(
                                                      reconf_widget.show_reconf)
