@@ -194,7 +194,7 @@ class NodeSelectorWidget(QWidget):
             item_widget = item_child.get_dynreconf_widget()
         except ROSException as e:
             raise e
-        rospy.loginfo('item_selected={} child={} widget={}'.format(
+        rospy.logdebug('item_selected={} child={} widget={}'.format(
                        index_current, item_child, item_widget))
         self.sig_node_selected.emit(item_widget)
 
@@ -292,6 +292,14 @@ class NodeSelectorWidget(QWidget):
                                 node_name_grn, TreenodeQstdItem.NODE_FULLPATH)
                 _treenode_names = treenodeitem_toplevel.get_treenode_names()
 
+                try:
+                    treenodeitem_toplevel.connect_param_server()
+                except rospy.exceptions.ROSException as e:
+                    rospy.logerr(e.message)
+                    #Skip item that fails to connect to its node.
+                    continue
+                    #TODO: Needs to show err msg on GUI too.
+
                 # Using OrderedDict here is a workaround for StdItemModel
                 # not returning corresponding item to index.
                 self._nodeitems[node_name_grn] = treenodeitem_toplevel
@@ -352,23 +360,15 @@ class NodeSelectorWidget(QWidget):
         else:
             stditem = stditem_prev
 
-        if len(child_names_left) != 0:
-            # TODO: View & Model are closely bound here. Ideally isolate those
-            #       2. Maybe we should split into 2 class, 1 handles view,
-            #       the other does model.
+        if 0 < len(child_names_left):
+            # TODO: Model is closely bound to a certain type of view (treeview)
+            # here. Ideally isolate those two. Maybe we should split into 2
+            # class, 1 handles view, the other does model.
             self._add_children_treenode(treenodeitem_toplevel, stditem,
                                         child_names_left)
         else:  # Selectable ROS Node.
             #TODO: Accept even non-terminal treenode as long as it's ROS Node.
             self._item_model.set_item_from_index(grn_curr, stditem.index())
-
-            try:
-                stditem.connect_param_server()
-            except rospy.exceptions.ROSException as e:
-                rospy.logerr(e.message)
-                #Remove item that fails to connect to its node from parent item
-                treenodeitem_parent.takeRow(stditem.row())
-                #TODO: Needs to show err msg on GUI too.
 
     def _refresh_nodes(self):
         # TODO: In the future, do NOT remove all nodes. Instead,

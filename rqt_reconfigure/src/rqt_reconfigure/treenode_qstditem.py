@@ -123,20 +123,16 @@ class TreenodeQstdItem(ReadonlyItem):
             rospy.logdebug('get dynreconf_client={}'.format(
                                                        self._dynreconf_client))
             if self._dynreconf_client == None:
-                rospy.logdebug('  --create dyn reconf client')
+                rospy.loginfo('  --create dyn reconf client')
                 self.connect_param_server()
-                #time.sleep(1.0)
 
-            #self._lock = threading.Lock()
-            #self._lock.acquire()
-            #self._lock.release()
             timeout = 10 * 100
             loop = 0
+            # Loop until _dynreconf_client is set.
             while self._dynreconf_client == None:
                 #Avoid deadlock
                 if timeout < loop:
                     raise ROSException('dynreconf client failed generated')
-                    break
 
                 time.sleep(0.01)
                 loop += 1
