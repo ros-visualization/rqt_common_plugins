@@ -45,6 +45,7 @@ from python_qt_binding.QtGui import (QHeaderView, QItemSelectionModel,
                                      QWidget)
 import rospkg
 import rospy
+from rospy.exceptions import ROSException
 import rosservice
 
 from rqt_py_common.rqt_ros_graph import RqtRosGraph
@@ -147,9 +148,14 @@ class NodeSelectorWidget(QWidget):
         """
         self.selectionModel.select(index_current, QItemSelectionModel.Deselect)
 
+        try:
+            w = self._nodeitems[rosnode_name_selected].get_dynreconf_widget()
+        except ROSException as e:
+            raise e
+
         # Signal to notify other pane that also contains node widget.
         self.sig_node_selected.emit(
-                 self._nodeitems[rosnode_name_selected].get_dynreconf_widget())
+                 w)
         #self.sig_node_selected.emit(self._nodeitems[rosnode_name_selected])
 
     def _selection_selected(self, index_current, rosnode_name_selected):
@@ -182,12 +188,12 @@ class NodeSelectorWidget(QWidget):
 
         # Only when it's a terminal we move forward.
 
-        # itemFromIndex returns None for some reason.
-        #item_child = self._item_model.itemFromIndex(index_current.child(0, 0))
-
-        #self.sig_node_selected.emit(rosnode_name_selected)
         item_child = self._nodeitems[rosnode_name_selected]
-        item_widget = item_child.get_dynreconf_widget()
+        item_widget = None
+        try:
+            item_widget = item_child.get_dynreconf_widget()
+        except ROSException as e:
+            raise e
         rospy.loginfo('item_selected={} child={} widget={}'.format(
                        index_current, item_child, item_widget))
         self.sig_node_selected.emit(item_widget)
@@ -234,9 +240,18 @@ class NodeSelectorWidget(QWidget):
             return
 
         if len(selected.indexes()) > 0:
-            self._selection_selected(index_current, rosnode_name_selected)
+            try:
+                self._selection_selected(index_current, rosnode_name_selected)
+            except ROSException as e:
+                rospy.logerr(e.message)
+                #TODO: print to sysmsg pane
         elif len(deselected.indexes()) > 0:
-            self._selection_deselected(index_current, rosnode_name_selected)
+            try:
+                self._selection_deselected(index_current,
+                                           rosnode_name_selected)
+            except ROSException as e:
+                rospy.logerr(e.message)
+                #TODO: print to sysmsg pane
 
     def get_paramitems(self):
         """

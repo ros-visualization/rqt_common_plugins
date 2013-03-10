@@ -116,6 +116,7 @@ class TreenodeQstdItem(ReadonlyItem):
         """
         @rtype: DynreconfClientWidget (QWidget)
         @return: None if dynreconf_client is not yet generated.
+        @raise ROSException:
         """
 
         if self._dynreconfclient_widget == None:
@@ -129,9 +130,16 @@ class TreenodeQstdItem(ReadonlyItem):
             #self._lock = threading.Lock()
             #self._lock.acquire()
             #self._lock.release()
+            timeout = 10 * 100
+            loop = 0
             while self._dynreconf_client == None:
-                time.sleep(0.1)
-                #raise ROSException('no dyn reconf client instance found')
+                #Avoid deadlock
+                if timeout < loop:
+                    raise ROSException('dynreconf client failed generated')
+                    break
+
+                time.sleep(0.01)
+                loop += 1
 
             self._dynreconfclient_widget = DynreconfClientWidget(
                                                        self._dynreconf_client,
