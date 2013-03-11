@@ -36,7 +36,7 @@
 from qt_gui.plugin import Plugin
 
 from rqt_msg.messages_widget import MessagesWidget
-import rosaction
+from rqt_py_common import rosaction
 
 
 class ActionPlugin(Plugin):

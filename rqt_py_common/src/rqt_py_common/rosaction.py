@@ -32,6 +32,10 @@
 
 # Author: Isaac Saito under the influence of rosmsg.__init__.py
 
+# TODO 3/11/2013 (Isaac) This is moved from rqt_action pkg due to circular
+# dependency issue. This rosaction is supposed to be moved (pull requested) to
+# actionlib in the future.
+
 """
 Modifying rosaction.__init__.py to add functionality for ROS Action.
 
@@ -54,7 +58,7 @@ import yaml
 from optparse import OptionParser
 
 import genmsg
-import genpy
+# import genpy
 import rosbag
 import roslib
 import roslib.message
@@ -101,7 +105,7 @@ def _get_action_class_genpy(type_str, message_type, reload_on_error=False):
     :returns: Message/Service  for message/service type or None, ``class``
     :raises: :exc:`ValueError` If message_type is invalidly specified
     """
-    ## parse package and local type name for import
+    # # parse package and local type name for import
     package, base_type = genmsg.package_resource_name(message_type)
     if not package:
         if base_type == 'Header':
@@ -153,13 +157,13 @@ def _get_action_class(type_str, message_type, reload_on_error=False):
     Taken from roslib.message._get_message_or_service_class
     """
 
-    ## parse package and local type name for import
+    # # parse package and local type name for import
     package, base_type = genmsg.package_resource_name(message_type)
     if not package:
         if base_type == 'Header':
             package = 'std_msgs'
         else:
-            raise ValueError("message type is missing package name: %s" %
+            raise ValueError("message type is missing package name: %s" % 
                              str(message_type))
     pypkg = val = None
     try:
@@ -171,7 +175,7 @@ def _get_action_class(type_str, message_type, reload_on_error=False):
 
         # import the package and return the class
         pypkg = __import__('%s/%s' % (package, type_str))
-        #pypkg = __import__('%s.%s'%(package, type_str))
+        # pypkg = __import__('%s.%s'%(package, type_str))
         val = getattr(getattr(pypkg, type_str), base_type)
 
     except rospkg.ResourceNotFound:
@@ -198,7 +202,7 @@ def _get_action_class(type_str, message_type, reload_on_error=False):
 """
 Taken from roslib.message
 """
-## cache for get_message_class
+# # cache for get_message_class
 _action_class_cache = {}
 
 
@@ -374,7 +378,7 @@ def construct_ordered_mapping(self, node, deep=False):
     for key_node, value_node in node.value:
         key = self.construct_object(key_node, deep=deep)
         if not isinstance(key, collections.Hashable):
-            raise yaml.constructor.ConstructorError("while constructing a mapping", 
+            raise yaml.constructor.ConstructorError("while constructing a mapping",
                                                     node.start_mark,
                     "found unhashable key", key_node.start_mark)
         value = self.construct_object(value_node, deep=deep)
@@ -413,7 +417,7 @@ def represent_ordered_mapping(self, tag, mapping, flow_style=None):
 ## end recipe for ordered yaml output ######
 
 
-def get_array_type_instance(field_type, default_package = None):
+def get_array_type_instance(field_type, default_package=None):
     """
     returns a single instance of field_type, where field_type can be a
     message or ros primitive or an flexible size array.
@@ -424,7 +428,7 @@ def get_array_type_instance(field_type, default_package = None):
     if not "/" in field_type:
         # is either built-in, Header, or in same package
         # it seems built-in types get a priority
-        if field_type in ['byte', 'int8', 'int16', 'int32', 'int64',\
+        if field_type in ['byte', 'int8', 'int16', 'int32', 'int64', \
                           'char', 'uint8', 'uint16', 'uint32', 'uint64']:
             return 0
         elif field_type in ['float32', 'float64']:
@@ -450,8 +454,8 @@ def get_array_type_instance(field_type, default_package = None):
     instance = msg_class()
     return instance
 
-def get_yaml_for_msg(msg, prefix='', time_offset=None, current_time=None, 
-                     field_filter=None, flow_style_ = None, fill_arrays_ = False):
+def get_yaml_for_msg(msg, prefix='', time_offset=None, current_time=None,
+                     field_filter=None, flow_style_=None, fill_arrays_=False):
     """
     Builds a YAML string of message.
     @param msg: A object, dict or array
@@ -479,13 +483,13 @@ def get_yaml_for_msg(msg, prefix='', time_offset=None, current_time=None,
                 if type(val) == list and len(val) > MAX_DEFAULT_NON_FLOW_ITEMS:
                      dumper.default_flow_style = flow_style_
                 if time_offset is not None and isinstance(val, Time):
-                    ndict[key] = val-time_offset
+                    ndict[key] = val - time_offset
                 # create initial array element (e.g. for code completion)
                 elif fill_arrays_ == True and val == []:
                     message_type = obj._slot_types[index]
                     if (obj._type != None) and "/" in obj._type:
                         def_pack = obj._type.split("/")[0]
-                        instance = get_array_type_instance(message_type, default_package = def_pack)
+                        instance = get_array_type_instance(message_type, default_package=def_pack)
                     if instance == None:
                         # not important enough to raise exception?
                         ndict[key] = val
@@ -512,25 +516,25 @@ def get_yaml_for_msg(msg, prefix='', time_offset=None, current_time=None,
     # bash needs bracket notation for rostopic pub
     txt = yaml.safe_dump(msg,
                          # None, True, False (None chooses a compromise)
-                         default_flow_style = initial_flow_style,
+                         default_flow_style=initial_flow_style,
                          # Can be None, '', '\'', '"', '|', '>'.
-                         default_style = '',
-                         #indent=2, #>=2, indentation depth
-                         #line_break=?,
-                         #allow_unicode=?,
-                         #if true writes plenty of tags
-                         #canonical = False,
-                         #version={}?,
-                         #width=40,
-                         #encoding=?,
-                         #tags={}?,
+                         default_style='',
+                         # indent=2, #>=2, indentation depth
+                         # line_break=?,
+                         # allow_unicode=?,
+                         # if true writes plenty of tags
+                         # canonical = False,
+                         # version={}?,
+                         # width=40,
+                         # encoding=?,
+                         # tags={}?,
                          # when True, produces --- at start
-                         #explicit_start=False,
+                         # explicit_start=False,
                          # when True, produces ... at end
-                         #explicit_end=False
+                         # explicit_end=False
                          )
     if prefix != None and prefix != '':
-        result = prefix + ("\n"+prefix).join(txt.splitlines())
+        result = prefix + ("\n" + prefix).join(txt.splitlines())
     else:
         result = txt.rstrip('\n')
     return result
@@ -558,18 +562,18 @@ def rosaction_cmd_prototype(args):
     init_rosaction_proto()
     parser = OptionParser(usage="usage: rosactionproto msg/srv [options]",
                           description="Produces output or a msg or service request, intended for tab completion support.")
-    parser.add_option("-f","--flow_style",
+    parser.add_option("-f", "--flow_style",
                       dest="flow_style", type="int", default=None, action="store",
                       help="if 1 always use brackets, if 0 never use brackets. Default is a heuristic mix.")
-    parser.add_option("-e","--empty-arrays",
+    parser.add_option("-e", "--empty-arrays",
                       dest="empty_arrays", default=False, action="store_true",
                       help="if true flexible size arrays are not filled with default instance")
-    parser.add_option("-s","--silent",
+    parser.add_option("-s", "--silent",
                       dest="silent", default=False, action="store_true",
                       help="if true supresses all error messages")
     parser.add_option("-p", "--prefix", metavar="prefix", default="",
                       help="prefix to print before each line, can be used for indent")
-    parser.add_option("-H","--no-hyphens",
+    parser.add_option("-H", "--no-hyphens",
                       dest="no_hyphens", default="", action="store_true",
                       help="if true output has no outer hyphens")
     parser.add_option("-x", "--exclude-slots", metavar="exclude_slots", default="",
@@ -580,8 +584,8 @@ def rosaction_cmd_prototype(args):
     try:
         if len(args) < 2:
             raise RosActionProtoArgsException("Insufficient arguments")
-        mode = ".%s"%args[0]
-        message_type=args[1]
+        mode = ".%s" % args[0]
+        message_type = args[1]
         field_filter = None
         if options.exclude_slots != None and options.exclude_slots.strip() != "":
             field_filter = create_names_filter(options.exclude_slots.split(','))
@@ -604,24 +608,24 @@ def rosaction_cmd_prototype(args):
             for found in rosaction_search(rospkg.RosPack(), mode, message_type):
                 results.append(found)
             if len(results) > 1:
-                raise ROSActionProtoException("Ambiguous message name %s"%message_type)
+                raise ROSActionProtoException("Ambiguous message name %s" % message_type)
             elif len(results) < 1:
-                raise ROSActionProtoException("Unknown message name %s"%message_type)
+                raise ROSActionProtoException("Unknown message name %s" % message_type)
             else:
-                message_type=results[0]
+                message_type = results[0]
     
         if mode == MODE_ACTION:
             msg_class = roslib.message.get_message_class(message_type)
             if (msg_class == None):
-                raise ROSActionProtoException("Unknown message class: %s"%message_type)
+                raise ROSActionProtoException("Unknown message class: %s" % message_type)
             instance = msg_class()
         else:
-            raise ROSActionProtoException("Invalid mode: %s"%mode)
+            raise ROSActionProtoException("Invalid mode: %s" % mode)
         txt = get_yaml_for_msg(instance,
-                               prefix = options.prefix,
-                               flow_style_ = options.flow_style,
-                               fill_arrays_ = not options.empty_arrays,
-                               field_filter = field_filter)
+                               prefix=options.prefix,
+                               flow_style_=options.flow_style,
+                               fill_arrays_=not options.empty_arrays,
+                               field_filter=field_filter)
 
         if options.no_hyphens == True:
             return txt
@@ -630,7 +634,7 @@ def rosaction_cmd_prototype(args):
 
     except KeyError as e:
         if not options.silent:
-            sys.stderr.write("Unknown message type: %s"%e, file=sys.stderr)
+            sys.stderr.write("Unknown message type: %s" % e, file=sys.stderr)
             sys.exit(getattr(os, 'EX_USAGE', 1))
     # except rospkg.InvalidROSPkgException as e:
     #     if not options.silent:
@@ -638,7 +642,7 @@ def rosaction_cmd_prototype(args):
     #         sys.exit(getattr(os, 'EX_USAGE', 1))
     except ValueError, e:
         if not options.silent:
-            sys.stderr.write("Invalid type: '%s'"%e)
+            sys.stderr.write("Invalid type: '%s'" % e)
             sys.exit(getattr(os, 'EX_USAGE', 1))
     except ROSActionProtoException as e:
         if not options.silent:
@@ -646,7 +650,7 @@ def rosaction_cmd_prototype(args):
             sys.exit(1)
     except RosActionProtoArgsException as e:
         if not options.silent:
-            sys.stderr.write("%s"%e)
+            sys.stderr.write("%s" % e)
             sys.exit(getattr(os, 'EX_USAGE', 1))
     except KeyboardInterrupt:
         pass
@@ -667,9 +671,9 @@ def spec_to_str(action_context, spec, buff=None, indent=''):
     if buff is None:
         buff = StringIO()
     for c in spec.constants:
-        buff.write("%s%s %s=%s\n"%(indent, c.type, c.name, c.val_text))
+        buff.write("%s%s %s=%s\n" % (indent, c.type, c.name, c.val_text))
     for type_, name in zip(spec.types, spec.names):
-        buff.write("%s%s %s\n"%(indent, type_, name))
+        buff.write("%s%s %s\n" % (indent, type_, name))
         base_type = genmsg.msgs.bare_msg_type(type_)
         if not base_type in genmsg.msgs.BUILTIN_TYPES:
             subspec = msg_context.get_registered(base_type)
@@ -695,7 +699,7 @@ def get_msg_text(type_, raw=False, rospack=None):
         spec = genmsg.load_msg_by_type(context, type_, search_path)
         genmsg.load_depends(context, spec, search_path)
     except Exception as e:
-        raise ROSActionException("Unable to load msg [%s]: %s"%(type_, e))
+        raise ROSActionException("Unable to load msg [%s]: %s" % (type_, e))
     
     if raw:
         return spec.text
@@ -719,7 +723,7 @@ def rosaction_search(rospack, mode, base_type):
     :param base_type: message base type to match, e.g. 'String' would match std_msgs/String, ``str``
     """
     for p, path in iterate_packages(rospack, mode):
-        if os.path.isfile(os.path.join(path, "%s%s"%(base_type, mode))):
+        if os.path.isfile(os.path.join(path, "%s%s" % (base_type, mode))):
             yield genmsg.resource_name(p, base_type)
 
 def _stdin_arg(parser, full):
@@ -732,14 +736,14 @@ def _stdin_arg(parser, full):
         return options, arg
     else:
         if len(args) > 1:
-            parser.error("you may only specify one %s"%full)
+            parser.error("you may only specify one %s" % full)
         return options, args[0]
     
 def rosaction_cmd_show(mode, full):
-    cmd = "ros%s"%(mode[1:])
-    parser = OptionParser(usage="usage: %s show [options] <%s>"%(cmd, full))
+    cmd = "ros%s" % (mode[1:])
+    parser = OptionParser(usage="usage: %s show [options] <%s>" % (cmd, full))
     parser.add_option("-r", "--raw",
-                      dest="raw", default=False,action="store_true",
+                      dest="raw", default=False, action="store_true",
                       help="show raw message text, including comments")
     parser.add_option("-b", "--bag",
                       dest="bag", default=None,
@@ -750,13 +754,13 @@ def rosaction_cmd_show(mode, full):
 
     # try to catch the user specifying code-style types and error
     if '::' in arg:
-        parser.error(cmd+" does not understand C++-style namespaces (i.e. '::').\nPlease refer to msg/srv types as 'package_name/Type'.")
+        parser.error(cmd + " does not understand C++-style namespaces (i.e. '::').\nPlease refer to msg/srv types as 'package_name/Type'.")
     elif '.' in arg:
         parser.error("invalid message type '%s'.\nPlease refer to msg/srv types as 'package_name/Type'." % arg)
     if options.bag:
         bag_file = options.bag
         if not os.path.exists(bag_file):
-            raise ROSActionException("ERROR: bag file [%s] does not exist"%bag_file)
+            raise ROSActionException("ERROR: bag file [%s] does not exist" % bag_file)
         for topic, msg, t in rosbag.Bag(bag_file).read_messages(raw=True):
             datatype, _, _, _, pytype = msg
             if datatype == arg:
@@ -764,11 +768,11 @@ def rosaction_cmd_show(mode, full):
                 break
     else:
         rospack = rospkg.RosPack()
-        if '/' in arg: #package specified
+        if '/' in arg:  # package specified
             rosaction_debug(rospack, mode, arg, options.raw)
         else:
             for found in rosaction_search(rospack, mode, arg):
-                print("[%s]:"%found)
+                print("[%s]:" % found)
                 rosaction_debug(rospack, mode, found, options.raw)
 
 def rosaction_md5(mode, type_):
@@ -778,57 +782,57 @@ def rosaction_md5(mode, type_):
         else:
             msg_class = roslib.message.get_service_class(type_)            
     except ImportError:
-        raise IOError("cannot load [%s]"%(type_))
+        raise IOError("cannot load [%s]" % (type_))
     if msg_class is not None:
         return msg_class._md5sum
     else:
-        raise IOError("cannot load [%s]"%(type_))        
+        raise IOError("cannot load [%s]" % (type_))        
     
 def rosaction_cmd_md5(mode, full):
-    parser = OptionParser(usage="usage: ros%s md5 <%s>"%(mode[1:], full))
+    parser = OptionParser(usage="usage: ros%s md5 <%s>" % (mode[1:], full))
     options, arg = _stdin_arg(parser, full)
 
-    if '/' in arg: #package specified
+    if '/' in arg:  # package specified
         try:
             md5 = rosaction_md5(mode, arg)
             print(md5)
         except IOError:
-            print("Cannot locate [%s]"%arg, file=sys.stderr)
+            print("Cannot locate [%s]" % arg, file=sys.stderr)
     else:
         rospack = rospkg.RosPack()
         matches = [m for m in rosaction_search(rospack, mode, arg)]
         for found in matches:
             try:
                 md5 = rosaction_md5(mode, found)
-                print("[%s]: %s"%(found, md5))
+                print("[%s]: %s" % (found, md5))
             except IOError:
-                print("Cannot locate [%s]"%found, file=sys.stderr)
+                print("Cannot locate [%s]" % found, file=sys.stderr)
         if not matches:
-            print("No messages matching the name [%s]"%arg, file=sys.stderr)
+            print("No messages matching the name [%s]" % arg, file=sys.stderr)
                 
 def rosaction_cmd_package(mode, full):
-    parser = OptionParser(usage="usage: ros%s package <package>"%mode[1:])
+    parser = OptionParser(usage="usage: ros%s package <package>" % mode[1:])
     parser.add_option("-s",
-                      dest="single_line", default=False,action="store_true",
+                      dest="single_line", default=False, action="store_true",
                       help="list all msgs on a single line")
     options, arg = _stdin_arg(parser, full)
-    joinstring='\n'
+    joinstring = '\n'
     if options.single_line:
-        joinstring=' '
+        joinstring = ' '
     print(joinstring.join(list_types(arg, mode=mode)))
     
 def rosaction_cmd_packages(mode, full, argv=None):
     if argv is None:
         argv = sys.argv[1:]
-    parser = OptionParser(usage="usage: ros%s packages"%mode[1:])
+    parser = OptionParser(usage="usage: ros%s packages" % mode[1:])
     parser.add_option("-s",
-                      dest="single_line", default=False,action="store_true",
+                      dest="single_line", default=False, action="store_true",
                       help="list all packages on a single line")
     options, args = parser.parse_args(argv[1:])
     rospack = rospkg.RosPack()
-    joinstring='\n'
+    joinstring = '\n'
     if options.single_line:
-        joinstring=' '
+        joinstring = ' '
     p1 = [p for p, _ in iterate_packages(rospack, mode)]
     p1.sort()
     print(joinstring.join(p1))
@@ -841,4 +845,4 @@ def rosaction_debug(rospack, mode, type_, raw=False):
     if mode == MODE_ACTION:
         print(get_msg_text(type_, raw=raw, rospack=rospack))
     else:
-        raise ROSActionException("Invalid mode for debug: %s"%mode)
+        raise ROSActionException("Invalid mode for debug: %s" % mode)

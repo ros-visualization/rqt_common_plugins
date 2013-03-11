@@ -20,7 +20,9 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>actionlib</run_depend>
+  <!-- 3/11/2013 (Isaac) run_depend on actionlib will be commented out for now
+  until rqt_py_common.rosaction gets moved to actionlib. -->
+  <!-- <run_depend>actionlib</run_depend> -->
   <run_depend>rospy</run_depend>
   <run_depend>rqt_msg</run_depend>
   <run_depend>rqt_py_common</run_depend>

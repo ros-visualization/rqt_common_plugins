@@ -34,7 +34,7 @@ import os
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import (QAction, QIcon, QMenu, QMessageBox, 
+from python_qt_binding.QtGui import (QAction, QIcon, QMenu, QMessageBox,
                                      QTreeView, QWidget)
 import roslib
 import rosmsg
@@ -43,7 +43,8 @@ import rospy
 
 
 from .messages_tree_view import MessagesTreeView
-from rqt_action import rosaction 
+#from rqt_action import rosaction
+from rqt_py_common import rosaction
 from rqt_console.text_browse_dialog import TextBrowseDialog
 
 
