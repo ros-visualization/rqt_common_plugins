@@ -17,12 +17,14 @@
   <author email="ablasdel@willowgarage.com">Aaron Blasdel</author>
   <author email="130s@alumni.smu.edu">Isaac Saito</author>
 
+  <run_depend>rqt_action</run_depend>
   <run_depend>rqt_bag</run_depend>
   <run_depend>rqt_bag_plugins</run_depend>
   <run_depend>rqt_console</run_depend>
   <run_depend>rqt_dep</run_depend>
   <run_depend>rqt_graph</run_depend>
   <run_depend>rqt_image_view</run_depend>
+  <run_depend>rqt_launch</run_depend>
   <run_depend>rqt_logger_level</run_depend>
   <run_depend>rqt_msg</run_depend>
   <run_depend>rqt_plot</run_depend>
