@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 from python_qt_binding.QtGui import QLabel, QStyle
+import rospy
 
 
 class StatusIndicator(QLabel):
@@ -13,6 +14,7 @@ class StatusIndicator(QLabel):
            self.style().standardIcon(QStyle.SP_DialogApplyButton).pixmap(16))
 
     def set_starting(self):
+        rospy.logdebug('StatusIndicator.set_starting')
         self.setPixmap(self.style().standardIcon(
                                       QStyle.SP_DialogResetButton).pixmap(16))
 

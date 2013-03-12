@@ -74,20 +74,15 @@ class LaunchMain(object):
             n.check_process_status()
 
     def shutdown(self):
-        #TODO: Needs implemented. Trigger dynamic_reconfigure to unlatch
-        #            subscriber.
+        #TODO: Stop all ROS Node processes
         pass
 
     def save_settings(self, plugin_settings, instance_settings):
-        #instance_settings.set_value('splitter', self._splitter.saveState())
-        pass
+        self._mainwidget.save_settings(plugin_settings, instance_settings)
 
     def restore_settings(self, plugin_settings, instance_settings):
-#        if instance_settings.contains('splitter'):
-#            self._splitter.restoreState(instance_settings.value('splitter'))
-#        else:
-#            self._splitter.setSizes([100, 100, 200])
-        pass
+        self._mainwidget.restore_settings(plugin_settings, instance_settings)
+
 
 if __name__ == '__main__':
     # main should be used only for debug purpose.

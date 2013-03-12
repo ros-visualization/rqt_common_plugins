@@ -37,8 +37,8 @@ import sys
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import QModelIndex, Signal
-from python_qt_binding.QtGui import (QDialog, QStandardItem,
-                                     QStandardItemModel)
+from python_qt_binding.QtGui import QDialog, QStandardItem, \
+                                    QStandardItemModel
 from rosgraph import rosenv
 import roslaunch
 from roslaunch.core import RLException
@@ -78,8 +78,9 @@ class LaunchWidget(QDialog):
                                'resource', 'launch_widget.ui')
         loadUi(ui_file, self)
 
-        self._datamodel = QStandardItemModel()
-        #TODO: this layout is temporary. Need to be included in .ui.
+        # row=0 allows any number of rows to be added.
+        self._datamodel = QStandardItemModel(0, 1)
+
         master_uri = rosenv.get_master_uri()
         rospy.loginfo('LaunchWidget master_uri={}'.format(master_uri))
         self._delegate = NodeDelegate(master_uri,
@@ -165,7 +166,7 @@ class LaunchWidget(QDialog):
         # Delete old nodes' GUIs.
         self._node_controllers = []
 
-        # This seems to remove indexWidgets set on treeview.
+        # These lines seem to remove indexWidgets previously set on treeview.
         # Per suggestion in API doc, we are not using reset(). Instead,
         # using 2 methods below without any operation in between, which
         # I suspect might be inproper.
@@ -183,27 +184,31 @@ class LaunchWidget(QDialog):
             # TODO: consider using QIcon.fromTheme()
             status_label = StatusIndicator()
 
-            #TODO: Ideally remove the next block.
+            qindex_nodewidget = self._datamodel.index(order_xmlelement,
+                                                       0, QModelIndex())
+            node_widget = self._delegate.create_node_widget(qindex_nodewidget,
+                                                            proxy.config,
+                                                            status_label)
+
+            #TODO: Ideally find a way so that we don't need this block.
             #BEGIN If these lines are missing, widget won't be shown either.
-            std_item = QStandardItem()
+            std_item = QStandardItem(
+                                     #node_widget.get_node_name()
+                                     )
             self._datamodel.setItem(order_xmlelement, 0, std_item)
             #END If these lines are missing, widget won't be shown either.
 
-            qindex = self._datamodel.index(order_xmlelement, 0, QModelIndex())
-            node_widget = self._delegate.create_node_widget(qindex,
-                                                            proxy.config,
-                                                            status_label)
-            self._treeview.setIndexWidget(qindex, node_widget)
+            self._treeview.setIndexWidget(qindex_nodewidget, node_widget)
 
             node_controller = NodeController(proxy, node_widget)
             self._node_controllers.append(node_controller)
 
-            node_widget.connect_start_stop_button(node_controller.start)
-            #stop_button.clicked.connect(node_controller.stop)
-
+            node_widget.connect_start_stop_button( \
+                                       node_controller.start_stop_slot)
             rospy.logdebug('loop #%d proxy.config.namespace=%s ' +
                           'proxy.config.name=%s',
-                          order_xmlelement, proxy.config.namespace, proxy.config.name)
+                          order_xmlelement, proxy.config.namespace,
+                          proxy.config.name)
 
         self._num_nodes_previous = order_xmlelement
 

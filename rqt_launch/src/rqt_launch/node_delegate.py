@@ -33,7 +33,7 @@
 # Author: Isaac Saito
 
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QLineEdit, QStyledItemDelegate
+from python_qt_binding.QtGui import QStyledItemDelegate
 import rospkg
 
 from rqt_launch.node_widget import NodeWidget
@@ -60,9 +60,6 @@ class NodeDelegate(QStyledItemDelegate):
         nodewidget = self._nodewidget_dict[index]
         #TODO: handle exception
         return nodewidget
-
-    def get_node_widget(self):
-        return self._node_widget
 
     def setEditorData(self, spinBox, index):
         """Overridden"""
@@ -91,3 +88,6 @@ class NodeDelegate(QStyledItemDelegate):
                                 status_label)
         self._nodewidget_dict[qindex] = nodewidget
         return nodewidget
+
+    def get_node_widget(self):
+        return self._node_widget

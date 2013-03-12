@@ -35,7 +35,7 @@
 import os
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QLineEdit, QWidget
+from python_qt_binding.QtGui import QIcon, QLineEdit, QWidget
 from roslaunch import nodeprocess
 import rospy
 
@@ -66,21 +66,34 @@ class NodeWidget(QWidget):
                                'resource', 'node_widget.ui')
         loadUi(ui_file, self)
 
-        # TODO: consider using QIcon.fromTheme()
         self.label_status = label_status  # Public
         #stop_button = QPushButton(self.style().standardIcon(
         #                                             QStyle.SP_MediaStop), "")
         self._respawn_toggle.setChecked(self._launch_config.respawn)
         self._lineEdit_launch_prefix = QLineEdit(
-                                             self._launch_config.launch_prefix)
+                                            self._launch_config.launch_prefix)
 
         rospy.logdebug('_proxy.conf.namespace={} launch_config={}'.format(
                       self._launch_config.namespace, self._launch_config.name))
-        resolved_node_name = NamesSurrogate.ns_join(
+        self._resolved_node_name = NamesSurrogate.ns_join(
                        self._launch_config.namespace, self._launch_config.name)
-        self._label_status.setText(resolved_node_name)
+        self._label_status.setText(self.get_node_name())
         self._label_pkg_name.setText(self._launch_config.package)
         self._label_name_executable.setText(self._launch_config.type)
+
+        self._icon_node_start = QIcon.fromTheme('media-playback-start')
+        self._icon_node_stop = QIcon.fromTheme('media-playback-stop')
+        self._icon_respawn_toggle = QIcon.fromTheme('view-refresh')
+
+        self._pushbutton_start_stop_node.setIcon(self._icon_node_start)
+        self._respawn_toggle.setIcon(self._icon_respawn_toggle)
+
+        self._pushbutton_start_stop_node.pressed.connect(
+                                                      self._start_stop_pressed)
+        self._is_running = False
+
+    def get_node_name(self):
+        return self._resolved_node_name
 
     # LocalProcess.is_alive() does not do what you would expect
     def is_running(self):
@@ -99,4 +112,10 @@ class NodeWidget(QWidget):
                            self._run_id, self._launch_config, self._master_uri)
 
     def connect_start_stop_button(self, slot):
-        self._pushbutton_start_stop_node.clicked.connect(slot)
+        self._pushbutton_start_stop_node.toggled.connect(slot)
+
+    def _start_stop_pressed(self):
+        if self._is_running:
+            self._pushbutton_start_stop_node.setIcon(self._icon_node_stop)
+        else:
+            self._pushbutton_start_stop_node.setIcon(self._icon_node_start)

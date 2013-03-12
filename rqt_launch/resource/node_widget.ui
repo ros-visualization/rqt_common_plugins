@@ -43,6 +43,9 @@
          <normaloff/>
         </iconset>
        </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>
