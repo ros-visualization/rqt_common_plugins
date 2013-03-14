@@ -74,7 +74,7 @@ class LaunchMain(object):
             n.check_process_status()
 
     def shutdown(self):
-        rospy.loginfo('Launchmain.shutdown')
+        rospy.logdebug('Launchmain.shutdown')
         self.stop_all()
 
     def save_settings(self, plugin_settings, instance_settings):

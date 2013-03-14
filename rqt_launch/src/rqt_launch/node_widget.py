@@ -87,9 +87,7 @@ class NodeWidget(QWidget):
         self._pushbutton_start_stop_node.setIcon(self._icon_node_start)
         self._respawn_toggle.setIcon(self._icon_respawn_toggle)
 
-        self._pushbutton_start_stop_node.pressed.connect(
-                                                      self.set_node_started)
-        self._node_controller = None
+        self._node_controller = None  # Connected in self.set_node_controller
 
     def get_node_name(self):
         return self._resolved_node_name
@@ -99,17 +97,23 @@ class NodeWidget(QWidget):
 
     def set_node_started(self, is_started=True):
         # If the button is not down yet
-        if self._node_controller.is_node_running():
+        is_node_running = self._node_controller.is_node_running()
+        rospy.logdebug('NodeWidget.set_node_started running?={}'.format(
+                                                            is_node_running))
+        #if is_node_running:
+        if is_started:
             #and self._pushbutton_start_stop_node.isDown():
-
-            self._pushbutton_start_stop_node.setIcon(self._icon_node_stop)
-            self._pushbutton_start_stop_node.setDown(True)
-
-        elif not self._node_controller.is_node_running():
-            #and not self._pushbutton_start_stop_node.isDown():
             self._pushbutton_start_stop_node.setIcon(self._icon_node_start)
             self._pushbutton_start_stop_node.setDown(False)
+
+        #elif not is_node_running:  # To START the node
+        else:
+            #and not self._pushbutton_start_stop_node.isDown():
+            self._pushbutton_start_stop_node.setIcon(self._icon_node_stop)
+            self._pushbutton_start_stop_node.setDown(True)
 
     def set_node_controller(self, node_controller):
         #TODO: Null check
         self._node_controller = node_controller
+        #self._pushbutton_start_stop_node.pressed.connect(
+        #                                self._node_controller.start_stop_slot)

@@ -34,10 +34,10 @@ class NodeController(object):
         """
         if self._proxy.is_running():
             self.stop()
-            rospy.loginfo('==start_stop_slot stop')
+            rospy.logdebug('---start_stop_slot stOP')
         else:
             self.start()
-            rospy.loginfo('==start_stop_slot start')
+            rospy.logdebug('==start_stop_slot StART')
 
     def start(self, restart=True):
         """
@@ -47,6 +47,7 @@ class NodeController(object):
 
         # Should be almost unreachable under current design where this 'start'
         # method only gets called when _proxy.is_running() returns false.
+
         if self._proxy.is_running():
             if not restart:
                 # If the node is already running and restart isn't desired,
@@ -64,31 +65,32 @@ class NodeController(object):
                                      self._gui._lineEdit_launch_prefix.text()
             self._proxy.recreate_process()
 
+        self._gui.set_node_started(False)
         self._gui.label_status.set_starting()
         self._proxy.start_process()
         self._gui.label_status.set_running()
         self._gui.label_spawncount.setText("({})".format(
                                               self._proxy.get_spawn_count()))
 
-        self._gui.set_node_started(True)
-
     def stop(self):
         """
         Stop a ROS node's _process.
         """
-        rospy.loginfo('NodeController.shutdown')
-        if self._proxy.is_running():
-            self._gui.label_status.set_stopping()
-            self._proxy.stop_process()
-            self._gui.label_status.set_stopped()
-            self._gui.set_node_started(False)
+
+        #TODO: Need to check if the node is really running.
+
+        #if self._proxy.is_running():
+        self._gui.set_node_started(True)
+        self._gui.label_status.set_stopping()
+        self._proxy.stop_process()
+        self._gui.label_status.set_stopped()
 
     def check_process_status(self):
         if self._proxy.has_died():
             rospy.logerr("Process died: {}".format(
                                                   self._proxy.get_proc_name()))
             self._proxy.stop_process()
-            self._gui.set_node_started()
+            self._gui.set_node_started(True)
             if self._proxy._process.exit_code == 0:
                 self._gui.label_status.set_stopped()
             else:

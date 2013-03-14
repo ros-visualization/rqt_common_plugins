@@ -23,20 +23,6 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QPushButton" name="_pushbutton_collapse">
-       <property name="text">
-        <string>&amp;Collapse</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="_pushbutton_expand">
-       <property name="text">
-        <string>&amp;Expand</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QComboBox" name="_combobox_pkg"/>
      </item>
      <item>
@@ -46,6 +32,13 @@
       <widget class="QPushButton" name="_pushbutton_start_stop_all">
        <property name="text">
         <string>&amp;Start all</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="_pushbutton_show_hide_console">
+       <property name="text">
+        <string>&amp;Hide Console</string>
        </property>
       </widget>
      </item>

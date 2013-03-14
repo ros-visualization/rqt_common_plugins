@@ -45,6 +45,7 @@ from roslaunch.core import RLException
 import rospkg
 import rospy
 
+#from rqt_console.console_widget import ConsoleWidget
 from rqt_launch.node_proxy import NodeProxy
 from rqt_launch.node_controller import NodeController
 from rqt_launch.node_delegate import NodeDelegate

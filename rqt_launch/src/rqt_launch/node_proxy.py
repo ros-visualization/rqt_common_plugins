@@ -70,19 +70,21 @@ class NodeProxy(object):
 
     # LocalProcess.is_alive() does not do what you would expect
     def is_running(self):
-        rospy.loginfo('NodeProxy started={}, alive={}'.format(
+        rospy.logdebug('BEFORE started={}, stopped={} alive={}'.format(
                                                      self._process.started,
+                                                     self._process.stopped,
                                                      self._process.is_alive()))
-        #return self._process.started and self._process.is_alive()
-        return self._process.started
+        return self._process.started and not self._process.stopped
+                #and self._process.is_alive()
+                #  is_alive() returns False once nodeprocess was stopped.
 
     def has_died(self):
-        rospy.loginfo('Proc={} started={}, stopped={}, is_alive={}'.format(
+        rospy.logdebug('Proc={} started={}, stopped={}, is_alive={}'.format(
             self.get_proc_name(), self._process.started, self._process.stopped,
             self._process.is_alive()))
-        return (self._process.started and
-                not self._process.stopped and
-                not self._process.is_alive())
+
+        return (self._process.started and not self._process.stopped
+                and not self._process.is_alive())
 
     def recreate_process(self):
         """
@@ -98,7 +100,12 @@ class NodeProxy(object):
 
     def stop_process(self):
         #TODO: add null exception check for _process
-        self._process.stop()
+
+        try:
+            self._process.stop()
+        except Exception as e:
+            #TODO: Change roslaunch to raise exception
+            rospy.logdebug('Proxy stop_process exception={}'.format(e.message))
 
     def get_spawn_count(self):
         return self._process.spawn_count
