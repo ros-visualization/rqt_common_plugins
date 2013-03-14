@@ -3,6 +3,7 @@
   <version>0.2.14</version>
   <description>rqt_web is a a Python GUI plugin for displaying and interacting with web tools.</description>
   <maintainer email="ablasdel@gmail.com">Aaron Blasdel</maintainer>
+  <maintainer email="isao.saito@mavs.uta.edu">Isaac Saito</maintainer>
 
   <license>BSD</license>
 

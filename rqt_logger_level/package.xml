@@ -3,6 +3,7 @@
   <version>0.2.14</version>
   <description>rqt_logger_level provides a GUI plugin for configuring the logger level of ROS nodes.</description>
   <maintainer email="ablasdel@willowgarage.com">Aaron Blasdel</maintainer>
+  <maintainer email="isao.saito@mavs.uta.edu">Isaac Saito</maintainer>
 
   <license>BSD</license>
 
