@@ -32,7 +32,24 @@
 #
 # Author: Isaac Saito
 
+import time
+import threading
+
 from roslaunch import nodeprocess
+import rospy
+
+
+class Polling(threading.Thread):
+    def __init__(self, parent):
+        super(Polling, self).__init__()
+        self._parent = parent
+
+    def run(self):
+        while True:
+            rospy.logdebug('Proc={} Died? {}'.format(
+                                               self._parent.get_proc_name(),
+                                               self._parent.has_died()))
+            time.sleep(1.0)
 
 
 class NodeProxy(object):
@@ -41,27 +58,53 @@ class NodeProxy(object):
     (more in particular, roslaunch.nodeprocess) & GUI.
     """
 
-    __slots__ = ['_run_id', 'master_uri', 'config', 'process']
+    __slots__ = ['_run_id', 'master_uri', 'config', '_process']
 
     def __init__(self, run_id, master_uri, config):
         self._run_id = run_id
         self.master_uri = master_uri
         self.config = config
 
-        self.recreate_process()
+        # @type: roslaunch.nodeprocess.LocalProcess
+        self._process = self.recreate_process()
 
     # LocalProcess.is_alive() does not do what you would expect
     def is_running(self):
-        return self.process.started and self.process.is_alive()
+        rospy.loginfo('NodeProxy started={}, alive={}'.format(
+                                                     self._process.started,
+                                                     self._process.is_alive()))
+        #return self._process.started and self._process.is_alive()
+        return self._process.started
 
     def has_died(self):
-        return (self.process.started and
-                not self.process.stopped and
-                not self.process.is_alive())
+        rospy.loginfo('Proc={} started={}, stopped={}, is_alive={}'.format(
+            self.get_proc_name(), self._process.started, self._process.stopped,
+            self._process.is_alive()))
+        return (self._process.started and
+                not self._process.stopped and
+                not self._process.is_alive())
 
     def recreate_process(self):
         """
         Create and set roslaunch.nodeprocess.LocalProcess to member variable.
+        @rtype: roslaunch.nodeprocess.LocalProcess
         """
-        self.process = nodeprocess.create_node_process(
-                                     self._run_id, self.config, self.master_uri)
+        return nodeprocess.create_node_process(
+                                    self._run_id, self.config, self.master_uri)
+
+    def start_process(self):
+        #TODO: add null exception check for _process
+        self._process.start()
+
+    def stop_process(self):
+        #TODO: add null exception check for _process
+        self._process.stop()
+
+    def get_spawn_count(self):
+        return self._process.spawn_count
+
+    def get_proc_name(self):
+        return self._process.name
+
+    def get_proc_exit_code(self):
+        return self._process.exit_code

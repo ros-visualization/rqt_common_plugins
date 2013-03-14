@@ -36,7 +36,6 @@ import os
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtGui import QIcon, QLineEdit, QWidget
-from roslaunch import nodeprocess
 import rospy
 
 from rqt_launch.name_surrogate import NamesSurrogate
@@ -48,7 +47,7 @@ class NodeWidget(QWidget):
     (more in particular, roslaunch.nodeprocess) & GUI.
     """
 
-    __slots__ = ['_run_id', 'master_uri', 'config', 'process']
+    __slots__ = ['_run_id', 'master_uri', 'config', '_process']
 
     def __init__(self, rospack, master_uri, launch_config,
                  label_status):
@@ -67,7 +66,7 @@ class NodeWidget(QWidget):
         loadUi(ui_file, self)
 
         self.label_status = label_status  # Public
-        #stop_button = QPushButton(self.style().standardIcon(
+        # stop_button = QPushButton(self.style().standardIcon(
         #                                             QStyle.SP_MediaStop), "")
         self._respawn_toggle.setChecked(self._launch_config.respawn)
         self._lineEdit_launch_prefix = QLineEdit(
@@ -89,33 +88,28 @@ class NodeWidget(QWidget):
         self._respawn_toggle.setIcon(self._icon_respawn_toggle)
 
         self._pushbutton_start_stop_node.pressed.connect(
-                                                      self._start_stop_pressed)
-        self._is_running = False
+                                                      self.set_node_started)
+        self._node_controller = None
 
     def get_node_name(self):
         return self._resolved_node_name
 
-    # LocalProcess.is_alive() does not do what you would expect
-    def is_running(self):
-        return self.process.started and self.process.is_alive()
-
-    def has_died(self):
-        return (self.process.started and
-                not self.process.stopped and
-                not self.process.is_alive())
-
-    def recreate_process(self):
-        """
-        Create and set roslaunch.nodeprocess.LocalProcess to member variable.
-        """
-        self.process = nodeprocess.create_node_process(
-                           self._run_id, self._launch_config, self._master_uri)
-
     def connect_start_stop_button(self, slot):
         self._pushbutton_start_stop_node.toggled.connect(slot)
 
-    def _start_stop_pressed(self):
-        if self._is_running:
+    def set_node_started(self, is_started=True):
+        # If the button is not down yet
+        if self._node_controller.is_node_running():
+            #and self._pushbutton_start_stop_node.isDown():
+
             self._pushbutton_start_stop_node.setIcon(self._icon_node_stop)
-        else:
+            self._pushbutton_start_stop_node.setDown(True)
+
+        elif not self._node_controller.is_node_running():
+            #and not self._pushbutton_start_stop_node.isDown():
             self._pushbutton_start_stop_node.setIcon(self._icon_node_start)
+            self._pushbutton_start_stop_node.setDown(False)
+
+    def set_node_controller(self, node_controller):
+        #TODO: Null check
+        self._node_controller = node_controller

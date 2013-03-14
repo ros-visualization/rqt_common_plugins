@@ -249,11 +249,6 @@ class LaunchWidget(QDialog):
         self._combobox_launchfile_name.clear()
         self._combobox_launchfile_name.addItems(self._launchfile_instances)
 
-    def shutdown(self):
-        # TODO: Needs implemented. Trigger dynamic_reconfigure to unlatch
-        #            subscriber.
-        pass
-
     def save_settings(self, plugin_settings, instance_settings):
         # instance_settings.set_value('splitter', self._splitter.saveState())
         pass

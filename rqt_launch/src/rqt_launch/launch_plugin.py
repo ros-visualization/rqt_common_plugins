@@ -55,10 +55,10 @@ class LaunchPlugin(Plugin):
         context.add_widget(self._widget)
 
     def shutdown_plugin(self):
-        self._widget.shutdown()
+        self._main.shutdown()
 
     def save_settings(self, plugin_settings, instance_settings):
-        self._widget.save_settings(plugin_settings, instance_settings)
+        self._main.save_settings(plugin_settings, instance_settings)
 
     def restore_settings(self, plugin_settings, instance_settings):
-        self._widget.restore_settings(plugin_settings, instance_settings)
+        self._main.restore_settings(plugin_settings, instance_settings)

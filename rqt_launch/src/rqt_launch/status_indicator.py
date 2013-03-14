@@ -19,10 +19,20 @@ class StatusIndicator(QLabel):
                                       QStyle.SP_DialogResetButton).pixmap(16))
 
     def set_stopping(self):
+        """
+        Show msg that the process is "stopping".
+
+        cf. set_stopped()
+        """
         self.setPixmap(self.style().standardIcon(
                                       QStyle.SP_DialogResetButton).pixmap(16))
 
     def set_stopped(self):
+        """
+        Show msg that the process is "stopped".
+
+        cf. set_stopping()
+        """
         self.setText(" ")
 
     def set_died(self):

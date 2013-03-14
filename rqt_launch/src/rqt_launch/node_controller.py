@@ -22,6 +22,7 @@ class NodeController(object):
         self._proxy = proxy
 
         self._gui = gui
+        self._gui.set_node_controller(self)
 
     def start_stop_slot(self, signal):
         """
@@ -31,24 +32,31 @@ class NodeController(object):
 
         @type signal: bool
         """
-        if signal:
-            self.start()
-        else:
+        if self._proxy.is_running():
             self.stop()
+            rospy.loginfo('==start_stop_slot stop')
+        else:
+            self.start()
+            rospy.loginfo('==start_stop_slot start')
 
     def start(self, restart=True):
         """
-        Start a ROS node as a new process.
+        Start a ROS node as a new _process.
         """
         rospy.logdebug('Controller.start restart={}'.format(restart))
 
+        # Should be almost unreachable under current design where this 'start'
+        # method only gets called when _proxy.is_running() returns false.
         if self._proxy.is_running():
             if not restart:
+                # If the node is already running and restart isn't desired,
+                # do nothing further.
                 return
-            self._gui.label_status.set_stopping()
-            self._proxy.process.stop()
+            #TODO: Need to consider...is stopping node here
+            # (i.e. in 'start' method) good?
+            self.stop()
 
-        # If the launch_prefix has changed, then the process must be re-created
+        # If the launch_prefix has changed, then the _process must be recreated
         if (self._proxy.config.launch_prefix !=
             self._gui._lineEdit_launch_prefix.text()):
 
@@ -57,40 +65,50 @@ class NodeController(object):
             self._proxy.recreate_process()
 
         self._gui.label_status.set_starting()
-        self._proxy.process.start()
+        self._proxy.start_process()
         self._gui.label_status.set_running()
         self._gui.label_spawncount.setText("({})".format(
-                                              self._proxy.process.spawn_count))
+                                              self._proxy.get_spawn_count()))
+
+        self._gui.set_node_started(True)
 
     def stop(self):
         """
-        Stop a ROS node's process.
+        Stop a ROS node's _process.
         """
+        rospy.loginfo('NodeController.shutdown')
         if self._proxy.is_running():
             self._gui.label_status.set_stopping()
-            self._proxy.process.stop()
+            self._proxy.stop_process()
             self._gui.label_status.set_stopped()
+            self._gui.set_node_started(False)
 
     def check_process_status(self):
         if self._proxy.has_died():
-            print "Process died: %s" % self._proxy.process.name
-            self._proxy.process.stop()
-            if self._proxy.process.exit_code == 0:
+            rospy.logerr("Process died: {}".format(
+                                                  self._proxy.get_proc_name()))
+            self._proxy.stop_process()
+            self._gui.set_node_started()
+            if self._proxy._process.exit_code == 0:
                 self._gui.label_status.set_stopped()
             else:
                 self._gui.label_status.set_died()
 
             # Checks if it should be respawned
             if self._gui.respawn_toggle.isChecked():
-                print "Respawning process: %s" % self._proxy.process.name
+                rospy.loginfo("Respawning _process: {}".format(
+                                                    self._proxy._process.name))
                 self._gui.label_status.set_starting()
-                self._proxy.process.start()
+                self._proxy.start_process()
                 self._gui.label_status.set_running()
                 self._gui.label_spawncount.setText("({})".format(
-                                              self._proxy.process.spawn_count))
+                                             self._proxy._process.spawn_count))
 
     def get_node_widget(self):
         """
         @rtype: QWidget
         """
         return self._gui
+
+    def is_node_running(self):
+        return self._proxy.is_running()
