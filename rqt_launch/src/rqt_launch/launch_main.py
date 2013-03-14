@@ -50,6 +50,7 @@ class LaunchMain(object):
                                                  False)
 
         self._run_id = None
+        self._node_controllers = []
 
         #RqtRoscommUtil.load_parameters(self._config, '/rqt_launch')
 
