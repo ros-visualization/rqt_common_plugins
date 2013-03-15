@@ -112,7 +112,7 @@ class ParamWidget(QWidget):
         self._nodesel_widget.sig_node_selected.connect(
                                                      reconf_widget.show_reconf)
 
-        if node is None:
+        if not node:
             title = self._TITLE_PLUGIN
         else:
             title = self._TITLE_PLUGIN + ' %s' % node

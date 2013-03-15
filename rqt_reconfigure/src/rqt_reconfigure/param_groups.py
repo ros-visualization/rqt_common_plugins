@@ -69,7 +69,7 @@ def find_cfg(config, name):
             else:
                 try:
                     cfg = find_cfg(v, name)
-                    if not cfg == None:
+                    if not not cfg:
                         return cfg
                 except Exception as exc:
                     raise exc
@@ -271,7 +271,7 @@ class TabGroup(GroupWidget):
         super(TabGroup, self).__init__(updater, config)
         self.parent = parent
 
-        if self.parent.tab_bar is None:
+        if not self.parent.tab_bar:
             self.parent.tab_bar = QTabWidget()
 
         parent.tab_bar.addTab(self, self.name)

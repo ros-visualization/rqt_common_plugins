@@ -213,12 +213,12 @@ class NodeSelectorWidget(QWidget):
         """
 
         ## Getting the index where user just selected. Should be single.
-        if len(selected.indexes()) < 0 and len(deselected.indexes()) < 0:
+        if not selected.indexes() and not deselected.indexes():
             rospy.logerr('Nothing selected? Not ideal to reach here')
             return
 
         index_current = None
-        if len(selected.indexes()) > 0:
+        if selected.indexes():
             index_current = selected.indexes()[0]
         elif len(deselected.indexes()) == 1:
             # Setting length criteria as 1 is only a workaround, to avoid
@@ -239,13 +239,13 @@ class NodeSelectorWidget(QWidget):
                                        QItemSelectionModel.Deselect)
             return
 
-        if len(selected.indexes()) > 0:
+        if selected.indexes():
             try:
                 self._selection_selected(index_current, rosnode_name_selected)
             except ROSException as e:
                 rospy.logerr(e.message)
                 #TODO: print to sysmsg pane
-        elif len(deselected.indexes()) > 0:
+        elif deselected.indexes():
             try:
                 self._selection_deselected(index_current,
                                            rosnode_name_selected)
@@ -360,7 +360,7 @@ class NodeSelectorWidget(QWidget):
         else:
             stditem = stditem_prev
 
-        if 0 < len(child_names_left):
+        if child_names_left:
             # TODO: Model is closely bound to a certain type of view (treeview)
             # here. Ideally isolate those two. Maybe we should split into 2
             # class, 1 handles view, the other does model.
@@ -403,16 +403,16 @@ class NodeSelectorWidget(QWidget):
         index_deselected = None
         index_parent = None
         curr_qstd_item = None
-        if len(selected.indexes()) > 0:
+        if selected.indexes():
             index_current = selected.indexes()[0]
             index_parent = index_current.parent()
             curr_qstd_item = src_model.itemFromIndex(index_current)
-        elif len(deselected.indexes()) > 0:
+        elif deselected.indexes():
             index_deselected = deselected.indexes()[0]
             index_parent = index_deselected.parent()
             curr_qstd_item = src_model.itemFromIndex(index_deselected)
 
-        if len(selected.indexes()) > 0:
+        if selected.indexes() > 0:
             rospy.logdebug('sel={} par={} desel={} sel.d={} par.d={}'.format(
                                  index_current, index_parent, index_deselected,
                                  index_current.data(Qt.DisplayRole),
@@ -420,7 +420,7 @@ class NodeSelectorWidget(QWidget):
                                  + ' desel.d={} cur.item={}'.format(
                                  None,  # index_deselected.data(Qt.DisplayRole)
                                  curr_qstd_item))
-        elif len(deselected.indexes()) > 0:
+        elif deselected.indexes():
             rospy.logdebug('sel={} par={} desel={} sel.d={} par.d={}'.format(
                                  index_current, index_parent, index_deselected,
                                  None, index_parent.data(Qt.DisplayRole)) +

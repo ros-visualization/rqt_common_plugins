@@ -71,7 +71,7 @@ class DynreconfClientWidget(GroupWidget):
 
         #TODO: Think about replacing callback architecture with signals.
 
-        if config is not None:
+        if config:
             # TODO: should use config.keys but this method doesnt exist
 
             names = [name for name, v in config.items()]

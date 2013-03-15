@@ -98,7 +98,7 @@ class TreenodeQstdItem(ReadonlyItem):
         self._paramserver_connect_thread = None
 
         try:
-            if args[1] != None:
+            if args[1]:
                 self._is_rosnode = True
         except IndexError:  # tuple index out of range etc.
                 rospy.logerr('TreenodeQstdItem IndexError')
@@ -119,11 +119,10 @@ class TreenodeQstdItem(ReadonlyItem):
         @raise ROSException:
         """
 
-        if self._dynreconfclient_widget == None:
+        if not self._dynreconfclient_widget:
             rospy.logdebug('get dynreconf_client={}'.format(
                                                        self._dynreconf_client))
-            if self._dynreconf_client == None:
-                rospy.loginfo('  --create dyn reconf client')
+            if not self._dynreconf_client:
                 self.connect_param_server()
 
             timeout = 10 * 100
@@ -159,7 +158,7 @@ class TreenodeQstdItem(ReadonlyItem):
                          'ROS Node. Return with nothing.')
             return
 
-        if self._dynreconfclient_widget == None:
+        if not self._dynreconfclient_widget:
             self._paramserver_connect_thread = ParamserverConnectThread(
                                        self, self._param_name_raw)
             self._paramserver_connect_thread.start()
@@ -169,7 +168,7 @@ class TreenodeQstdItem(ReadonlyItem):
         Create QStdItem per parameter and addColumn them to myself.
         :rtype: None if _dynreconf_client is not initiated.
         """
-        if self._dynreconfclient_widget == None:
+        if not self._dynreconfclient_widget:
             return None
         paramnames = self._dynreconfclient_widget.get_treenode_names()
         paramnames_items = []
