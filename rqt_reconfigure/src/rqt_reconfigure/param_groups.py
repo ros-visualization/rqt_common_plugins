@@ -69,7 +69,7 @@ def find_cfg(config, name):
             else:
                 try:
                     cfg = find_cfg(v, name)
-                    if not not cfg:
+                    if cfg:
                         return cfg
                 except Exception as exc:
                     raise exc
@@ -205,7 +205,7 @@ class GroupWidget(QWidget):
                           name)
 
         for i, ed in enumerate(self.editor_widgets):
-            ed.display(self.grid, i)
+            ed.display(self.grid)
 
         rospy.logdebug('GroupWdgt._create_node_widgets len(editor_widgets)=%d',
                       len(self.editor_widgets))

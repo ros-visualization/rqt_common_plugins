@@ -90,7 +90,7 @@ class ParamWidget(QWidget):
         _hlayout_filter.addWidget(self.filterkey_label)
         _hlayout_filter.addWidget(self.filter_lineedit)
         _hlayout_filter_widget.setLayout(_hlayout_filter)
-        self._nodesel_widget = NodeSelectorWidget()
+        self._nodesel_widget = NodeSelectorWidget(self)
         _vlayout_nodesel_side.addWidget(_hlayout_filter_widget)
         _vlayout_nodesel_side.addWidget(self._nodesel_widget)
         _vlayout_nodesel_side.setSpacing(1)
@@ -120,7 +120,6 @@ class ParamWidget(QWidget):
 
         #Connect filter signal-slots.
         self._text_filter.filter_changed_signal.connect(
-                                      #self._nodesel_widget.filter_key_changed)
                                             self._filter_key_changed)
 
     def shutdown(self):
@@ -145,6 +144,12 @@ class ParamWidget(QWidget):
 
     def _filter_key_changed(self):
         self._nodesel_widget.set_filter(self._text_filter)
+
+    #TODO: This method should be integrated into common architecture. I just
+    # can't think of how to do so within current design.
+    def emit_sysmsg(self, msg_str):
+        self.sig_sysmsg.emit(msg_str)
+
 
 if __name__ == '__main__':
     # main should be used only for debug purpose.

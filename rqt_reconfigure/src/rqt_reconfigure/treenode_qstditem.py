@@ -108,7 +108,7 @@ class TreenodeQstdItem(ReadonlyItem):
         @param dynreconf_client: dynamic_reconfigure.client.Client
         """
         self._dynreconf_client = dynreconf_client
-        rospy.loginfo('Qitem set dynreconf_client={} param={}'.format(
+        rospy.logdebug('Qitem set dynreconf_client={} param={}'.format(
                                                        self._dynreconf_client,
                                                        self._param_name_raw))
 

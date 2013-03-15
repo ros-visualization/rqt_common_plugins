@@ -62,8 +62,9 @@ class NodeSelectorWidget(QWidget):
     # public signal
     sig_node_selected = Signal(DynreconfClientWidget)
 
-    def __init__(self):
+    def __init__(self, parent):
         super(NodeSelectorWidget, self).__init__()
+        self._parent = parent
         self.stretch = None
 
         rp = rospkg.RosPack()
@@ -149,13 +150,13 @@ class NodeSelectorWidget(QWidget):
         self.selectionModel.select(index_current, QItemSelectionModel.Deselect)
 
         try:
-            w = self._nodeitems[rosnode_name_selected].get_dynreconf_widget()
+            reconf_widget = self._nodeitems[
+                                 rosnode_name_selected].get_dynreconf_widget()
         except ROSException as e:
             raise e
 
         # Signal to notify other pane that also contains node widget.
-        self.sig_node_selected.emit(
-                 w)
+        self.sig_node_selected.emit(reconf_widget)
         #self.sig_node_selected.emit(self._nodeitems[rosnode_name_selected])
 
     def _selection_selected(self, index_current, rosnode_name_selected):
@@ -310,12 +311,14 @@ class NodeSelectorWidget(QWidget):
                 time_siglenode_loop = time.time() - time_siglenode_loop
                 elapsedtime_overall += time_siglenode_loop
 
+                _str_progress = 'reconf ' + \
+                     'loading #{}/{} {} / {}sec node={}'.format(
+                     i_node_curr, num_nodes, round(time_siglenode_loop, 2),
+                     round(elapsedtime_overall, 2), node_name_grn)
+
                 # NOT a debug print - please DO NOT remove. This print works
                 # as progress notification when loading takes long time.
-                rospy.loginfo('reconf ' +
-                  'loading #{}/{} {} / {}sec node={}'.format(
-                         i_node_curr, num_nodes, round(time_siglenode_loop, 2),
-                         round(elapsedtime_overall, 2), node_name_grn))
+                rospy.loginfo(_str_progress)
                 i_node_curr += 1
 
     def _add_children_treenode(self, treenodeitem_toplevel,

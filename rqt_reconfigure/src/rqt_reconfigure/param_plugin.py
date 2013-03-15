@@ -49,7 +49,7 @@ class ParamPlugin(Plugin):
         self.setObjectName('Dynamic Reconfigure')
 
         self._plugin_widget = ParamWidget(context)
-        self._widget = PluginContainerWidget(self._plugin_widget)
+        self._widget = PluginContainerWidget(self._plugin_widget, True, False)
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() +
                                         (' (%d)' % context.serial_number()))

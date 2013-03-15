@@ -93,7 +93,7 @@ class EditorWidget(QWidget):
     def update_configuration(self, value):
         self.updater.update({self.param_name: value})
 
-    def display(self, grid, row):
+    def display(self, grid):
         """
         Should be overridden in subclass.
 
@@ -120,7 +120,7 @@ class BooleanEditor(EditorWidget):
     def update_value(self, value):
         self._checkbox.setChecked(value)
 
-    def display(self, grid, row):
+    def display(self, grid):
         grid.addRow(QLabel(self.param_name), self)
 
 
@@ -140,7 +140,7 @@ class StringEditor(EditorWidget):
                                               self._paramval_lineedit.text()))
         self._update(self._paramval_lineedit.text())
 
-    def display(self, grid, row):
+    def display(self, grid):
         grid.addRow(QLabel(self.param_name), self)
 
 
@@ -191,7 +191,7 @@ class IntegerEditor(EditorWidget):
         rospy.logdebug(' IntegerEditor.update_val val=%s', str(val))
         self._update(self._slider_horizontal.value())
 
-    def display(self, grid, row):
+    def display(self, grid):
         grid.addRow(QLabel(self.param_name), self)
 
 
@@ -265,7 +265,7 @@ class DoubleEditor(EditorWidget):
                                   self.slider_value(float(val)))
         self._paramval_lineEdit.setText(str(val))
 
-    def display(self, grid, row):
+    def display(self, grid):
         grid.addRow(QLabel(self.param_name), self)
 
 
@@ -296,5 +296,5 @@ class EnumEditor(EditorWidget):
     def update_value(self, val):
         self._combobox.setCurrentIndex(self.values.index(val))
 
-    def display(self, grid, row):
+    def display(self, grid):
         grid.addRow(QLabel(self.param_name), self)

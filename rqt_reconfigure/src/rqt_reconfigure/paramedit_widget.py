@@ -130,55 +130,6 @@ class ParameditWidget(QWidget):
         LayoutUtil.alternate_color(self._dynreconf_clients.itervalues(),
                                    [Qt.white, Qt.lightGray])
 
-    def show_reconf_old(self, node_grn):
-        """
-        Callback when user chooses a node.
-
-        :param node_grn: GRN (Graph Resource Names,
-                         see http://www.ros.org/wiki/Names) of node name.
-        :type node_grn: str
-        """
-        rospy.logdebug('ParameditWidget.show str(node_grn)=%s', str(node_grn))
-
-        dynreconf_client = None
-
-        if not node_grn in self._dynreconf_clients.keys():
-            # Add dynreconf widget if there hasn't one existed.
-
-            #TODO think about sharing dynamic_reconfigure.client instances
-            # with NodeSelecorWidget...generating 2 instances of the same node
-            # is nothing but inefficient and bad design.
-
-            try:
-                dynreconf_client = dynamic_reconfigure.client.Client(
-                                               str(node_grn), timeout=5.0)
-            except rospy.exceptions.ROSException:
-                rospy.logerr("Could not connect to %s" % node_grn)
-                #TODO(Isaac) Needs to show err msg on GUI too.
-                return
-
-            _dynreconf_client = DynreconfClientWidget(dynreconf_client,
-                                                      node_grn)
-            # Client gets renewed every time different node_grn was clicked.
-
-            self._dynreconf_clients.__setitem__(node_grn, _dynreconf_client)
-            self.vlayout.addWidget(_dynreconf_client)
-            _dynreconf_client.sig_node_disabled_selected.connect(
-                                                           self._node_disabled)
-
-        else:  # If there has one already existed, remove it.
-            self._remove_node(node_grn)
-            #LayoutUtil.clear_layout(self.vlayout)
-
-            # Re-add the rest of existing items to layout.
-            #for k, v in self._dynreconf_clients.iteritems():
-            #    rospy.loginfo('added to layout k={} v={}'.format(k, v))
-            #    self.vlayout.addWidget(v)
-
-        # Add color to alternate the rim of the widget.
-        LayoutUtil.alternate_color(self._dynreconf_clients.itervalues(),
-                                   [Qt.white, Qt.lightGray, Qt.gray])
-
     def close(self):
         for dc in self._dynreconf_clients:
             # Clear out the old widget
