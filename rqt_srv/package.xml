@@ -5,7 +5,7 @@
   Note that the srvs available through this plugin is the ones that are stored 
   on your machine, not on the ROS core your rqt instance connects to.</description>
   <maintainer email="ablasdel@willowgarage.com">Aaron Blasdel</maintainer>
-  <maintainer email="isaito@willowgarage.com">Isaac Saito</maintainer>
+  <maintainer email="130s@alumni.smu.edu">Isaac Saito</maintainer>
 
   <license>BSD</license>
 

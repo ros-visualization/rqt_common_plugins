@@ -8,7 +8,7 @@
   is the ones that are stored on your machine, not on the ROS core your rqt
   instance connects to.</description>
 
-  <maintainer email="isaito@willowgarage.com">Isaac Isao Saito</maintainer>
+  <maintainer email="130s@2000.jukuin.keio.ac.jp">Isaac Isao Saito</maintainer>
   <license>BSD</license>
 
 
