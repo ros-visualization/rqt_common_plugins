@@ -100,7 +100,11 @@ class EditorWidget(QWidget):
         :type grid: QFormLayout
         :type row: ???
         """
-        pass
+        self._paramname_label.setText(self.param_name)
+#        label_paramname = QLabel(self.param_name)
+#        label_paramname.setWordWrap(True)
+        self._paramname_label.setMinimumWidth(100)
+        grid.addRow(self._paramname_label, self)
 
     def close(self):
         """
@@ -120,9 +124,6 @@ class BooleanEditor(EditorWidget):
     def update_value(self, value):
         self._checkbox.setChecked(value)
 
-    def display(self, grid):
-        grid.addRow(QLabel(self.param_name), self)
-
 
 class StringEditor(EditorWidget):
     def __init__(self, updater, config):
@@ -139,9 +140,6 @@ class StringEditor(EditorWidget):
         rospy.logdebug('StringEditor edit_finished val={}'.format(
                                               self._paramval_lineedit.text()))
         self._update(self._paramval_lineedit.text())
-
-    def display(self, grid):
-        grid.addRow(QLabel(self.param_name), self)
 
 
 class IntegerEditor(EditorWidget):
@@ -190,9 +188,6 @@ class IntegerEditor(EditorWidget):
         self._paramval_lineEdit.setText(str(val))
         rospy.logdebug(' IntegerEditor.update_val val=%s', str(val))
         self._update(self._slider_horizontal.value())
-
-    def display(self, grid):
-        grid.addRow(QLabel(self.param_name), self)
 
 
 class DoubleEditor(EditorWidget):
@@ -265,9 +260,6 @@ class DoubleEditor(EditorWidget):
                                   self.slider_value(float(val)))
         self._paramval_lineEdit.setText(str(val))
 
-    def display(self, grid):
-        grid.addRow(QLabel(self.param_name), self)
-
 
 class EnumEditor(EditorWidget):
     def __init__(self, updater, config):
@@ -295,6 +287,3 @@ class EnumEditor(EditorWidget):
 
     def update_value(self, val):
         self._combobox.setCurrentIndex(self.values.index(val))
-
-    def display(self, grid):
-        grid.addRow(QLabel(self.param_name), self)

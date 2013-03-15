@@ -21,7 +21,14 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="_layout_h" stretch="0">
+    <layout class="QHBoxLayout" name="_layout_h" stretch="0,0">
+     <item>
+      <widget class="QLabel" name="_paramname_label">
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="QLineEdit" name="_paramval_lineedit">
        <property name="minimumSize">

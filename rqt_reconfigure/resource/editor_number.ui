@@ -21,9 +21,22 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="_layout_h" stretch="3,1,2,1">
+    <layout class="QHBoxLayout" name="_layout_h" stretch="0,3,1,2,1">
+     <item>
+      <widget class="QLabel" name="_paramname_label">
+       <property name="text">
+        <string>param_name</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="QLabel" name="_min_val_label">
+       <property name="minimumSize">
+        <size>
+         <width>20</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="text">
         <string>min</string>
        </property>
@@ -50,6 +63,12 @@
      </item>
      <item>
       <widget class="QLabel" name="_max_val_label">
+       <property name="minimumSize">
+        <size>
+         <width>20</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="text">
         <string>max</string>
        </property>

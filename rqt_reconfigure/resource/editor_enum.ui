@@ -21,25 +21,14 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="_layout_h" stretch="4,6">
-    <!--  
+    <layout class="QHBoxLayout" name="_layout_h" stretch="0,4">
      <item>
       <widget class="QLabel" name="_paramname_label">
-       <property name="minimumSize">
-        <size>
-         <width>30</width>
-         <height>20</height>
-        </size>
-       </property>
        <property name="text">
         <string>TextLabel</string>
        </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
       </widget>
      </item>
-     -->
      <item>
       <widget class="QComboBox" name="_combobox">
        <property name="minimumSize">
