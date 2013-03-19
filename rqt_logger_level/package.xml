@@ -16,6 +16,9 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>python-rospkg</run_depend>
+  <run_depend>rosnode</run_depend>
+  <run_depend>rospkg</run_depend>
+  <run_depend>rosservice</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>rqt_gui</run_depend>
   <run_depend>rqt_gui_py</run_depend>
