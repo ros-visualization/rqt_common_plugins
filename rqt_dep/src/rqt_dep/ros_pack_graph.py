@@ -149,7 +149,8 @@ class RosPackGraph(Plugin):
         completer.setCaseSensitivity(Qt.CaseInsensitive)
         self._widget.filter_line_edit.editingFinished.connect(self._refresh_rospackgraph)
         self._widget.filter_line_edit.setCompleter(completer)
-
+        self._widget.filter_line_edit.selectionChanged.connect(self._clear_filter)
+        
         self._widget.with_stacks_check_box.clicked.connect(self._refresh_rospackgraph)
         self._widget.mark_check_box.clicked.connect(self._refresh_rospackgraph)
         self._widget.colorize_check_box.clicked.connect(self._refresh_rospackgraph)
@@ -176,6 +177,11 @@ class RosPackGraph(Plugin):
         self._deferred_fit_in_view.emit()
 
         context.add_widget(self._widget)
+        
+        # If in either of following case, this turnes True
+        # - 1st filtering key is already input by user
+        # - filtering key is restored
+        self._filtering_started = False
 
     def shutdown_plugin(self):
         self._update_thread.kill()
@@ -193,10 +199,17 @@ class RosPackGraph(Plugin):
         instance_settings.set_value('highlight_connections_check_box_state', self._widget.highlight_connections_check_box.isChecked())
 
     def restore_settings(self, plugin_settings, instance_settings):
+        _str_filter = instance_settings.value('filter_line_edit_text', '')
+        if (_str_filter == None or _str_filter == '') and \
+           not self._filtering_started:
+            _str_filter = '(Separate pkgs by comma)'
+        else:
+            self._filtering_started = True
+        
         self._widget.depth_combo_box.setCurrentIndex(int(instance_settings.value('depth_combo_box_index', 0)))
         self._widget.directions_combo_box.setCurrentIndex(int(instance_settings.value('directions_combo_box_index', 0)))
         self._widget.package_type_combo_box.setCurrentIndex(int(instance_settings.value('package_type_combo_box', 0)))
-        self._widget.filter_line_edit.setText(instance_settings.value('filter_line_edit_text', ''))
+        self._widget.filter_line_edit.setText(_str_filter)
         self._widget.with_stacks_check_box.setChecked(instance_settings.value('with_stacks_state', True) in [True, 'true'])
         self._widget.mark_check_box.setChecked(instance_settings.value('mark_state', True) in [True, 'true'])
         self._widget.colorize_check_box.setChecked(instance_settings.value('colorize_state', False) in [True, 'true'])
@@ -397,3 +410,8 @@ class RosPackGraph(Plugin):
         self._scene.render(painter)
         painter.end()
         img.save(file_name)
+    
+    def _clear_filter(self):
+        if not self._filtering_started:
+            self._widget.filter_line_edit.setText('')
+            self._filtering_started = True

@@ -46,7 +46,7 @@
          <string>Comma separated regex patterns / names, leading dash creates exclusion pattern. Example: gazebo, -test.*</string>
         </property>
         <property name="text">
-         <string notr="true"/>
+         <string notr="true">(Separate pkgs by comma)</string>
         </property>
        </widget>
       </item>
