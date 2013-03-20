@@ -24,7 +24,6 @@
   <run_depend>rqt_gui</run_depend>
   <run_depend>rqt_gui_py</run_depend>
   <run_depend>rqt_py_common</run_depend>
-  <test_depend>unittest</test_depend>
 
   <export>
 		<rqt_gui plugin="${prefix}/plugin.xml" />
