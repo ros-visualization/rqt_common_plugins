@@ -40,6 +40,7 @@
 #include <image_transport/image_transport.h>
 #include <ros/macros.h>
 #include <sensor_msgs/Image.h>
+#include <geometry_msgs/Point.h>
 
 #include <opencv2/core/core.hpp>
 
@@ -93,6 +94,12 @@ protected slots:
 
   virtual void saveImage();
 
+  virtual void onMousePublish(bool checked);
+
+  virtual void onMouseLeft(int x, int y);
+
+  virtual void onPubTopicChanged();
+
 protected:
 
   virtual void callbackImage(const sensor_msgs::Image::ConstPtr& msg);
@@ -104,6 +111,10 @@ protected:
   image_transport::Subscriber subscriber_;
 
   cv::Mat conversion_mat_;
+
+  ros::Publisher pub_mouse_left_;
+
+  bool pub_topic_custom_;
 
 };
 
