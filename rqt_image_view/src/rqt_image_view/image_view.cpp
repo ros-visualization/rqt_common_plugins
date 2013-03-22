@@ -75,6 +75,13 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   connect(ui_.zoom_1_push_button, SIGNAL(toggled(bool)), this, SLOT(onZoom1(bool)));
   
   connect(ui_.dynamic_range_check_box, SIGNAL(toggled(bool)), this, SLOT(onDynamicRange(bool)));
+
+  pubTopicCustom = false;
+  QRegExp rx("([a-zA-Z/][a-zA-Z0-9_/]*)?"); //see http://www.ros.org/wiki/ROS/Concepts#Names.Valid_Names (but also accept an empty field)
+  ui_.publish_click_location_topic_line_edit->setValidator(new QRegExpValidator(rx, this));
+  connect(ui_.publish_click_location_check_box, SIGNAL(toggled(bool)), this, SLOT(onMousePublish(bool)));
+  connect(ui_.image_frame, SIGNAL(mouseLeft(int, int)), this, SLOT(onMouseLeft(int, int)));
+  connect(ui_.publish_click_location_topic_line_edit, SIGNAL(editingFinished()), this, SLOT(onPubTopicChanged()));
 }
 
 bool ImageView::eventFilter(QObject* watched, QEvent* event)
@@ -108,6 +115,7 @@ bool ImageView::eventFilter(QObject* watched, QEvent* event)
 void ImageView::shutdownPlugin()
 {
   subscriber_.shutdown();
+  pubMouseLeft.shutdown();
 }
 
 void ImageView::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
@@ -247,6 +255,9 @@ void ImageView::onTopicChanged(int index)
       QMessageBox::warning(widget_, tr("Loading image transport plugin failed"), e.what());
     }
   }
+
+  pubMouseLeft.shutdown();
+  onMousePublish(ui_.publish_click_location_check_box->isChecked());
 }
 
 void ImageView::onZoom1(bool checked)
@@ -272,6 +283,51 @@ void ImageView::onZoom1(bool checked)
 void ImageView::onDynamicRange(bool checked)
 {
   ui_.max_range_double_spin_box->setEnabled(!checked);
+}
+
+void ImageView::onMousePublish(bool checked)
+{
+    if(checked)
+    {
+        std::string topicName;
+        if(pubTopicCustom)
+            topicName = ui_.publish_click_location_topic_line_edit->text().toStdString();
+        else
+        {
+            if(!subscriber_.getTopic().empty())
+                topicName = subscriber_.getTopic()+"_mouse_left";
+            else
+                topicName = "mouse_left";
+            ui_.publish_click_location_topic_line_edit->setText(QString::fromStdString(topicName));
+        }
+        pubMouseLeft = getNodeHandle().advertise<geometry_msgs::Point>(topicName, 1000);
+    }
+    else
+        pubMouseLeft.shutdown();
+}
+
+void ImageView::onMouseLeft(int x, int y)
+{
+    if(ui_.publish_click_location_check_box->isChecked())
+    {
+        geometry_msgs::Point clickLocation;
+        // Publish click location in normalized image coordinates
+        clickLocation.x = (double)x/(double)ui_.image_frame->width();
+        clickLocation.y = (double)y/(double)ui_.image_frame->height();;
+        clickLocation.z = 0;
+        pubMouseLeft.publish(clickLocation);
+    }
+}
+
+void ImageView::onPubTopicChanged()
+{
+    if(ui_.publish_click_location_topic_line_edit->text().isEmpty())
+        pubTopicCustom = false;
+    else
+        pubTopicCustom = true;
+
+    pubMouseLeft.shutdown();
+    onMousePublish(ui_.publish_click_location_check_box->isChecked());
 }
 
 void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)

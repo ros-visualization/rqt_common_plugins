@@ -76,6 +76,12 @@ private:
 
   QSize aspect_ratio_;
 
+  void mousePressEvent(QMouseEvent * mouseEvent);
+
+signals:
+
+  void mouseLeft(int x, int y);
+
 };
 
 }

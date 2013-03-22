@@ -33,6 +33,7 @@
 #include <rqt_image_view/ratio_layouted_frame.h>
 
 #include <assert.h>
+#include <QMouseEvent>
 
 namespace rqt_image_view {
 
@@ -113,4 +114,9 @@ int RatioLayoutedFrame::greatestCommonDivisor(int a, int b)
   return greatestCommonDivisor(b, a % b);
 }
 
+void RatioLayoutedFrame::mousePressEvent(QMouseEvent * mouseEvent)
+{
+    if(mouseEvent->button() == Qt::LeftButton)
+        emit mouseLeft(mouseEvent->x(), mouseEvent->y());
+}
 }
