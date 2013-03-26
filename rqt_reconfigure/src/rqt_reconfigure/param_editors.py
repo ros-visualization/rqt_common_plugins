@@ -220,6 +220,9 @@ class DoubleEditor(EditorWidget):
             self.ifunc = lambda x: math.tan(x)
 
         self.scale = (self.func(self.max) - self.func(self.min)) / 100
+        if self.scale == 0:
+            self.setDisabled(True)
+
         self.offset = self.func(self.min)
 
         self._slider_horizontal.setRange(self.slider_value(self.min),
@@ -240,7 +243,7 @@ class DoubleEditor(EditorWidget):
         return self.ifunc(self._slider_horizontal.value() * self.scale)
 
     def slider_value(self, value):
-        return int(round((self.func(value)) / self.scale))
+        return int(round((self.func(value)) / self.scale)) if self.scale else 0
 
     def slider_released(self):
         self.update_text(self.get_value())
