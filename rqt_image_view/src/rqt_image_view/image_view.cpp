@@ -310,12 +310,12 @@ void ImageView::onMousePublish(bool checked)
 
 void ImageView::onMouseLeft(int x, int y)
 {
-  if(ui_.publish_click_location_check_box->isChecked())
+  if(ui_.publish_click_location_check_box->isChecked() && !qimage_.isNull())
   {
     geometry_msgs::Point clickLocation;
-    // Publish click location in normalized image coordinates
-    clickLocation.x = (double)x/(double)ui_.image_frame->width();
-    clickLocation.y = (double)y/(double)ui_.image_frame->height();;
+    // Publish click location in pixel coordinates
+    clickLocation.x = round((double)x/(double)ui_.image_frame->width()*(double)qimage_.width());
+    clickLocation.y = round((double)y/(double)ui_.image_frame->height()*(double)qimage_.height());
     clickLocation.z = 0;
     pub_mouse_left_.publish(clickLocation);
   }
