@@ -76,7 +76,7 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   
   connect(ui_.dynamic_range_check_box, SIGNAL(toggled(bool)), this, SLOT(onDynamicRange(bool)));
 
-  pubTopicCustom = false;
+  pub_topic_custom_ = false;
   QRegExp rx("([a-zA-Z/][a-zA-Z0-9_/]*)?"); //see http://www.ros.org/wiki/ROS/Concepts#Names.Valid_Names (but also accept an empty field)
   ui_.publish_click_location_topic_line_edit->setValidator(new QRegExpValidator(rx, this));
   connect(ui_.publish_click_location_check_box, SIGNAL(toggled(bool)), this, SLOT(onMousePublish(bool)));
@@ -115,7 +115,7 @@ bool ImageView::eventFilter(QObject* watched, QEvent* event)
 void ImageView::shutdownPlugin()
 {
   subscriber_.shutdown();
-  pubMouseLeft.shutdown();
+  pub_mouse_left_.shutdown();
 }
 
 void ImageView::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
@@ -256,7 +256,7 @@ void ImageView::onTopicChanged(int index)
     }
   }
 
-  pubMouseLeft.shutdown();
+  pub_mouse_left_.shutdown();
   onMousePublish(ui_.publish_click_location_check_box->isChecked());
 }
 
@@ -287,47 +287,45 @@ void ImageView::onDynamicRange(bool checked)
 
 void ImageView::onMousePublish(bool checked)
 {
-    if(checked)
+  if(checked)
+  {
+    std::string topicName;
+    if(pub_topic_custom_)
     {
-        std::string topicName;
-        if(pubTopicCustom)
-            topicName = ui_.publish_click_location_topic_line_edit->text().toStdString();
-        else
-        {
-            if(!subscriber_.getTopic().empty())
-                topicName = subscriber_.getTopic()+"_mouse_left";
-            else
-                topicName = "mouse_left";
-            ui_.publish_click_location_topic_line_edit->setText(QString::fromStdString(topicName));
-        }
-        pubMouseLeft = getNodeHandle().advertise<geometry_msgs::Point>(topicName, 1000);
+      topicName = ui_.publish_click_location_topic_line_edit->text().toStdString();
+    } else {
+      if(!subscriber_.getTopic().empty())
+      {
+        topicName = subscriber_.getTopic()+"_mouse_left";
+      } else {
+        topicName = "mouse_left";
+      }
+      ui_.publish_click_location_topic_line_edit->setText(QString::fromStdString(topicName));
     }
-    else
-        pubMouseLeft.shutdown();
+    pub_mouse_left_ = getNodeHandle().advertise<geometry_msgs::Point>(topicName, 1000);
+  } else {
+    pub_mouse_left_.shutdown();
+  }
 }
 
 void ImageView::onMouseLeft(int x, int y)
 {
-    if(ui_.publish_click_location_check_box->isChecked())
-    {
-        geometry_msgs::Point clickLocation;
-        // Publish click location in normalized image coordinates
-        clickLocation.x = (double)x/(double)ui_.image_frame->width();
-        clickLocation.y = (double)y/(double)ui_.image_frame->height();;
-        clickLocation.z = 0;
-        pubMouseLeft.publish(clickLocation);
-    }
+  if(ui_.publish_click_location_check_box->isChecked())
+  {
+    geometry_msgs::Point clickLocation;
+    // Publish click location in normalized image coordinates
+    clickLocation.x = (double)x/(double)ui_.image_frame->width();
+    clickLocation.y = (double)y/(double)ui_.image_frame->height();;
+    clickLocation.z = 0;
+    pub_mouse_left_.publish(clickLocation);
+  }
 }
 
 void ImageView::onPubTopicChanged()
 {
-    if(ui_.publish_click_location_topic_line_edit->text().isEmpty())
-        pubTopicCustom = false;
-    else
-        pubTopicCustom = true;
-
-    pubMouseLeft.shutdown();
-    onMousePublish(ui_.publish_click_location_check_box->isChecked());
+  pub_topic_custom_ = !(ui_.publish_click_location_topic_line_edit->text().isEmpty());
+  pub_mouse_left_.shutdown();
+  onMousePublish(ui_.publish_click_location_check_box->isChecked());
 }
 
 void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)

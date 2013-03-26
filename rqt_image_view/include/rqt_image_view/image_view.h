@@ -113,9 +113,9 @@ protected:
 
   cv::Mat conversion_mat_;
 
-  ros::Publisher pubMouseLeft;
+  ros::Publisher pub_mouse_left_;
 
-  bool pubTopicCustom;
+  bool pub_topic_custom_;
 
 };
 
