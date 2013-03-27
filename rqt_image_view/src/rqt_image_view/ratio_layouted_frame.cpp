@@ -120,5 +120,6 @@ void RatioLayoutedFrame::mousePressEvent(QMouseEvent * mouseEvent)
   {
     emit mouseLeft(mouseEvent->x(), mouseEvent->y());
   }
+  QFrame::mousePressEvent(mouseEvent);
 }
 }
