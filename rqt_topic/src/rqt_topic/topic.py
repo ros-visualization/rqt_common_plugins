@@ -31,6 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from rqt_gui_py.plugin import Plugin
+from rqt_py_common.plugin_container_widget import PluginContainerWidget
 
 from .topic_widget import TopicWidget
 
@@ -42,6 +43,9 @@ class Topic(Plugin):
         self.setObjectName('Topic')
 
         self._widget = TopicWidget(self)
+
+        self.mainwidget = PluginContainerWidget(self._widget, True, False)
+
         self._widget.start()
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))

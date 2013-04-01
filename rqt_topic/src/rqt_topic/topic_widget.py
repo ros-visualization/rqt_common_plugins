@@ -34,19 +34,27 @@ from __future__ import division
 import os
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt, QTimer, Slot
+from python_qt_binding.QtCore import Qt, QTimer, Signal, Slot
 from python_qt_binding.QtGui import QHeaderView, QIcon, QMenu, QTreeWidgetItem, QWidget
-
 import roslib
-import rospy
 import rospkg
+import rospy
+from rospy.exceptions import ROSException
 
 from .topic_info import TopicInfo
 
 
-# main class inherits from the ui window class
 class TopicWidget(QWidget):
+    """
+    main class inherits from the ui window class.
+
+    You can specify the topics that the topic pane.
+
+    TopicWidget.start must be called in order to update topic pane.
+    """
+
     _column_names = ['topic', 'type', 'bandwidth', 'rate', 'value']
+    sig_sysmsg = Signal(str)
 
     def __init__(self, plugin=None, selected_topics=None):
         """
@@ -67,7 +75,6 @@ class TopicWidget(QWidget):
 
         # Whether to get all topics or only the topics that are set in advance.
         # Can be also set by the setter method.
-        rospy.loginfo('000 topic_list={}'.format(selected_topics))
         self._selected_topics = selected_topics
 
         self._current_topic_list = []
@@ -81,20 +88,48 @@ class TopicWidget(QWidget):
 
         # init and start update timer
         self._timer_refresh_topics = QTimer(self)
-        self._timer_refresh_topics.timeout.connect(self.refresh_topics)
+        self._timer_refresh_topics.timeout.connect(self._kick_refresh_topics)
 
     def start(self):
-        rospy.loginfo('444')
+        """
+        This method needs to be called to start updating topic pane.
+        """
         self._timer_refresh_topics.start(1000)
+
+    def _kick_refresh_topics(self):
+        """
+        Calling internally self.refresh_topics method.
+        Reason of existence is to catch possible exception raised from
+        refresh_topics method that can be used as a callback.
+        """
+        try:
+            self.refresh_topics()
+        except Exception as e:
+            self.sig_sysmsg.emit(e.message)
 
     @Slot()
     def refresh_topics(self):
         """
         refresh tree view items
+
+        @raise ROSException
         """
         topic_list = self._selected_topics
         if topic_list == None:
             topic_list = rospy.get_published_topics()
+            if topic_list == None:
+                raise ROSException("Not even a single topic found published. "
+                                   + "Check network configuration")
+        else:
+            topic_names_server_all = [name for name, type in
+                                      rospy.get_published_topics()]
+            topic_names_required = [name for name, type in topic_list]
+            rospy.logdebug('names_server_all={}\nnames_required={}'\
+                         .format(topic_names_server_all, topic_names_required))
+            for n in topic_names_required:
+                if not n in topic_names_server_all:
+                    raise ROSException("Required topic " +
+                      "{} not found. Make sure that it's published".format(n))
 
         if self._current_topic_list != topic_list:
             self._current_topic_list = topic_list
@@ -277,5 +312,5 @@ class TopicWidget(QWidget):
         @param selected_topics: list of tuple. [(topic_name, topic_type)]
         @type selected_topics: []
         """
-        rospy.loginfo('333 topics={}'.format(len(selected_topics)))
+        rospy.logdebug(' topics={}'.format(len(selected_topics)))
         self._selected_topics = selected_topics
