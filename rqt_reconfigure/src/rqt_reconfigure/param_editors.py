@@ -187,7 +187,6 @@ class IntegerEditor(EditorWidget):
         self._slider_horizontal.setSliderPosition(int(val))
         self._paramval_lineEdit.setText(str(val))
         rospy.logdebug(' IntegerEditor.update_val val=%s', str(val))
-        self._update(self._slider_horizontal.value())
 
 
 class DoubleEditor(EditorWidget):
