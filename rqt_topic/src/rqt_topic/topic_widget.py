@@ -48,17 +48,27 @@ from .topic_info import TopicInfo
 class TopicWidget(QWidget):
     _column_names = ['topic', 'type', 'bandwidth', 'rate', 'value']
 
-    def __init__(self, plugin):
+    def __init__(self, plugin=None, selected_topics=None):
+        """
+        @type selected_topics: dict
+        """
         super(TopicWidget, self).__init__()
         rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_topic'), 'resource', 'TopicWidget.ui')
+        ui_file = os.path.join(rp.get_path('rqt_topic'), 'resource',
+                               'TopicWidget.ui')
         loadUi(ui_file, self)
         self._plugin = plugin
         self.topics_tree_widget.sortByColumn(0, Qt.AscendingOrder)
         header = self.topics_tree_widget.header()
         header.setResizeMode(QHeaderView.ResizeToContents)
-        header.customContextMenuRequested.connect(self.handle_header_view_customContextMenuRequested)
+        header.customContextMenuRequested.connect(
+                            self.handle_header_view_customContextMenuRequested)
         header.setContextMenuPolicy(Qt.CustomContextMenu)
+
+        # Whether to get all topics or only the topics that are set in advance.
+        # Can be also set by the setter method.
+        rospy.loginfo('000 topic_list={}'.format(selected_topics))
+        self._selected_topics = selected_topics
 
         self._current_topic_list = []
         self._topics = {}
@@ -67,16 +77,25 @@ class TopicWidget(QWidget):
         for column_name in self._column_names:
             self._column_index[column_name] = len(self._column_index)
 
-        self.refresh_topics()
+        #self.refresh_topics()
+
         # init and start update timer
         self._timer_refresh_topics = QTimer(self)
         self._timer_refresh_topics.timeout.connect(self.refresh_topics)
+
+    def start(self):
+        rospy.loginfo('444')
         self._timer_refresh_topics.start(1000)
 
     @Slot()
     def refresh_topics(self):
-        # refresh tree view items
-        topic_list = rospy.get_published_topics()
+        """
+        refresh tree view items
+        """
+        topic_list = self._selected_topics
+        if topic_list == None:
+            topic_list = rospy.get_published_topics()
+
         if self._current_topic_list != topic_list:
             self._current_topic_list = topic_list
 
@@ -252,3 +271,11 @@ class TopicWidget(QWidget):
         for topic in self._topics.values():
             topic['info'].stop_monitoring()
         self._timer_refresh_topics.stop()
+
+    def set_selected_topics(self, selected_topics):
+        """
+        @param selected_topics: list of tuple. [(topic_name, topic_type)]
+        @type selected_topics: []
+        """
+        rospy.loginfo('333 topics={}'.format(len(selected_topics)))
+        self._selected_topics = selected_topics

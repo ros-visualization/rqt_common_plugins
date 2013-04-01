@@ -47,8 +47,11 @@ class TopicInfo(ROSTopicHz):
         self._subscriber = None
         self.monitoring = False
         self._reset_data()
+        self.message_class = None
+        self._topic_name = None
         try:
-            self.message_class, self._topic_name, _ = get_topic_class(topic_name)
+            self.message_class, self._topic_name, _ = \
+                                                   get_topic_class(topic_name)
         except Exception as e:
             self.message_class = None
             self._topic_name = None
