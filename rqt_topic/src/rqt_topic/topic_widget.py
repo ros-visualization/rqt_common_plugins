@@ -53,14 +53,26 @@ class TopicWidget(QWidget):
     TopicWidget.start must be called in order to update topic pane.
     """
 
+    SELECT_BY_NAME = 0
+    SELECT_BY_MSGTYPE = 1
+
     _column_names = ['topic', 'type', 'bandwidth', 'rate', 'value']
     sig_sysmsg = Signal(str)
 
-    def __init__(self, plugin=None, selected_topics=None):
+    def __init__(self, plugin=None, selected_topics=None,
+                 select_topic_type=SELECT_BY_NAME):
         """
         @type selected_topics: dict
+        @type select_topic_type: int
+        @param select_topic_type: Can specify either the name of topics or by
+                                  the type of topic, to filter the topics to
+                                  show. If 'select_topic_type' argument is
+                                  None, this arg shouldn'g be meaningful.
         """
         super(TopicWidget, self).__init__()
+
+        self._select_topic_type = select_topic_type
+
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_topic'), 'resource',
                                'TopicWidget.ui')
@@ -89,6 +101,9 @@ class TopicWidget(QWidget):
         # init and start update timer
         self._timer_refresh_topics = QTimer(self)
         self._timer_refresh_topics.timeout.connect(self._kick_refresh_topics)
+
+    def set_topic_specifier(self, specifier):
+        self._select_topic_type = specifier
 
     def start(self):
         """
@@ -120,16 +135,31 @@ class TopicWidget(QWidget):
             if topic_list == None:
                 raise ROSException("Not even a single topic found published. "
                                    + "Check network configuration")
-        else:
-            topic_names_server_all = [name for name, type in
-                                      rospy.get_published_topics()]
-            topic_names_required = [name for name, type in topic_list]
-            rospy.logdebug('names_server_all={}\nnames_required={}'\
-                         .format(topic_names_server_all, topic_names_required))
-            for n in topic_names_required:
-                if not n in topic_names_server_all:
-                    raise ROSException("Required topic " +
-                      "{} not found. Make sure that it's published".format(n))
+        else:  # Topics to show are specified.
+            topic_specifiers_server_all = None
+            topic_specifiers_required = None
+            if self._select_topic_type == self.SELECT_BY_NAME:
+                topic_specifiers_server_all = [name for name, type in
+                                               rospy.get_published_topics()]
+                topic_specifiers_required = [name for name, type in topic_list]
+            elif self._select_topic_type == self.SELECT_BY_MSGTYPE:
+                #topic_specifiers_server_all = [type for name, type in
+                #                               rospy.get_published_topics()]
+                topic_specifiers_required = [type for name, type in topic_list]
+                topics_match = [(name, type) for name, type
+                                in rospy.get_published_topics()
+                                if type in topic_specifiers_required]
+                topic_list = topics_match
+                rospy.logdebug('selected & published topic types={}'.format(
+                                                                   topic_list))
+            rospy.logdebug('server_all={}\nrequired={}\ntlist={}'.format(
+                                      topic_specifiers_server_all,
+                                      topic_specifiers_required, topic_list))
+#             topics_not_published = [n for n in topic_specifiers_required
+#                                     if not n in topic_specifiers_server_all]
+            if len(topic_list) == 0:
+                raise ROSException("None of the required topics " +
+                   " are found. Make sure that they're published")
 
         if self._current_topic_list != topic_list:
             self._current_topic_list = topic_list
