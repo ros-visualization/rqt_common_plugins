@@ -42,9 +42,9 @@ import rospy
 
 # *Editor classes that are not explicitly used within this .py file still need
 # to be imported. They are invoked implicitly during runtime.
-from .param_editors import (BooleanEditor, DoubleEditor, EditorWidget,
-                            EDITOR_TYPES, EnumEditor, IntegerEditor,
-                            StringEditor)
+from .param_editors import BooleanEditor, DoubleEditor, EditorWidget, \
+                           EDITOR_TYPES, EnumEditor, IntegerEditor, \
+                           StringEditor
 
 _GROUP_TYPES = {
     '': 'BoxGroup',

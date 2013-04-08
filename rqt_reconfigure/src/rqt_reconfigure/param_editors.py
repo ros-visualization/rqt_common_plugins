@@ -67,7 +67,7 @@ class EditorWidget(QWidget):
     def __init__(self, updater, config):
         """
         :param updater:
-        :type updater: rqt_reconfigure.ParamUpdater
+        :type updater: rqt_reconfigure.param_updater.ParamUpdater
         """
 
         super(EditorWidget, self).__init__()

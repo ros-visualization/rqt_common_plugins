@@ -35,55 +35,71 @@
 import threading
 import time
 
-import dynamic_reconfigure
 import rospy
 
 
 class ParamUpdater(threading.Thread):
-    #TODO(Isaac) Modify variable names to the ones that make more intuition.
+    """
+    Using dynamic_reconfigure that is passed in __init__, this thread updates
+    the Dynamic Reconfigure server's value.
+    """
+
+    #TODO: Modify variable names to the ones that make more intuition.
 
     def __init__(self, reconf):
+        """
+        :type reconf: dynamic_reconfigure
+        """
         super(ParamUpdater, self).__init__()
         self.setDaemon(True)
 
         self._reconf = reconf
-        self._cv = threading.Condition()
-        self._pending_config = {}
-        self._last_pending = None
+        self._condition_variable = threading.Condition()
+        self._configs_pending = {}
+        self._timestamp_last_pending = None
         self._stop_flag = False
 
     def run(self):
-        last_commit = None
+        _timestamp_last_commit = None
+
+        rospy.logdebug(' ParamUpdater started')
 
         while not self._stop_flag:
-            if last_commit >= self._last_pending:
-                    with self._cv:
-                        self._cv.wait()
+            if _timestamp_last_commit >= self._timestamp_last_pending:
+                    with self._condition_variable:
+                        rospy.logdebug(' ParamUpdater loop 1.1')
+                        self._condition_variable.wait()
+                        rospy.logdebug(' ParamUpdater loop 1.2')
+            rospy.logdebug(' ParamUpdater loop 2')
 
             if self._stop_flag:
                 return
 
-            last_commit = time.time()
-            update = self._pending_config.copy()
-            self._pending_config = {}
+            _timestamp_last_commit = time.time()
+            configs_tobe_updated = self._configs_pending.copy()
+            self._configs_pending = {}
+
+            rospy.logdebug('  run last_commit={}, last_pend={}'.format(
+                         _timestamp_last_commit, self._timestamp_last_pending))
 
             try:
-                updated = self._reconf.update_configuration(update)
+                self._reconf.update_configuration(configs_tobe_updated)
             except rospy.ServiceException as ex:
-                rospy.logdebug('Could not update configuration')
+                rospy.logdebug('Could not update configs due to {}'.format(
+                                                                     ex.value))
             except Exception as exc:
                 raise exc
 
     def update(self, config):
-        with self._cv:
+        with self._condition_variable:
             for name, value in config.items():
-                self._pending_config[name] = value
+                self._configs_pending[name] = value
 
-            self._last_pending = time.time()
+            self._timestamp_last_pending = time.time()
 
-            self._cv.notify()
+            self._condition_variable.notify()
 
     def stop(self):
         self._stop_flag = True
-        with self._cv:
-            self._cv.notify()
+        with self._condition_variable:
+            self._condition_variable.notify()
