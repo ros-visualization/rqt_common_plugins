@@ -42,24 +42,21 @@ from rqt_py_common.ini_helper import pack, unpack
 from .plot_widget import PlotWidget
 
 try:
-    qDebug('rqt_plot.plot: importing PyQtGraphDataPlot')
     from pyqtgraph_data_plot import PyQtGraphDataPlot
 except ImportError:
-    qDebug('rqt_plot.plot: import of PyQtGraphDataPlot failed')
+    qDebug('[DEBUG] rqt_plot.plot: import of PyQtGraphDataPlot failed (trying other backends)')
     PyQtGraphDataPlot = None
 
 try:
-    qDebug('rqt_plot.plot: importing MatDataPlot')
     from mat_data_plot import MatDataPlot
 except ImportError:
-    qDebug('rqt_plot.plot: import of MatDataPlot failed')
+    qDebug('[DEBUG] rqt_plot.plot: import of MatDataPlot failed (trying other backends)')
     MatDataPlot = None
 
 try:
-    qDebug('rqt_plot.plot: importing QwtDataPlot')
     from qwt_data_plot import QwtDataPlot
 except ImportError:
-    qDebug('rqt_plot.plot: import of QwtDataPlot failed')
+    qDebug('[DEBUG] rqt_plot.plot: import of QwtDataPlot failed (trying other backends)')
     QwtDataPlot = None
 
 
