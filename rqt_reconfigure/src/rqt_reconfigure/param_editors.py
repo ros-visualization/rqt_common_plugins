@@ -285,7 +285,8 @@ class EnumEditor(EditorWidget):
         self._combobox.currentIndexChanged['int'].connect(self.selected)
 
     def selected(self, index):
+        self._combobox.setCurrentIndex(self.values[index])
         self._update(self.values[index])
 
-    def update_value(self, val):
-        self._combobox.setCurrentIndex(self.values.index(val))
+    #def update_value(self, val):
+    #    self._combobox.setCurrentIndex(self.values.index(val))
