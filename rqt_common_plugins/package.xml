@@ -25,6 +25,7 @@
   <author email="ablasdel@willowgarage.com">Aaron Blasdel</author>
   <author email="130s@alumni.smu.edu">Isaac Saito</author>
 
+  <buildtool_depend>catkin</buildtool_depend>
   <run_depend>rqt_action</run_depend>
   <run_depend>rqt_bag</run_depend>
   <run_depend>rqt_bag_plugins</run_depend>
