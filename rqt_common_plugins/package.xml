@@ -1,6 +1,6 @@
 <package>
   <name>rqt_common_plugins</name>
-  <version>0.2.15</version>
+  <version>0.2.16</version>
   <description>Metapackage for ROS backend graphical tools suite that can be used on/off of robot runtime.<br />
    <br />
    rqt consists of three following metapackages:<br />
