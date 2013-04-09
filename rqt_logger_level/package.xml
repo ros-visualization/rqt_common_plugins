@@ -1,7 +1,10 @@
 <package>
   <name>rqt_logger_level</name>
   <version>0.2.15</version>
-  <description>rqt_logger_level provides a GUI plugin for configuring the logger level of ROS nodes.</description>
+  <description>rqt_logger_level provides a GUI plugin for configuring the logger level of ROS nodes.<br />
+   <br />
+  rqt_logger_level takes over `wx`-based tool [[rxloggerlevel]].
+  </description>
   <maintainer email="ablasdel@willowgarage.com">Aaron Blasdel</maintainer>
   <maintainer email="isao.saito@mavs.uta.edu">Isaac Saito</maintainer>
 
@@ -17,7 +20,6 @@
 
   <run_depend>python-rospkg</run_depend>
   <run_depend>rosnode</run_depend>
-  <run_depend>rospkg</run_depend>
   <run_depend>rosservice</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>rqt_gui</run_depend>
