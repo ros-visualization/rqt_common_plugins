@@ -1,0 +1,13 @@
+<library path="lib/librqt_marble">
+  <class name="rqt_marble/MarblePlugin" type="rqt_marble::MarblePlugin" base_class_type="rqt_gui_cpp::Plugin">
+    <description>
+      Marble UI
+    </description>
+    <qtgui>
+      <label>Marble UI</label>
+      <icon type="theme">system-help</icon>
+      <statustip>Marble plugin to show a gps point on an map</statustip>
+    </qtgui>
+  </class>
+</library>
+
