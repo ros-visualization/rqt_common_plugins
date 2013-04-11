@@ -5,13 +5,13 @@
    <br />
    rqt consists of three following metapackages:<br />
     <ul>
-     <li>rqt - core modules of ROS GUI framework. rqt plugin developers barely needs to pay attention.</li>
-     <li>rqt_common_plugins</li>
-     <li>rqt_robot_plugins - rqt plugins that are particularly used with robots during its operation.</li>
+     <li>[[rqt]] - core modules of rqt (ROS GUI) framework. rqt plugin developers barely needs to pay attention to this metapackage.</li>
+     <li>rqt_common_plugins (you're here!)</li>
+     <li>[[rqt_robot_plugins]] - rqt plugins that are particularly used with robots during their runtime.</li>
     </ul>
   </description>
   <maintainer email="ablasdel@willowgarage.com">Aaron Blasdel</maintainer>
-  <maintainer email="130s@alumni.smu.edu">Isaac Saito</maintainer>
+  <maintainer email="130s@lateeye.net">Isaac Saito</maintainer>
 
   <license>BSD</license>
 
@@ -23,7 +23,7 @@
   <author>Dorian Scholz</author>
   <author>Thibault Kruse</author>
   <author email="ablasdel@willowgarage.com">Aaron Blasdel</author>
-  <author email="130s@alumni.smu.edu">Isaac Saito</author>
+  <author email="isaito@willowgarage.com">Isaac Saito</author>
 
   <buildtool_depend>catkin</buildtool_depend>
   <run_depend>rqt_action</run_depend>
@@ -35,6 +35,7 @@
   <run_depend>rqt_image_view</run_depend>
   <run_depend>rqt_launch</run_depend>
   <run_depend>rqt_logger_level</run_depend>
+  <!-- <run_depend>rqt_marble</run_depend> --> <!-- 4/9/2013 Not ready -->
   <run_depend>rqt_msg</run_depend>
   <run_depend>rqt_plot</run_depend>
   <run_depend>rqt_publisher</run_depend>
