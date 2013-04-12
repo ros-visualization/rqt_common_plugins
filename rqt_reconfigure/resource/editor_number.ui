@@ -47,9 +47,15 @@
      </item>
      <item>
       <widget class="QSlider" name="_slider_horizontal">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
-         <width>100</width>
+         <width>130</width>
          <height>0</height>
         </size>
        </property>
@@ -76,9 +82,15 @@
      </item>
      <item>
       <widget class="QLineEdit" name="_paramval_lineEdit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
-         <width>50</width>
+         <width>75</width>
          <height>20</height>
         </size>
        </property>

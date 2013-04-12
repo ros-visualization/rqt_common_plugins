@@ -231,7 +231,7 @@ class DoubleEditor(EditorWidget):
 
         self._paramval_lineEdit.setValidator(QDoubleValidator(
                                                     self.min, self.max,
-                                                    4, self))
+                                                    8, self))
         self._paramval_lineEdit.editingFinished.connect(self.editing_finished)
 
         self._paramval_lineEdit.setText(str(config['default']))
