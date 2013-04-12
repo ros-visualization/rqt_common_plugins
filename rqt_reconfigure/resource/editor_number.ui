@@ -21,7 +21,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="_layout_h" stretch="0,3,1,2,1">
+    <layout class="QHBoxLayout" name="_layout_h">
      <item>
       <widget class="QLabel" name="_paramname_label">
        <property name="text">
@@ -33,7 +33,7 @@
       <widget class="QLabel" name="_min_val_label">
        <property name="minimumSize">
         <size>
-         <width>20</width>
+         <width>30</width>
          <height>0</height>
         </size>
        </property>
@@ -48,7 +48,7 @@
      <item>
       <widget class="QSlider" name="_slider_horizontal">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -71,7 +71,7 @@
       <widget class="QLabel" name="_max_val_label">
        <property name="minimumSize">
         <size>
-         <width>20</width>
+         <width>30</width>
          <height>0</height>
         </size>
        </property>
