@@ -5,9 +5,9 @@
    <br />
    rqt consists of three following metapackages:<br />
     <ul>
-     <li>[[rqt]] - core modules of rqt (ROS GUI) framework. rqt plugin developers barely needs to pay attention to this metapackage.</li>
+     <li><a href = "http://ros.org/wiki/rqt">rqt</a> - core modules of rqt (ROS GUI) framework. rqt plugin developers barely needs to pay attention to this metapackage.</li>
      <li>rqt_common_plugins (you're here!)</li>
-     <li>[[rqt_robot_plugins]] - rqt plugins that are particularly used with robots during their runtime.</li>
+     <li><a href = "http://ros.org/wiki/rqt_robot_plugins">rqt_robot_plugins</a> - rqt plugins that are particularly used with robots during their runtime.</li>
     </ul>
   </description>
   <maintainer email="ablasdel@willowgarage.com">Aaron Blasdel</maintainer>
