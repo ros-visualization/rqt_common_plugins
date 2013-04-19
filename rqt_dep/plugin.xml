@@ -4,7 +4,7 @@
       A Python GUI plugin to visualize a ROS package network.
     </description>
     <qtgui>
-      <label>ROS Package Graph</label>
+      <label>ROS Package Dependency</label>
       <icon type="theme">preferences-system-network</icon>
       <statustip>A Python GUI plugin to visualize a ROS package network.</statustip>
     </qtgui>
