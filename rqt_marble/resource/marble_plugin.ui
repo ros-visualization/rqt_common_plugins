@@ -44,7 +44,7 @@
       </widget>
      </item>
      <item row="1" column="2">
-      <widget class="QPushButton" name="refreshButton">
+      <widget class="QPushButton" name="refresh_button">
        <property name="text">
         <string>refresh</string>
        </property>
@@ -83,7 +83,7 @@
     </layout>
    </item>
    <item>
-    <widget class="Marble::MarbleWidget" name="MarbleWidget" native="true">
+    <widget class="Marble::MarbleWidget" name="marble_widget" native="true">
      <property name="toolTip">
       <string>The Earth</string>
      </property>
