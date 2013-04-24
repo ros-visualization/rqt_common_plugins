@@ -41,18 +41,23 @@
 
 #include <rqt_marble/bridge_ros_marble.h>
 #include <ui_marble_plugin.h> // Generated into ./build/rqt_robot_plugins/rqt_marble
-
 namespace rqt_marble
 {
 
+/**
+ * MarblePlugin class works as an interface for 2 libraries:
+ * for Marble via Ui_form class and for rqt framework by extending
+ * rqt_gui_cpp::Plugin class.
+ */
 class MarblePlugin : public rqt_gui_cpp::Plugin
 {
-  Q_OBJECT
+Q_OBJECT
 public:
   MarblePlugin();
   virtual void initPlugin(qt_gui_cpp::PluginContext& context);
   virtual void shutdownPlugin();
-  virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
+  virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings,
+                            qt_gui_cpp::Settings& instance_settings) const;
   virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings,
                                const qt_gui_cpp::Settings& instance_settings);
 
@@ -60,34 +65,38 @@ public:
   //bool hasConfiguration() const;
   //void triggerConfiguration();
 
-  void GpsCallback(const sensor_msgs::NavSatFixConstPtr& gpspt);
+  void gpsCallback(const sensor_msgs::NavSatFixConstPtr& gpspt);
 
 private:
 
-  Q_SIGNALS:
+Q_SIGNALS:
 
-  void NewGPSPosition(qreal, qreal);
+  void newGpsPosition(qreal, qreal);
 
 private Q_SLOTS:
 
-  void ChangeGPSTopic(const QString &topic_name);
-  void SetKMLFile(bool envoke_file_dialog = true);
-  void ChangeMarbleModelTheme(int idx);
-  void FindGPSTopics();
+  void changeGpsTopic(const QString &topic_name);
+  void setKmlFile(bool envoke_file_dialog = true);
+  /**
+   * @param idx: index within combobox
+   */
+  void changeMarbleModelTheme(int idx);
   void enableNavigation(bool checked);
   void routeChanged();
 
 private:
-
   Ui_Form ui_;
   QWidget* widget_;
-
   ros::Subscriber m_sat_nav_fix_subscriber;
-
-  Marble::RoutingManager* manager;
+  Marble::RoutingManager* routing_manager;
   Marble::RouteRequest* request;
-  rqt_marble::BridgeRosMarble* ros_navigation;
   Marble::RoutingModel* routeModel;
+  rqt_marble::BridgeRosMarble* ros_navigation;
+
+  /**
+   * Capture GPS Topics from ROS and set the topic names on combo box.
+   */
+  void findGpsTopics();
 };
 } // namespace
 #endif // _MARBLE_PLUGIN_H

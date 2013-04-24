@@ -14,6 +14,14 @@
 namespace rqt_marble
 {
 
+/**
+ * BridgeRosMarble object is initially intended to work as a bridge between
+ * ROS & Marble so that MarblePlugin can be decoupled from ROS & Marble as
+ * much as possible.
+ *
+ * However, for the coding simplicity, MarblePlugin by design involves ROS & Marble
+ * tasks.
+ */
 class BridgeRosMarble : public rqt_gui_cpp::Plugin
 {
   Q_OBJECT
@@ -21,9 +29,15 @@ class BridgeRosMarble : public rqt_gui_cpp::Plugin
 public:
 
   BridgeRosMarble();
-  void setDoNavigation(bool doNav);
-  void publishRouteInGps(Marble::Route route);
   void getGpsCoord();
+  /**
+   * @arg Route route: this object consists of segments of a route.
+   *                   Each segment consists of GPS coordinates.
+   * @return: when either do_navigation is False or the size of the argument
+   * route is 0, this function just returns.
+   */
+  void publishRouteInGps(Marble::Route route);
+  void setDoNavigation(bool doNav);
   //void GpsCallback(const sensor_msgs::NavSatFixConstPtr& gpspt);
 
 private:

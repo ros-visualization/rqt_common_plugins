@@ -55,32 +55,31 @@ void BridgeRosMarble::setDoNavigation(bool doNav)
 
 void BridgeRosMarble::publishRouteInGps(Marble::Route route)
 {
-  ROS_INFO("publishRouteInGps 1");
-  if (!this->do_navigation)
+  if (!this->do_navigation || route.size() == 0)
   {
     //TODO Throw exception instead of just returning?
     return;
   }
 
-  ROS_INFO("publishRouteInGps 2");
   RouteGps route_gps;
   int size_route = route.size();
   //std::cout << "size of route =" << route.size() << std::endl;
   for (int i = 0; i < size_route; i++)
   {
-    ROS_INFO("publishRouteInGps 3");
+    ROS_DEBUG("publishRouteInGps 3");
     Marble::GeoDataLineString route_segment_line_str = route.at(i).path();
     for (int j = 0; j < route_segment_line_str.size(); j++)
     {
       Marble::GeoDataCoordinates coord = route_segment_line_str.at(j);
-      //TODO create GPS msg for ROS
+      // create GPS msg for ROS
       NavSatFix gps_msg = NavSatFix();
       gps_msg.latitude = coord.latitude();
       gps_msg.longitude = coord.longitude();
       gps_msg.status.status = NavSatStatus::STATUS_FIX;
       gps_msg.status.service = NavSatStatus::SERVICE_GPS;
 
-      ROS_INFO("#%dth seg; coord#%dlongi=%f lat=%f", i, j, gps_msg.latitude, gps_msg.longitude);
+      ROS_INFO("#%dth seg; coord#%dlongi=%f lat=%f", i, j, gps_msg.latitude,
+               gps_msg.longitude);
 
       route_gps.routes.push_back(gps_msg);
     }
