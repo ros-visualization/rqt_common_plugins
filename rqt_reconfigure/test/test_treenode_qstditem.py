@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2012, Willow Garage, Inc.
@@ -34,38 +36,34 @@
 
 import unittest
 
-from rqt_reconfigure.ros_param import Parameter
+from rqt_reconfigure.treenode_qstditem import TreenodeQstdItem
 
-'''
-@author: Isaac Saito
-'''
-class MyTest(unittest.TestCase):
-    
-    # All following vars need to be modified accordingly whenever you give
-    # different raw param name.
-    # <here>
-    _param_name_raw = '/param_top/sub/subsub'
-    _param_name_toplv = 'param_top'
-    _len_param_name = 3
-    # </here>
-            
+
+class TestTreenodeQstdItem(unittest.TestCase):
+    """
+    :author: Isaac Saito
+    """
+
+    _nodename_raw = '/base_hokuyo_node'
+    _nodename_extracted = 'base_hokuyo_node'
+
     def setUp(self):
         unittest.TestCase.setUp(self)
-        
-        self._param = Parameter(self._param_name_raw)
- 
+        #self._item = TreenodeQstdItem(self._nodename_raw, 0) # For unknown reason
+                                                        #this stops operation.
+        self._item = TreenodeQstdItem(self._nodename_raw)
+
     def tearDown(self):
         unittest.TestCase.tearDown(self)
-        del self._param
-                
-    def test_get_param_name_toplv(self):
-        self.assertEqual(self._param.get_param_name_toplv(),
-                         self._param_name_toplv)
-        
-    def test_get_param_names(self):
-        self.assertEqual(len(self._param.get_param_names()),
-                         self._len_param_name - 1)
+        del self._item
+
+    def test_get_node_name(self):
+        self.assertEqual(self._item.get_node_name(),
+                         self._nodename_extracted)
+
+#    def test_get_node_name(self):
+#        self.assertEqual(self._item.get_widget().show())
+
 
 if __name__ == '__main__':
     unittest.main()
-    
