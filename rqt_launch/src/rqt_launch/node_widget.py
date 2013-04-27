@@ -1,6 +1,6 @@
 # Software License Agreement (BSD License)
 #
-# Copyright (c) 2012, Willow Garage, Inc.
+# Copyright (c) 2013, Willow Garage, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -69,14 +69,14 @@ class NodeWidget(QWidget):
         # stop_button = QPushButton(self.style().standardIcon(
         #                                             QStyle.SP_MediaStop), "")
         self._respawn_toggle.setChecked(self._launch_config.respawn)
-        self._lineEdit_launch_prefix = QLineEdit(
+        self._lineEdit_launch_args = QLineEdit(
                                             self._launch_config.launch_prefix)
 
         rospy.logdebug('_proxy.conf.namespace={} launch_config={}'.format(
                       self._launch_config.namespace, self._launch_config.name))
         self._resolved_node_name = NamesSurrogate.ns_join(
                        self._launch_config.namespace, self._launch_config.name)
-        self._label_status.setText(self.get_node_name())
+        self._label_nodename.setText(self.get_node_name())
         self._label_pkg_name.setText(self._launch_config.package)
         self._label_name_executable.setText(self._launch_config.type)
 

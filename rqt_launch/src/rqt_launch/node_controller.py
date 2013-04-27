@@ -59,10 +59,10 @@ class NodeController(object):
 
         # If the launch_prefix has changed, then the _process must be recreated
         if (self._proxy.config.launch_prefix !=
-            self._gui._lineEdit_launch_prefix.text()):
+            self._gui._lineEdit_launch_args.text()):
 
             self._proxy.config.launch_prefix = \
-                                     self._gui._lineEdit_launch_prefix.text()
+                                     self._gui._lineEdit_launch_args.text()
             self._proxy.recreate_process()
 
         self._gui.set_node_started(False)
