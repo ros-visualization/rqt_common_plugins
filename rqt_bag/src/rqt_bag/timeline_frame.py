@@ -32,7 +32,9 @@
 
 
 from python_qt_binding.QtCore import qDebug, QPointF, QRectF, Qt, qWarning
-from python_qt_binding.QtGui import QBrush, QCursor, QColor, QFont, QFontMetrics, QGraphicsItem, QPen, QPolygonF
+from python_qt_binding.QtGui import QBrush, QCursor, QColor, QFont, \
+                                    QFontMetrics, QGraphicsItem, QPen, \
+                                    QPolygonF
 import rospy
 
 import bisect
@@ -62,7 +64,8 @@ class _SelectionMode(object):
 
 class TimelineFrame(QGraphicsItem):
     """
-    TimelineFrame Draws the framing elements for the bag messages (time delimiters, labels, topic names and backgrounds)
+    TimelineFrame Draws the framing elements for the bag messages
+    (time delimiters, labels, topic names and backgrounds).
     Also handles mouse callbacks since they interact closely with the drawn elements
     """
     def __init__(self):
@@ -938,11 +941,16 @@ class TimelineFrame(QGraphicsItem):
         self.scene().update()
 
     def get_zoom_interval(self, zoom):
+        """
+        @rtype: tuple
+        @requires: left & right zoom interval sizes.
+        """
         if self._stamp_left is None:
             return None
 
         stamp_interval = self._stamp_right - self._stamp_left
-        playhead_fraction = (self.playhead.to_sec() - self._stamp_left) / stamp_interval
+        playhead_fraction = (
+                   self.playhead.to_sec() - self._stamp_left) / stamp_interval
 
         new_stamp_interval = zoom * stamp_interval
         if new_stamp_interval == 0:
