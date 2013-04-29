@@ -1,6 +1,6 @@
 <package>
   <name>rqt_marble</name>
-  <version>0.2.9</version>
+  <version>0.2.16</version>
   <description>
      rqt_marble works as an interface between KDE's Marble library and
      provide following features: 
