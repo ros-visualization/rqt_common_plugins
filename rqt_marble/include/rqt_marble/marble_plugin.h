@@ -85,13 +85,15 @@ private Q_SLOTS:
   void routeChanged();
 
 private:
-  Ui_Form ui_;
+  Ui_MarblePluginWidget ui_;
   QWidget* widget_;
   ros::Subscriber m_sat_nav_fix_subscriber;
   Marble::RoutingManager* routing_manager;
   Marble::RouteRequest* request;
   Marble::RoutingModel* routeModel;
   rqt_marble::BridgeRosMarble* ros_navigation;
+
+  void initWidget(qt_gui_cpp::PluginContext& context);
 
   /**
    * Capture GPS Topics from ROS and set the topic names on combo box.

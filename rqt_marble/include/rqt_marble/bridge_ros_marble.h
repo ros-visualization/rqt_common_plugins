@@ -9,6 +9,7 @@
 #include <rqt_gui_cpp/plugin.h>
 #include <sensor_msgs/NavSatFix.h>
 
+#include <rqt_marble/RouteGps.h>
 #include <ui_marble_plugin.h>
 
 namespace rqt_marble
@@ -36,7 +37,7 @@ public:
    * @return: when either do_navigation is False or the size of the argument
    * route is 0, this function just returns.
    */
-  void publishRouteInGps(Marble::Route route);
+  rqt_marble::RouteGps publishRouteInGps(Marble::Route route);
   void setDoNavigation(bool doNav);
   //void GpsCallback(const sensor_msgs::NavSatFixConstPtr& gpspt);
 

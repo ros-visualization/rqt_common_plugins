@@ -11,9 +11,7 @@ find_package(Marble REQUIRED)
 
 #catkin_python_setup()
 
-add_message_files(FILES
-  RouteGps.msg
-)
+add_message_files(FILES RouteGps.msg)
 
 generate_messages(DEPENDENCIES sensor_msgs)
 
@@ -52,6 +50,10 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY} $
 find_package(class_loader)
 class_loader_hide_library_symbols(${PROJECT_NAME})
 
+## Setting Unit Test
+#catkin_add_gtest(testsuite_rqt_marble test/test_bridge_ros_marble.cpp)
+#target_link_libraries(testsuite_rqt_marble ${PROJECT_NAME} ${MARBLE_LIBRARIES})
+
 install(FILES plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
@@ -67,3 +69,7 @@ install(DIRECTORY resource
 install(PROGRAMS scripts/rqt_marble
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+#install(PROGRAMS testsuite_rqt_marble
+#  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)

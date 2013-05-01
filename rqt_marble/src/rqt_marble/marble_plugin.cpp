@@ -66,12 +66,23 @@ MarblePlugin::MarblePlugin() :
   ROS_INFO("in constructor");
 }
 
+/**
+ * Overridden from rqt_gui_cpp::Plugin
+ */
 void MarblePlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 {
   ROS_INFO("in initPlugin");
 
   // access standalone command line arguments
   QStringList argv = context.argv();
+
+  initWidget(context);
+
+  this->findGpsTopics();
+}
+
+void MarblePlugin::initWidget(qt_gui_cpp::PluginContext& context)
+{
 
   // create QWidget
   widget_ = new QWidget();
@@ -88,19 +99,22 @@ void MarblePlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   ui_.comboBox_theme->setModel(
       ui_.marble_widget->model()->mapThemeManager()->mapThemeModel());
 
-  //set refresh icon
-  QIcon refresh_icon;
+  QIcon refresh_icon; //set refresh icon
   std::string path = ros::package::getPath("rqt_marble") + "/etc/refresh.png";
   QString icon_path(path.c_str());
   refresh_icon.addFile(icon_path);
-  ui_.refresh_button->setIcon(refresh_icon);
+  ui_._gpstopic_refresh_button->setIcon(refresh_icon);
 
-  this->findGpsTopics();
+  //Trying to set proportion on splitter; Map should be much larger that the
+  // control pane. But not really sure if the values in the argument are
+  // appropriate.
+  ui_._splitter_h_top->setStretchFactor(0, 20);
 
   // Connections
-  connect(ui_.comboBox, SIGNAL(activated (const QString &)), this,
+  connect(ui_._gpstopic_combobox, SIGNAL(activated (const QString &)), this,
           SLOT (changeGpsTopic(const QString &)));
-  connect(ui_.refresh_button, SIGNAL(clicked()), this, SLOT(findGpsTopics()));
+  connect(ui_._gpstopic_refresh_button, SIGNAL(clicked()), this,
+          SLOT(findGpsTopics()));
   connect(this, SIGNAL(newGpsPosition(qreal, qreal)), ui_.marble_widget,
           SLOT(centerOn(qreal, qreal)));
 //  connect( ui_.lineEdit_topic , SIGNAL(editingFinished()) , this , SLOT( changeGpsTopic()) );
@@ -132,7 +146,7 @@ void MarblePlugin::findGpsTopics()
   std::vector<TopicInfo> topic_infos;
   getTopics(topic_infos);
 
-  ui_.comboBox->clear();
+  ui_._gpstopic_combobox->clear();
   for (std::vector<TopicInfo>::iterator it = topic_infos.begin();
       it != topic_infos.end(); it++)
   {
@@ -141,7 +155,7 @@ void MarblePlugin::findGpsTopics()
     {
 // std::cout << "found " << topic.name << std::endl;
       QString lineEdit_string(topic.name.c_str());
-      ui_.comboBox->addItem(lineEdit_string);
+      ui_._gpstopic_combobox->addItem(lineEdit_string);
     }
   }
 }

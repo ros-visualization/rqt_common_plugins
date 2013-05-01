@@ -32,11 +32,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  **/
 // Author: Isaac Saito
+#include <ros/exception.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/NavSatStatus.h>
 
 #include <rqt_marble/bridge_ros_marble.h>
-#include <rqt_marble/RouteGps.h>
 
 using namespace rqt_marble;
 using namespace sensor_msgs;
@@ -53,20 +53,18 @@ void BridgeRosMarble::setDoNavigation(bool doNav)
   this->do_navigation = doNav;
 }
 
-void BridgeRosMarble::publishRouteInGps(Marble::Route route)
+RouteGps BridgeRosMarble::publishRouteInGps(Marble::Route route)
 {
+  RouteGps route_gps;
   if (!this->do_navigation || route.size() == 0)
   {
-    //TODO Throw exception instead of just returning?
-    return;
+    ros::Exception("Marble::Route passed does not contain route.");
   }
 
-  RouteGps route_gps;
   int size_route = route.size();
-  //std::cout << "size of route =" << route.size() << std::endl;
+  ROS_DEBUG("size of route =" + size_route);
   for (int i = 0; i < size_route; i++)
   {
-    ROS_DEBUG("publishRouteInGps 3");
     Marble::GeoDataLineString route_segment_line_str = route.at(i).path();
     for (int j = 0; j < route_segment_line_str.size(); j++)
     {
@@ -85,4 +83,5 @@ void BridgeRosMarble::publishRouteInGps(Marble::Route route)
     }
   }
   this->_publisher.publish(route_gps);
+  return route_gps;
 }
