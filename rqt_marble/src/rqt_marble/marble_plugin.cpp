@@ -96,7 +96,7 @@ void MarblePlugin::initWidget(qt_gui_cpp::PluginContext& context)
   ui_.marble_widget->setDistance(0.05);
 
   context.addWidget(widget_);
-  ui_.comboBox_theme->setModel(
+  ui_._combobox_theme->setModel(
       ui_.marble_widget->model()->mapThemeManager()->mapThemeModel());
 
   QIcon refresh_icon; //set refresh icon
@@ -119,7 +119,7 @@ void MarblePlugin::initWidget(qt_gui_cpp::PluginContext& context)
           SLOT(centerOn(qreal, qreal)));
 //  connect( ui_.lineEdit_topic , SIGNAL(editingFinished()) , this , SLOT( changeGpsTopic()) );
   connect(ui_.lineEdit_kml, SIGNAL(returnPressed()), this, SLOT(setKmlFile()));
-  connect(ui_.comboBox_theme, SIGNAL(currentIndexChanged(int)), this,
+  connect(ui_._combobox_theme, SIGNAL(currentIndexChanged(int)), this,
           SLOT(changeMarbleModelTheme(int)));
   connect(ui_._checkbox_navigation, SIGNAL(clicked(bool)), this,
           SLOT(enableNavigation(bool)));
@@ -222,7 +222,7 @@ void MarblePlugin::gpsCallback(const sensor_msgs::NavSatFixConstPtr& gpspt)
 // Recenter if lat long is not on screen
   bool recenter = !ui_.marble_widget->screenCoordinates(gpspt->longitude,
                                                         gpspt->latitude, x, y);
-  recenter |= ui_.checkBox_center->isChecked();
+  recenter |= ui_._checkBox_centering->isChecked();
 
 // Recenter if lat long within <threshold> pixels away from center
   qreal threshold = 20;
@@ -247,8 +247,9 @@ void MarblePlugin::saveSettings(qt_gui_cpp::Settings& plugin_settings,
       ui_.lineEdit_kml->text().replace(".", "___dot_replacement___"));
   instance_settings.setValue("rqt_marble_zoom", ui_.marble_widget->distance());
   instance_settings.setValue("marble_theme_index",
-                             ui_.comboBox_theme->currentIndex());
-  instance_settings.setValue("marble_center", ui_.checkBox_center->isChecked());
+                             ui_._combobox_theme->currentIndex());
+  instance_settings.setValue("marble_center",
+                             ui_._checkBox_centering->isChecked());
 }
 
 void MarblePlugin::restoreSettings(
@@ -262,9 +263,9 @@ void MarblePlugin::restoreSettings(
   ui_.lineEdit_kml->setText(
       instance_settings.value("rqt_marble_kml_file", "").toString().replace(
           "___dot_replacement___", "."));
-  ui_.comboBox_theme->setCurrentIndex(
+  ui_._combobox_theme->setCurrentIndex(
       instance_settings.value("marble_theme_index", 0).toInt());
-  ui_.checkBox_center->setChecked(
+  ui_._checkBox_centering->setChecked(
       instance_settings.value("marble_center", true).toBool());
 
 // std::cout << "Set distance " << instance_settings.value( "rqt_marble_zoom" ).toReal() << std::endl;
