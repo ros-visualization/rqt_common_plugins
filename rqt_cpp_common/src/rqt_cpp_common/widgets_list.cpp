@@ -40,10 +40,45 @@ using namespace rqt_cpp_common;
 
 WidgetsList::WidgetsList()
 {
-  this->vlayout = new QVBoxLayout(ui_._scrollarea_holder_widget);
-
+  this->ui_._vlayout_for_widgets = new QVBoxLayout(
+      ui_._scrollarea_holder_widget);
 }
 
-void WidgetsList::_remove_node(std::string widget_id)
+/**
+ * Add the given pair of id_widget and widget into the internal table that
+ * records the existing widgets. Then add the widget to the layout.
+ *
+ * @param widget: This QWidget instance MUST have a "parent" pointing to
+ *                WidgetsList. This "parent" value will be used in other
+ *                functions (eg. WidgetsList::remove_node).
+ */
+void WidgetsList::add_widget(QString id_widget, QWidget *widget)
 {
+  if (this->table_widgets->contains(id_widget))
+  { //Do nothiing
+  }
+  else
+  {
+    this->table_widgets->insert(id_widget, widget);
+    this->ui_._vlayout_for_widgets->addWidget(widget);
+  }
+}
+
+/**
+ * @exception ros::Exception when the given widget_id doesn't exist or no item
+ *            is associated.
+ */
+void WidgetsList::remove_node(QString widget_id)
+{
+  QWidget widget_tobe_removed;
+  QWidget *tobe_returned_when_correspondent_notfound;
+  //widget_tobe_removed = this->table_widgets->value(widget_id);
+  if (this->table_widgets->contains(widget_id))
+  {
+    ros::Exception(
+        "The given widget_id = " + widget_id.toStdString()
+            + " doesn't exist or no item is associated.");
+  }
+  this->ui_._vlayout_for_widgets->removeWidget(&widget_tobe_removed);
+  this->table_widgets->take(widget_id);
 }

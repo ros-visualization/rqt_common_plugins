@@ -19,6 +19,14 @@
   <author email="isaito@willowgarage.com">Isaac Saito</author> -->
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp</build_depend>
-  <run_depend>roscpp</run_depend>
+  
+  <build_depend>message_generation</build_depend>
+  <build_depend>roscpp</build_depend>  
+  <build_depend>sensor_msgs</build_depend>
+  
+  <run_depend>message_runtime</run_depend>
+  <run_depend>roscpp</run_depend>  
+  <run_depend>sensor_msgs</run_depend>
+  
+  <test_depend>rosunit</test_depend>  
 </package>

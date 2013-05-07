@@ -40,7 +40,8 @@
 #include <sensor_msgs/NavSatFix.h>
 
 #include <rqt_marble/bridge_ros_marble.h>
-#include <ui_marble_plugin.h> // Generated into ./build/rqt_robot_plugins/rqt_marble
+#include <ui_marble_plugin.h> // Generated into ./build/rqt_robot_plugins/rqt_marble by Catkin.
+
 namespace rqt_marble
 {
 

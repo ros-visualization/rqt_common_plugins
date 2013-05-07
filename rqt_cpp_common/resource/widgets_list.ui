@@ -21,7 +21,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QVBoxLayout" name="vlayout">
+    <layout class="QVBoxLayout" name="_vlayout_for_widgets">
      <item>
       <widget class="QScrollArea" name="scrollarea">
        <property name="widgetResizable">
@@ -43,14 +43,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>rqt_cpp_common::WidgetsList</class>
-   <extends>QWidget</extends>
-   <header>rqt_cpp_common/widgets_list.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

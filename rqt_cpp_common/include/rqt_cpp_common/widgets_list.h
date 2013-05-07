@@ -35,15 +35,15 @@
 #ifndef _WIDGETS_LIST_H
 #define _WIDGETS_LIST_H
 
-#include <string>
+#include <QHash>
 #include <QList>
+#include <QString>
 #include <QVBoxLayout>
 #include <QWidget>
 
 #include <ros/ros.h>
 
 #include <ui_widgets_list.h> // Generated under %CATKIN_WS%/build/%prj% by Catkin.
-
 namespace rqt_cpp_common
 {
 
@@ -53,6 +53,9 @@ namespace rqt_cpp_common
  * This class represents a pane where parameter editor widgets of multiple
  * nodes are shown. Example is found in rqt_reconfigure (although it's in
  * python); this pane occupies right half of the entire visible area.
+ *
+ * TODO: As of Apr 2013, this class can put the widgets only on virtical
+ *       layout. Need to improve so that user can choose horizontal layout.
  *
  * @author: Isaac Saito
  */
@@ -65,11 +68,11 @@ public:
   WidgetsList();
 
 private:
-  QList<QWidget> *widgets;
-  QVBoxLayout *vlayout;
+  QHash<QString, QWidget*> *table_widgets;
   Ui::WidgetsList ui_;
 
-  void _remove_node(std::string widget_id);
+  void add_widget(QString id_widget, QWidget *widget);
+  void remove_node(QString widget_id);
 };
 } // namespace
 #endif // _WIDGETS_LIST_H

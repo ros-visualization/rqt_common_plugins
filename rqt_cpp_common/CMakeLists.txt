@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rqt_cpp_common)
 # Load catkin and all dependencies required for this package
-#find_package(catkin REQUIRED COMPONENTS message_generation roscpp)
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS message_generation sensor_msgs)
 
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 include(${QT_USE_FILE})
+
+add_message_files(DIRECTORY msg FILES RouteGps.msg)
+generate_messages(DEPENDENCIES sensor_msgs)
 
 set(rqt_cpp_common_SRCS
   src/rqt_cpp_common/widgets_list.cpp
@@ -28,7 +30,7 @@ set(rqt_cpp_common_INCLUDE_DIRECTORIES
 catkin_package(
 	INCLUDE_DIRS ${rqt_cpp_common_INCLUDE_DIRECTORIES}
 	LIBRARIES ${PROJECT_NAME} 
-	#CATKIN_DEPENDS roscpp
+	CATKIN_DEPENDS message_runtime sensor_msgs
 )
 
 qt4_wrap_cpp(rqt_cpp_common_MOCS ${rqt_cpp_common_HDRS})
@@ -41,9 +43,9 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY} $
 find_package(class_loader)
 #class_loader_hide_library_symbols(${PROJECT_NAME})
 
-## Setting Unit Test
-##catkin_add_gtest(testsuite_rqt_cpp_common test/test_bridge_ros_marble.cpp)
-##target_link_libraries(testsuite_rqt_cpp_common ${PROJECT_NAME_LIBRARY})
+# Setting Unit Test
+catkin_add_gtest(${PROJECT_NAME}-testsuite test/test_widgets_list.cpp)
+target_link_libraries(${PROJECT_NAME}-testsuite ${PROJECT_NAME})
 
 install(FILES plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
