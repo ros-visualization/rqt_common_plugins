@@ -2,17 +2,17 @@
   <name>rqt_marble</name>
   <version>0.2.16</version>
   <description>
-     rqt_marble works as an interface between KDE's Marble library and
-     provide following features: 
+     rqt_marble works as an interface between KDE's Marble library and ROS.
+     Utilizing sensor_msgs::NavSatFix, it provides following features: 
      
      <ul>
-      <li>Publishes GPS coordinates in a path that user sets on global map in
-          sensor_msgs::NavSatFix</li>
-      <li>Plots single or multiple GPS coordinates of the robot's current
-      position</li>
+      <li>Publishes GPS coordinates in a path that user sets on global map</li>
+      <li>Plots GPS coordinates of the robot's current positions</li>
      </ul>
            
-     Originally created as marble_plugin by Tobias Baer.
+     Originally created as
+     <a href = "http://www.ros.org/wiki/marble_plugin">marble_plugin</a> by
+     Tobias Baer.
   </description>
   <license>BSD</license>
   <maintainer email="130s@alumni.smu.edu">Isaac Saito</maintainer>
