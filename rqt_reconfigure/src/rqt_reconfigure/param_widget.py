@@ -90,7 +90,7 @@ class ParamWidget(QWidget):
         _hlayout_filter.addWidget(self.filterkey_label)
         _hlayout_filter.addWidget(self.filter_lineedit)
         _hlayout_filter_widget.setLayout(_hlayout_filter)
-        self._nodesel_widget = NodeSelectorWidget(self)
+        self._nodesel_widget = NodeSelectorWidget(self, self.sig_sysmsg)
         _vlayout_nodesel_side.addWidget(_hlayout_filter_widget)
         _vlayout_nodesel_side.addWidget(self._nodesel_widget)
         _vlayout_nodesel_side.setSpacing(1)

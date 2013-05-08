@@ -62,10 +62,15 @@ class NodeSelectorWidget(QWidget):
     # public signal
     sig_node_selected = Signal(DynreconfClientWidget)
 
-    def __init__(self, parent):
+    def __init__(self, parent, signal_msg=None):
+        """
+        @param signal_msg: Signal to carries a system msg that is shown on GUI.
+        @type signal_msg: QtCore.Signal
+        """
         super(NodeSelectorWidget, self).__init__()
         self._parent = parent
         self.stretch = None
+        self._signal_msg = signal_msg
 
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 'resource',
@@ -195,7 +200,7 @@ class NodeSelectorWidget(QWidget):
             item_widget = item_child.get_dynreconf_widget()
         except ROSException as e:
             raise e
-        rospy.logdebug('item_selected={} child={} widget={}'.format(
+        rospy.loginfo('item_selected={} child={} widget={}'.format(
                        index_current, item_child, item_widget))
         self.sig_node_selected.emit(item_widget)
 
@@ -244,8 +249,12 @@ class NodeSelectorWidget(QWidget):
             try:
                 self._selection_selected(index_current, rosnode_name_selected)
             except ROSException as e:
-                rospy.logerr(e.message)
                 #TODO: print to sysmsg pane
+                err_msg = e.message + '. Connection to node=' + \
+                          format(rosnode_name_selected) + ' failed'
+                self._signal_msg.emit(err_msg)
+                rospy.logerr(err_msg)
+
         elif deselected.indexes():
             try:
                 self._selection_deselected(index_current,

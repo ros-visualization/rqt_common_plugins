@@ -122,23 +122,32 @@ class TreenodeQstdItem(ReadonlyItem):
         if not self._dynreconfclient_widget:
             rospy.logdebug('get dynreconf_client={}'.format(
                                                        self._dynreconf_client))
+            rospy.logdebug('In get_dynreconf_widget 1')
             if not self._dynreconf_client:
                 self.connect_param_server()
+            rospy.logdebug('In get_dynreconf_widget 2')
 
-            timeout = 10 * 100
+            timeout = 3 * 100
             loop = 0
-            # Loop until _dynreconf_client is set.
+            # Loop until _dynreconf_client is set. self._dynreconf_client gets
+            # set from different thread (in ParamserverConnectThread).
             while self._dynreconf_client == None:
                 #Avoid deadlock
                 if timeout < loop:
-                    raise ROSException('dynreconf client failed generated')
+                    #Make itself unclickable
+                    self.setEnabled(False)
+                    raise ROSException('dynreconf client failed')
 
                 time.sleep(0.01)
                 loop += 1
+                rospy.logdebug('In get_dynreconf_widget loop#{}'.format(loop))
 
+            rospy.logdebug('In get_dynreconf_widget 4')
             self._dynreconfclient_widget = DynreconfClientWidget(
                                                        self._dynreconf_client,
                                                        self._param_name_raw)
+            rospy.logdebug('In get_dynreconf_widget 5')
+
         else:
             pass
         return self._dynreconfclient_widget
