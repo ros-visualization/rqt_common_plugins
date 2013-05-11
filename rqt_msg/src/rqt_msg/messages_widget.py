@@ -78,8 +78,7 @@ class MessagesWidget(QWidget):
         self._add_button.clicked.connect(self._add_message)
         self._refresh_packages(mode)
         self._refresh_msgs(self._package_combo.itemText(0))
-        self._package_combo.currentIndexChanged[str].connect(
-                                                            self._refresh_msgs)
+        self._package_combo.currentIndexChanged[str].connect(self._refresh_msgs)
         self._messages_tree.mousePressEvent = self._handle_mouse_press
 
         self._browsers = []
