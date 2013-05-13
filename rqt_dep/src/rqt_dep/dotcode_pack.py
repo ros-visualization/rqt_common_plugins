@@ -287,7 +287,7 @@ class RosPackageGraphDotcodeGenerator:
                 manifest_file = os.path.join(package_path, MANIFEST_FILE)
                 self.package_types[package_name] = not os.path.exists(manifest_file)
             except ResourceNotFound:
-                pass
+                return None
         return self.package_types[package_name]
 
     def _add_edge(self, name1, name2, attributes=None):
