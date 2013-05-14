@@ -23,12 +23,11 @@ set(rqt_cpp_common_UIS
 
 set(rqt_cpp_common_INCLUDE_DIRECTORIES
   include
-  include/rqt_cpp_common
   ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 catkin_package(
-	INCLUDE_DIRS ${rqt_cpp_common_INCLUDE_DIRECTORIES}
+	INCLUDE_DIRS include
 	LIBRARIES ${PROJECT_NAME} 
 	CATKIN_DEPENDS message_runtime sensor_msgs
 )
