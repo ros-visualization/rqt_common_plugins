@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rqt_marble)
 # Load catkin and all dependencies required for this package
-find_package(catkin REQUIRED COMPONENTS rqt_gui rqt_gui_cpp)
+find_package(catkin REQUIRED COMPONENTS rqt_cpp_common rqt_gui rqt_gui_cpp)
 
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 include(${QT_USE_FILE})
@@ -56,8 +56,8 @@ find_package(class_loader)
 class_loader_hide_library_symbols(${PROJECT_NAME})
 
 ## Setting Unit Test
-catkin_add_gtest(${PROJECT_NAME}-testsuite test/test_bridge_ros_marble.cpp)
-target_link_libraries(${PROJECT_NAME}-testsuite ${PROJECT_NAME} ${MARBLE_LIBRARIES})
+#catkin_add_gtest(${PROJECT_NAME}-testsuite test/test_bridge_ros_marble.cpp)
+#target_link_libraries(${PROJECT_NAME}-testsuite ${PROJECT_NAME_LIBRARIES} ${MARBLE_LIBRARIES})
 
 install(FILES plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
