@@ -1,14 +1,18 @@
 <package>
   <name>rqt_common_plugins</name>
   <version>0.2.16</version>
-  <description>rqt consists of three following metapackages:<br />
+  <description>
+    rqt_common_plugins metapackage provides ROS backend graphical tools suite that can be used on/off of robot runtime.<br />
+    <br />
+    To run any rqt plugins, just type in a single command "rqt", then select any plugins you want from the GUI that launches afterwards.<br />
+    <br />
+    rqt consists of three following metapackages:<br />
     <ul>
      <li><a href = "http://ros.org/wiki/rqt">rqt</a> - core modules of rqt (ROS GUI) framework. rqt plugin developers barely needs to pay attention to this metapackage.</li>
      <li>rqt_common_plugins (you're here!)</li>
      <li><a href = "http://ros.org/wiki/rqt_robot_plugins">rqt_robot_plugins</a> - rqt plugins that are particularly used with robots during their runtime.</li><br />
     </ul>
    <br />
-   rqt_common_plugins metapackage provides ROS backend graphical tools suite that can be used on/off of robot runtime.<br />
   </description>
   <maintainer email="ablasdel@willowgarage.com">Aaron Blasdel</maintainer>
   <maintainer email="130s@lateeye.net">Isaac Saito</maintainer>
