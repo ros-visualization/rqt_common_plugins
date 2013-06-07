@@ -1,0 +1,12 @@
+<library path="src">
+  <class name="TOP" type="rqt_top.top_plugin.Top" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      Provides information similar to that provided in UNIX top for running ROS nodes.
+    </description>
+    <qtgui>
+      <label>Process Monitor</label>
+      <icon type="theme">utilities-system-monitor</icon> 
+      <statustip>Python GUI to view process information about running ROS processes.</statustip>
+    </qtgui>
+  </class>
+</library>
