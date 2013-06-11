@@ -13,11 +13,14 @@
      Originally created as
      <a href = "http://www.ros.org/wiki/marble_plugin">marble_plugin</a> by
      Tobias Baer.
+
+     DISCLAIMER: as of May 2013, build fails due to <a href = "https://github.com/ros-visualization/rqt_common_plugins/issues/91">a missing in a library rqt_marble depends on</a> on Ubuntu Oneiric. There's no workaround available yet.
   </description>
   <license>BSD</license>
   <maintainer email="130s@alumni.smu.edu">Isaac Saito</maintainer>
   <author email="isaito@osrfoundation.org">Isaac Saito</author>
   <author email="baer@fzi.de">Tobias Baer</author>
+  <author email="aiden@fzi.de">Jan Aidel</author>
 
   <url type="website">http://ros.org/wiki/rqt_marble</url>
   <url type="repository">https://github.com/ros-visualization/rqt_robot_plugins/rqt_marble</url>
@@ -30,6 +33,7 @@
   <build_depend>rqt_gui</build_depend>
   <build_depend>rqt_gui_cpp</build_depend>
   
+  <run_depend>libmarble-dev</run_depend>
   <run_depend>rqt_cpp_common</run_depend>
   <run_depend>rqt_gui</run_depend>
   <run_depend>rqt_gui_cpp</run_depend>
