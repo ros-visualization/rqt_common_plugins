@@ -281,12 +281,16 @@ class EnumEditor(EditorWidget):
         items = ["%s (%s)" % (self.names[i], self.values[i])
                  for i in range(0, len(self.names))]
 
+        self._indices = {}
+        for i in range(0, len(self.names)):
+            self._indices[self.values[i]] = i
+
         self._combobox.addItems(items)
         self._combobox.currentIndexChanged['int'].connect(self.selected)
 
     def selected(self, index):
-        self._combobox.setCurrentIndex(self.values[index])
+        self._combobox.setCurrentIndex(index)
         self._update(self.values[index])
 
-    #def update_value(self, val):
-    #    self._combobox.setCurrentIndex(self.values.index(val))
+    def update_value(self, val):
+        self._combobox.setCurrentIndex(self._indices[val])
