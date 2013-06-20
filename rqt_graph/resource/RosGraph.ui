@@ -105,40 +105,40 @@
       <item>
        <widget class="QCheckBox" name="namespace_cluster_check_box">
         <property name="toolTip">
-         <string>Show or hide namespace boxes</string>
+         <string>Show namespace boxes</string>
         </property>
         <property name="text">
-         <string>namespaces</string>
+         <string>Group namespaces</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="actionlib_check_box">
         <property name="toolTip">
-         <string>Action topics summarized into one virtual topic node</string>
+         <string>Summarize action topics into one virtual topic node (named &lt;action_server&gt;/action_topics)</string>
         </property>
         <property name="text">
-         <string>actions</string>
+         <string>Group actions</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="dead_sinks_check_box">
         <property name="toolTip">
-         <string>Show or hide topics with publishers only</string>
+         <string>Hide topics without subscribers</string>
         </property>
         <property name="text">
-         <string>dead sinks</string>
+         <string>Hide dead sinks</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="leaf_topics_check_box">
         <property name="toolTip">
-         <string>Show or hide topics with one connection only</string>
+         <string>Hide topics with one connection only (implicates dead sinks)</string>
         </property>
         <property name="text">
-         <string>leaf topics</string>
+         <string>Hide leaf topics</string>
         </property>
        </widget>
       </item>
