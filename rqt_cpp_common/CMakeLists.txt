@@ -46,10 +46,6 @@ find_package(class_loader)
 catkin_add_gtest(${PROJECT_NAME}-testsuite test/test_widgets_list.cpp)
 target_link_libraries(${PROJECT_NAME}-testsuite ${PROJECT_NAME})
 
-install(FILES plugin.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
-
 #install(TARGETS ${PROJECT_NAME}
 #  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
@@ -60,10 +56,6 @@ install(DIRECTORY include/${PROJECT_NAME}/
 
 install(DIRECTORY resource
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
-
-install(PROGRAMS scripts/rqt_cpp_common
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 #install(PROGRAMS testsuite_rqt_cpp_common
