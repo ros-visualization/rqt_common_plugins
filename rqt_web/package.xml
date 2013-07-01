@@ -1,6 +1,6 @@
 <package>
   <name>rqt_web</name>
-  <version>0.2.16</version>
+  <version>0.2.17</version>
   <description>rqt_web is a simple web content viewer for rqt. Users can show web content in Qt-based window by specifying its URL. </description>
   <maintainer email="ablasdel@gmail.com">Aaron Blasdel</maintainer>
   <maintainer email="isao.saito@mavs.uta.edu">Isaac Saito</maintainer>
