@@ -1,9 +1,10 @@
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Changelog for package rqt_common_plugins
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package rqt_console
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Forthcoming
 -----------
+* added missing word in status tip
 
 0.2.16 (2013-04-09 13:33)
 -------------------------
@@ -16,10 +17,10 @@ Forthcoming
 
 0.2.13 (2013-03-11 22:14)
 -------------------------
-* New pkgs added (rqt_action, rqt_launch)
 
 0.2.12 (2013-03-11 13:56)
 -------------------------
+* Fixes "can't add filters when using pyside" `#36 <https://github.com/ros-visualization/rqt_common_plugins/issues/36>`_
 
 0.2.11 (2013-03-08)
 -------------------
@@ -38,4 +39,7 @@ Forthcoming
 
 0.2.6 (2012-12-23)
 ------------------
+
+0.2.5 (2012-12-21 19:11)
+------------------------
 * introduced into groovy
