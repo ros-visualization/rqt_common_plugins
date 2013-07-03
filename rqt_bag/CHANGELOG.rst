@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.17 (2013-07-04)
+-------------------
 
 0.2.16 (2013-04-09 13:33)
 -------------------------
@@ -28,14 +28,14 @@ Forthcoming
 
 0.2.9 (2013-01-17)
 ------------------
-* fixes `#5 <https://github.com/ros-visualization/rqt_common_plugins/issues/5>`_
-* fixes `#6 <https://github.com/ros-visualization/rqt_common_plugins/issues/6>`_
+* Fix; skips time when resuming playback (`#5 <https://github.com/ros-visualization/rqt_common_plugins/issues/5>`_)
+* Fix; timestamp printing issue (`#6 <https://github.com/ros-visualization/rqt_common_plugins/issues/6>`_)
 
 0.2.8 (2013-01-11)
 ------------------
 * expose command line arguments to rqt_bag script
 * added fix to set play/pause button correctly when fastforwarding/rewinding, adjusted time headers to 0m00s instead of 0:00m for ease of reading
-* [rqt_bag] support passing bagfiles on the command line (currently behind --args)
+* support passing bagfiles on the command line (currently behind --args)
 
 0.2.7 (2012-12-24)
 ------------------
@@ -60,5 +60,4 @@ Forthcoming
 
 0.2.0 (2012-12-20 17:39)
 ------------------------
-* catkinizing
-* introduced into groovy
+* first release of this package into Groovy
