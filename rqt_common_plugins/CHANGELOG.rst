@@ -2,8 +2,8 @@
 Changelog for package rqt_common_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.17 (2013-07-04)
+-------------------
 
 0.2.16 (2013-04-09 13:33)
 -------------------------
@@ -38,4 +38,4 @@ Forthcoming
 
 0.2.6 (2012-12-23)
 ------------------
-* introduced into groovy
+* first release of this package into groovy

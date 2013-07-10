@@ -2,8 +2,8 @@
 Changelog for package rqt_msg
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.17 (2013-07-04)
+-------------------
 
 0.2.16 (2013-04-09 13:33)
 -------------------------
@@ -22,7 +22,8 @@ Forthcoming
 
 0.2.11 (2013-03-08)
 -------------------
-* Fix to Issue `#26 <https://github.com/ros-visualization/rqt_common_plugins/issues/26>`_ for rqt_msg, rqt_srv. Now rqt_msg.MessageWidget can be used from rqt_srv and rqt_action too.
+* Fix; IndexError: list index out of range (`#26 <https://github.com/ros-visualization/rqt_common_plugins/issues/26>`_)
+* A common module (rqt_msg.MessageWidget) optimized so that other pkgs that provide similar functionality (eg. rqt_srv, rqt_action) can use it
 
 0.2.10 (2013-01-22)
 -------------------
@@ -56,5 +57,4 @@ Forthcoming
 
 0.2.0 (2012-12-20 17:39)
 ------------------------
-* catkinizing
-* introduced into groovy
+* first release of this package into groovy

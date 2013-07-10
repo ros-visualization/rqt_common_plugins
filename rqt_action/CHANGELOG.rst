@@ -2,8 +2,8 @@
 Changelog for package rqt_action
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.17 (2013-07-04)
+-------------------
 
 0.2.16 (2013-04-09 13:33)
 -------------------------
@@ -22,6 +22,6 @@ Forthcoming
 
 0.2.11 (2013-03-08)
 -------------------
-* Now depends on rqt_msg and rqt_action doesn't contain its own gui files
-* Fix to Issue `#26 <https://github.com/ros-visualization/rqt_common_plugins/issues/26>`_.
-* Initial commit.
+* Now depends on rqt_msg to eliminate GUI files from this package
+* Fix; IndexError: list index out of range (`#26 <https://github.com/ros-visualization/rqt_common_plugins/issues/26>`_)
+* first release of this package into groovy

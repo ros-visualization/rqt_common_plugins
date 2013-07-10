@@ -2,8 +2,8 @@
 Changelog for package rqt_image_view
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.17 (2013-07-04)
+-------------------
 
 0.2.16 (2013-04-09 13:33)
 -------------------------
@@ -25,7 +25,7 @@ Forthcoming
 
 0.2.10 (2013-01-22)
 -------------------
-* Optimized by relying more on cv_bridge
+* Optimized by taking more advantage of cv_bridge
 
 0.2.9 (2013-01-17)
 ------------------
@@ -56,5 +56,4 @@ Forthcoming
 
 0.2.0 (2012-12-20 17:39)
 ------------------------
-* catkinizing
-* introduced into groovy
+* first release of this package into groovy
