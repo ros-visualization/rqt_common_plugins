@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>rqt_action</name>
-  <version>0.2.16</version>
+  <version>0.2.17</version>
   <description>rqt_action provides a feature to introspect all available ROS 
   action (from actionlib) types. By utilizing rqt_msg, the output format is
   unified with it and rqt_srv. Note that the actions shown on this plugin

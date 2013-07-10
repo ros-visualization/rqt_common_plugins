@@ -1,6 +1,6 @@
 <package>
   <name>rqt_py_console</name>
-  <version>0.2.16</version>
+  <version>0.2.17</version>
   <description>rqt_py_console is a Python GUI plugin providing an interactive Python console.</description>
   <maintainer email="scholz@sim.tu-darmstadt.de">Dorian Scholz</maintainer>
   <maintainer email="isao.saito@mavs.uta.edu">Isaac Saito</maintainer>

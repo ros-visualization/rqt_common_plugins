@@ -1,6 +1,6 @@
 <package>
   <name>rqt_logger_level</name>
-  <version>0.2.16</version>
+  <version>0.2.17</version>
   <description>rqt_logger_level provides a GUI plugin for configuring the logger level of ROS nodes.<br />
    <br />
   rqt_logger_level takes over `wx`-based tool [[rxloggerlevel]].

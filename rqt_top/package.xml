@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>rqt_top</name>
-  <version>0.2.16</version>
+  <version>0.2.17</version>
   <description>RQT plugin for monitoring ROS processes. <br />
       <br />
       As of 6/10/2013, a depended library, psutil, is embedded within the
