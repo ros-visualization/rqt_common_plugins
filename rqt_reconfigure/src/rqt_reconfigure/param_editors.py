@@ -285,8 +285,14 @@ class EnumEditor(EditorWidget):
         self._combobox.currentIndexChanged['int'].connect(self.selected)
 
     def selected(self, index):
-        self._combobox.setCurrentIndex(self.values[index])
         self._update(self.values[index])
 
-    #def update_value(self, val):
-    #    self._combobox.setCurrentIndex(self.values.index(val))
+    def update_value(self, val):
+        # apparently, when the currentIndexChanged signal is emitted, current 
+        # index internally is still the old value, why the setCurrentIndex call
+        # below triggers another selected() call ... couldn't fin a better 
+        # solution than this. 
+        self._combobox.currentIndexChanged['int'].disconnect()
+        self._combobox.setCurrentIndex(self.values.index(val))
+        self._combobox.currentIndexChanged['int'].connect(self.selected)
+
