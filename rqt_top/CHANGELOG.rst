@@ -2,8 +2,8 @@
 Changelog for package rqt_top
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.17 (2013-07-06)
+-------------------
 * Embeds python-psutil in the package in order to be enabled on Ubuntu Precise
-* rqt_top) initial commit.
+* first release of this package into hydro
 

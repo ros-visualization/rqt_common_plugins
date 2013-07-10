@@ -2,15 +2,15 @@
 Changelog for package rqt_topic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.17 (2013-07-04)
+-------------------
 
 0.2.16 (2013-04-09 13:33)
 -------------------------
 
 0.2.15 (2013-04-09 00:02)
 -------------------------
-* Improve API (now either name or msg type are selectable in order to select which topics to monitor).
+* Improve API (now either name or msg type are select-able in order to select which topics to monitor).
 * API change to accept a list of the topics that this plugin watches.
 
 0.2.14 (2013-03-14)
@@ -57,5 +57,4 @@ Forthcoming
 
 0.2.0 (2012-12-20 17:39)
 ------------------------
-* catkinizing
-* introduced into groovy
+* first release of this package into groovy

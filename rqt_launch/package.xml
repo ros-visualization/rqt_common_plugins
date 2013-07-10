@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>rqt_launch</name>
-  <version>0.2.16</version>
+  <version>0.2.17</version>
   <description>This rqt plugin ROS package provides easy view of .launch files.
   User can also start and end node by node that are defined in those files. 
   </description>

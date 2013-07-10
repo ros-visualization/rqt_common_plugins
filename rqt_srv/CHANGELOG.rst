@@ -2,8 +2,8 @@
 Changelog for package rqt_srv
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.17 (2013-07-04)
+-------------------
 
 0.2.16 (2013-04-09 13:33)
 -------------------------
@@ -22,7 +22,7 @@ Forthcoming
 
 0.2.11 (2013-03-08)
 -------------------
-* rqt_{msg, srv, action}) Polished for _msg & _srv. rqt_action now depends on rqt_msg and it doesn't contain its own gui files
+* Eliminated a duplicated module with rqt_msg. Now depends on a common module (rqt_msg.MessageWidget)
 
 0.2.10 (2013-01-22)
 -------------------
@@ -56,5 +56,4 @@ Forthcoming
 
 0.2.0 (2012-12-20 17:39)
 ------------------------
-* catkinizing
-* introduced into groovy
+* first release of this package into groovy
