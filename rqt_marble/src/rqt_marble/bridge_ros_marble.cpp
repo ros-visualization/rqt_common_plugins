@@ -63,7 +63,7 @@ RouteGps BridgeRosMarble::publishRouteInGps(Marble::Route route)
   }
 
   int size_route = route.size();
-  ROS_DEBUG("size of route =" + size_route);
+  ROS_DEBUG("size of route %i", size_route);
   for (int i = 0; i < size_route; i++)
   {
     Marble::GeoDataLineString route_segment_line_str = route.at(i).path();
