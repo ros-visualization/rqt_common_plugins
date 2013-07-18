@@ -39,7 +39,7 @@
   <run_depend>rqt_image_view</run_depend>
   <run_depend>rqt_launch</run_depend>
   <run_depend>rqt_logger_level</run_depend>
-  <!-- <run_depend>rqt_marble</run_depend> --> <!-- 4/9/2013 Not ready -->
+  <!-- <run_depend>rqt_marble</run_depend> --> <!-- 4/9/2013 Not ready. When ready to be released, <track>.ignored on Release Repository that is meant to ignore this package should also be modified. -->
   <run_depend>rqt_msg</run_depend>
   <run_depend>rqt_plot</run_depend>
   <run_depend>rqt_publisher</run_depend>
@@ -49,6 +49,7 @@
   <run_depend>rqt_service_caller</run_depend>
   <run_depend>rqt_shell</run_depend>
   <run_depend>rqt_srv</run_depend>
+  <run_depend>rqt_top</run_depend>
   <run_depend>rqt_topic</run_depend>
   <run_depend>rqt_web</run_depend>
 

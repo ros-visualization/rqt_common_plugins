@@ -2,8 +2,8 @@
 Changelog for package rqt_dep
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.17 (2013-07-04)
+-------------------
 * fix handling ResourceNotFound for not found packages in graph
 
 0.2.16 (2013-04-09 13:33)
@@ -33,7 +33,7 @@ Forthcoming
 
 0.2.8 (2013-01-11)
 ------------------
-* rqt_dep: improve graph generation, get rid of redundant traversal, remove max edge limit
+* improve graph generation, get rid of redundant traversal, remove max edge limit
 
 0.2.7 (2012-12-24)
 ------------------
@@ -58,16 +58,4 @@ Forthcoming
 
 0.2.0 (2012-12-20 17:39)
 ------------------------
-* catkinizing
-
-0.1.7 (2012-12-13 16:17)
-------------------------
-
-0.1.6 (2012-12-13 14:43:47)
----------------------------
-
-0.1.5 (2012-12-08)
-------------------
-* migration of pull request `#40 <https://github.com/ros-visualization/rqt_common_plugins/issues/40>`_ into plugins with similar issue
-* introduced into groovy
-
+* first release of this package into Groovy

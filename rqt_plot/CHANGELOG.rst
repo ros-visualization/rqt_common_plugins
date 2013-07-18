@@ -2,8 +2,8 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.17 (2013-07-04)
+-------------------
 
 0.2.16 (2013-04-09 13:33)
 -------------------------
@@ -31,7 +31,7 @@ Forthcoming
 
 0.2.8 (2013-01-11)
 ------------------
-* update rqt_plot to expose command line arguments to rqt_plot script
+* command line arguments enabled
 
 0.2.7 (2012-12-24)
 ------------------
@@ -58,5 +58,4 @@ Forthcoming
 
 0.2.0 (2012-12-20 17:39)
 ------------------------
-* catkinizing
-* introduced into groovy
+* first release of this package into groovy
