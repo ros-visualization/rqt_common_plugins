@@ -2,36 +2,25 @@
 <package>
   <name>rqt_top</name>
   <version>0.2.17</version>
-  <description>RQT plugin for monitoring ROS processes. <br />
-      <br />
-      As of 6/10/2013, a depended library, psutil, is embedded within the
-      package so that rqt_top doesn't require that library installed as system
-      dependency (this approach is taken because the library's version on Ubuntu
-      Precise is too old to provide a intended feature). However, this approach
-      currenly runs only on certain platform (see the wiki page for tested
-      platforms).          
-  </description>
+  <description>RQT plugin for monitoring ROS processes.</description>
 
   <author email="dan@lazewatsky.com">Dan Lazewatsky</author>
   <maintainer email="dan@lazewatsky.com">Dan Lazewatsky</maintainer>
   <maintainer email="isao.saito@mavs.uta.edu">Isaac Saito</maintainer>
   <license>BSD</license>
-  
+
   <url type="website">http://ros.org/wiki/rqt_top</url>
   <url type="repository">https://github.com/ros-visualization/rqt_top</url>
   <url type="bugtracker">https://github.com/ros-visualization/rqt_top/issues</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <run_depend>python-psutil</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>rqt_gui</run_depend>
   <run_depend>rqt_gui_py</run_depend>
-  <!-- 6/10/2013 comment out until a library becomes available in 
-  system dependency. -->  
-  <!-- <run_depend>python-psutil</run_depend> -->
+
   <export>
     <rqt_gui plugin="${prefix}/plugin.xml"/>
   </export>
 </package>
-
-
