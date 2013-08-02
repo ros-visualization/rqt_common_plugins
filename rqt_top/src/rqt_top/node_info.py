@@ -60,10 +60,49 @@ class NodeInfo(object):
         processes = self.get_all_node_info()
         infos = []
         for name, p in processes:
-            infos.append(p.as_dict(fields + ['cmdline', 'get_memory_info']))
+            infos.append(self.as_dict(p, fields + ['cmdline', 'get_memory_info']))
             infos[-1]['node_name'] = name
         return infos
 
     def kill_node(self, node_name):
         success, fail = rosnode.kill_nodes([node_name])
         return node_name in success
+
+    def as_dict(self, p, attrs=[], ad_value=None):
+        # copied code from psutil.__init__ from a newer version
+        excluded_names = set(['send_signal', 'suspend', 'resume', 'terminate',
+                              'kill', 'wait', 'is_running', 'as_dict', 'parent',
+                              'get_children', 'nice'])
+        retdict = dict()
+        for name in set(attrs or dir(p)):
+            if name.startswith('_'):
+                continue
+            if name.startswith('set_'):
+                continue
+            if name in excluded_names:
+                continue
+            try:
+                attr = getattr(p, name)
+                if callable(attr):
+                    if name == 'get_cpu_percent':
+                        ret = attr(interval=0)
+                    else:
+                        ret = attr()
+                else:
+                    ret = attr
+            except AccessDenied:
+                ret = ad_value
+            except NotImplementedError:
+                # in case of not implemented functionality (may happen
+                # on old or exotic systems) we want to crash only if
+                # the user explicitly asked for that particular attr
+                if attrs:
+                    raise
+                continue
+            if name.startswith('get'):
+                if name[3] == '_':
+                    name = name[4:]
+                elif name == 'getcwd':
+                    name = 'cwd'
+            retdict[name] = ret
+        return retdict
