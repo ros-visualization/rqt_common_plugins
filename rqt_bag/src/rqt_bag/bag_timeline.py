@@ -102,6 +102,7 @@ class BagTimeline(QGraphicsScene):
         self.addItem(self._timeline_frame)
 
         self.background_progress = 0
+        self.__closed = False
 
     def get_context(self):
         """
@@ -113,6 +114,10 @@ class BagTimeline(QGraphicsScene):
         """
         Cleans up the timeline, bag and any threads
         """
+        if self.__closed:
+            return
+        else:
+            self.__closed = True
         for topic in self._get_topics():
             self.stop_publishing(topic)
             self._message_loaders[topic].stop()
