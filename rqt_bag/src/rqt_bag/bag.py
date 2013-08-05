@@ -67,7 +67,7 @@ class Bag(Plugin):
         group.add_argument('bagfiles', type=argparse.FileType('r'), nargs='*', default=[], help='Bagfiles to load')
 
     def shutdown_plugin(self):
-        pass
+        self._widget.shutdown_all()
 
     def save_settings(self, plugin_settings, instance_settings):
         # TODO implement saving
