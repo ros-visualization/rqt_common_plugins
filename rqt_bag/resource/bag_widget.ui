@@ -24,12 +24,6 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QPushButton" name="record_button">
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Record Bag</string>
        </property>
@@ -40,12 +34,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="load_button">
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Load Bag</string>
        </property>
@@ -56,12 +44,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="save_button">
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Save Bag</string>
        </property>
@@ -79,12 +61,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="begin_button">
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Go To Beginning</string>
        </property>
@@ -95,12 +71,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="slower_button">
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Slower / Rewind</string>
        </property>
@@ -111,12 +81,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="play_button">
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Play / Pause</string>
        </property>
@@ -130,12 +94,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="faster_button">
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Fast Forward</string>
        </property>
@@ -146,12 +104,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="end_button">
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Go To End</string>
        </property>
@@ -169,12 +121,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="zoom_in_button">
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Zoom In</string>
        </property>
@@ -185,12 +131,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="zoom_out_button">
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Zoom Out</string>
        </property>
@@ -201,12 +141,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="zoom_all_button">
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Zoom Home</string>
        </property>
@@ -224,12 +158,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="thumbs_button">
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Toggle Thumbnails</string>
        </property>
