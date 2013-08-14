@@ -36,6 +36,8 @@ import rospy
 from python_qt_binding.QtCore import QObject
 
 from .console_subscriber_dialog import ConsoleSubscriberDialog
+from rqt_logger_level.logger_level_widget import LoggerLevelWidget
+from rqt_logger_level.logger_level_service_caller import LoggerLevelServiceCaller
 
 
 class ConsoleSubscriber(QObject):
@@ -56,11 +58,15 @@ class ConsoleSubscriber(QObject):
             self._sub = rospy.Subscriber(self._currenttopic, Log, self._msgcallback)
 
     def show_dialog(self):
+        self._service_caller = LoggerLevelServiceCaller()
+        self._logger_widget = LoggerLevelWidget(self._service_caller)
         dialog = ConsoleSubscriberDialog(rospy.get_published_topics(), self._messagelimit)
         for index in range(dialog.topic_combo.count()):
             if str(dialog.topic_combo.itemText(index)).find(self._currenttopic) != -1:
                 dialog.topic_combo.setCurrentIndex(index)
         dialog.buffer_size_spin.setValue = self._messagelimit
+        dialog.levelsLayout.addWidget(self._logger_widget)
+        dialog.adjustSize()
         ok = dialog.exec_()
         ok = ok == 1
         if ok:

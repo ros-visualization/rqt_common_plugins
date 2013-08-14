@@ -13,12 +13,6 @@
     <height>119</height>
    </rect>
   </property>
-  <property name="maximumSize">
-   <size>
-    <width>550</width>
-    <height>200</height>
-   </size>
-  </property>
   <property name="windowTitle">
    <string>Setup</string>
   </property>
@@ -74,6 +68,10 @@
        </property>
       </widget>
      </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="levelsLayout">
     </layout>
    </item>
    <item>
