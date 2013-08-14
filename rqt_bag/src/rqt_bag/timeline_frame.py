@@ -124,6 +124,7 @@ class TimelineFrame(QGraphicsItem):
         self._topic_font.setPointSize(self._topic_font_size)
         self._topic_font.setBold(False)
         self._topic_vertical_padding = 4
+        self._topic_name_max_percent = 25.0  # percentage of the horiz space that can be used for topic display
 
         # Time Rendering
         self._time_tick_height = 5
@@ -279,14 +280,56 @@ class TimelineFrame(QGraphicsItem):
 
     # Drawing Functions
 
+    def _qfont_width(self, name):
+        return QFontMetrics(self._topic_font).width(name)
+
+    def _trimmed_topic_name(self, topic_name):
+        """
+        This function trims the topic name down to a reasonable percentage of the viewable scene area
+        """
+        allowed_width = self._scene_width * (self._topic_name_max_percent / 100.0)
+        allowed_width = allowed_width - self._topic_name_spacing - self._margin_left
+        trimmed_return = topic_name
+        if allowed_width < self._qfont_width(topic_name):
+            #  We need to trim the topic
+            trimmed = ''
+            split_name = topic_name.split('/')
+            split_name = filter(lambda a: a != '', split_name)
+            #  Save important last element of topic name provided it is small
+            popped_last = False
+            if self._qfont_width(split_name[-1]) < .5 * allowed_width:
+                popped_last = True
+                last_item = split_name[-1]
+                split_name = split_name[:-1]
+                allowed_width = allowed_width - self._qfont_width(last_item)
+            # Shorten and add remaining items keeping lenths roughly equal
+            for item in split_name:
+                if self._qfont_width(item) > allowed_width / float(len(split_name)):
+                    trimmed_item = item[:-3] + '..'
+                    while self._qfont_width(trimmed_item) > allowed_width / float(len(split_name)):
+                        if len(trimmed_item) >= 3:
+                            trimmed_item = trimmed_item[:-3] + '..'
+                        else:
+                            break
+                    trimmed = trimmed + '/' + trimmed_item
+                else:
+                    trimmed = trimmed + '/' + item
+            if popped_last:
+                trimmed = trimmed + '/' + last_item
+            trimmed = trimmed[1:]
+            trimmed_return = trimmed
+        return trimmed_return
+
     def _layout(self):
         """
         Recalculates the layout of the of the timeline to take into account any changes that have occured
         """
         # Calculate history left and history width
+        self._scene_width = self.scene().views()[0].size().width()
+
         max_topic_name_width = -1
         for topic in self.topics:
-            topic_width = QFontMetrics(self._topic_font).width(topic)
+            topic_width = self._qfont_width(self._trimmed_topic_name(topic))
             if max_topic_name_width <= topic_width:
                 max_topic_name_width = topic_width
 
@@ -299,11 +342,9 @@ class TimelineFrame(QGraphicsItem):
 
         # Update the timeline boundries
         new_history_left = self._margin_left + max_topic_name_width + self._topic_name_spacing
-        new_history_width = self.scene().views()[0].size().width() - new_history_left - self._margin_right
-        updated_history = (new_history_left != self._history_left or new_history_width != self._history_width)
-        if updated_history:
-            self._history_left = new_history_left
-            self._history_width = new_history_width
+        new_history_width = self._scene_width - new_history_left - self._margin_right
+        self._history_left = new_history_left
+        self._history_width = new_history_width
 
         # Calculate the bounds for each topic
         self._history_bounds = {}
@@ -544,7 +585,7 @@ class TimelineFrame(QGraphicsItem):
             painter.setBrush(self._default_brush)
             painter.setPen(self._default_pen)
             painter.setFont(self._topic_font)
-            painter.drawText(coords[0], coords[1], text)
+            painter.drawText(coords[0], coords[1], self._trimmed_topic_name(text))
 
     def _draw_time_divisions(self, painter):
         """
@@ -584,7 +625,7 @@ class TimelineFrame(QGraphicsItem):
 
             label = self._get_label(division, stamp - start_stamp)
             label_x = x + self._major_divisions_label_indent
-            if label_x + QFontMetrics(self._topic_font).width(label) < self.scene().width():
+            if label_x + self._qfont_width(label) < self.scene().width():
                 painter.setBrush(self._default_brush)
                 painter.setPen(self._default_pen)
                 painter.setFont(self._time_font)
@@ -931,8 +972,8 @@ class TimelineFrame(QGraphicsItem):
         else:
             return actual_zoom > 1.05
 
-    def zoom_timeline(self, zoom):
-        interval = self.get_zoom_interval(zoom)
+    def zoom_timeline(self, zoom, center=None):
+        interval = self.get_zoom_interval(zoom, center)
         if not interval:
             return
 
@@ -940,7 +981,7 @@ class TimelineFrame(QGraphicsItem):
 
         self.scene().update()
 
-    def get_zoom_interval(self, zoom):
+    def get_zoom_interval(self, zoom, center=None):
         """
         @rtype: tuple
         @requires: left & right zoom interval sizes.
@@ -949,8 +990,9 @@ class TimelineFrame(QGraphicsItem):
             return None
 
         stamp_interval = self._stamp_right - self._stamp_left
-        playhead_fraction = (
-                   self.playhead.to_sec() - self._stamp_left) / stamp_interval
+        if center is None:
+            center = self.playhead.to_sec()
+        center_frac = (center - self._stamp_left) / stamp_interval
 
         new_stamp_interval = zoom * stamp_interval
         if new_stamp_interval == 0:
@@ -962,7 +1004,7 @@ class TimelineFrame(QGraphicsItem):
         elif px_per_sec > self._max_zoom:
             new_stamp_interval = self._history_width / self._max_zoom
 
-        left = self.playhead.to_sec() - playhead_fraction * new_stamp_interval
+        left = center - center_frac * new_stamp_interval
         right = left + new_stamp_interval
 
         return (left, right)
@@ -1068,7 +1110,7 @@ class TimelineFrame(QGraphicsItem):
                     self.translate_timeline(-self.map_dx_to_dstamp(dx_drag))
                 if (dx_drag == 0 and abs(dy_drag) > 0) or (dx_drag != 0 and abs(float(dy_drag) / dx_drag) > 0.2 and abs(dy_drag) > 1):
                     zoom = min(self._max_zoom_speed, max(self._min_zoom_speed, 1.0 + self._zoom_sensitivity * dy_drag))
-                    self.zoom_timeline(zoom)
+                    self.zoom_timeline(zoom, self.map_x_to_stamp(x))
 
                 self.scene().views()[0].setCursor(QCursor(Qt.ClosedHandCursor))
             elif event.buttons() == Qt.LeftButton:
