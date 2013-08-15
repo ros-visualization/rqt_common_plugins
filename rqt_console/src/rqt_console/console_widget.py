@@ -92,6 +92,7 @@ class ConsoleWidget(QWidget):
         for idx, width in enumerate(self._columnwidth):
             self.table_view.horizontalHeader().resizeSection(idx, width)
         self.table_view.sortByColumn(3, Qt.DescendingOrder)
+        self.table_view.verticalHeader().setVisible(False)
 
         self.add_exclude_button.setIcon(QIcon.fromTheme('list-add'))
         self.add_highlight_button.setIcon(QIcon.fromTheme('list-add'))
