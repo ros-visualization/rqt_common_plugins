@@ -564,7 +564,6 @@ class ConsoleWidget(QWidget):
         instance_settings.set_value('table_splitter', self.table_splitter.saveState())
         instance_settings.set_value('filter_splitter', self.filter_splitter.saveState())
 
-        instance_settings.set_value('paused', self.pause_button.isChecked())
         instance_settings.set_value('show_highlighted_only', self.highlight_exclude_button.isChecked())
 
         exclude_filters = []
@@ -591,8 +590,6 @@ class ConsoleWidget(QWidget):
         else:
             self.table_splitter.setSizes([500, 500])
 
-        self.pause_button.setChecked(instance_settings.value('paused') in [True, 'true'])
-        self._handle_pause_clicked(self.pause_button.isChecked())
         self.highlight_exclude_button.setChecked(instance_settings.value('show_highlighted_only') in [True, 'true'])
         self._proxymodel.set_show_highlighted_only(self.highlight_exclude_button.isChecked())
 
