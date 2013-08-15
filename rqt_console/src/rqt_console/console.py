@@ -102,4 +102,4 @@ class Console(Plugin):
     def trigger_configuration(self):
         self._consolesubscriber.set_message_limit(self._datamodel._message_limit)
         if self._consolesubscriber.show_dialog():
-            self._datamodel._message_limit = self._consolesubscriber.get_message_limit()
+            self._datamodel.set_message_limit(self._consolesubscriber.get_message_limit())
