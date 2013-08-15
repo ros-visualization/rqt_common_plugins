@@ -84,13 +84,6 @@ def get_topic_type(topic):
     if topic_type:
         return topic_type, real_topic, rest
     else:
-        print >> sys.stderr, "WARNING: topic [%s] does not appear to be published yet. Waiting..." % topic
-        while not rospy.is_shutdown():
-            topic_type, real_topic, rest = _get_topic_type(topic)
-            if topic_type:
-                return topic_type, real_topic, rest
-            else:
-                time.sleep(0.1)
         return None, None, None
 
 
@@ -109,9 +102,12 @@ class ROSData(object):
         self.buff_y = []
 
         topic_type, real_topic, fields = get_topic_type(topic)
-        self.field_evals = generate_field_evals(fields)
-        data_class = roslib.message.get_message_class(topic_type)
-        self.sub = rospy.Subscriber(real_topic, data_class, self._ros_cb)
+        if topic_type is not None:
+            self.field_evals = generate_field_evals(fields)
+            data_class = roslib.message.get_message_class(topic_type)
+            self.sub = rospy.Subscriber(real_topic, data_class, self._ros_cb)
+        else:
+            self.error = RosPlotException("Can not resolve topic type of %s" % topic)
 
     def close(self):
         self.sub.unregister()
