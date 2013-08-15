@@ -191,10 +191,14 @@ class PlotWidget(QWidget):
             return
 
         self._rosdata[topic_name] = ROSData(topic_name, self._start_time)
-        data_x, data_y = self._rosdata[topic_name].next()
-        self.data_plot.add_curve(topic_name, topic_name, data_x, data_y)
+        if self._rosdata[topic_name].error is not None:
+            qWarning(str(self._rosdata[topic_name].error))
+            del self._rosdata[topic_name]
+        else:
+            data_x, data_y = self._rosdata[topic_name].next()
+            self.data_plot.add_curve(topic_name, topic_name, data_x, data_y)
 
-        self._subscribed_topics_changed()
+            self._subscribed_topics_changed()
 
     def remove_topic(self, topic_name):
         self._rosdata[topic_name].close()
