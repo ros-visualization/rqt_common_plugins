@@ -91,6 +91,16 @@ class MessageDataModel(QAbstractTableModel):
                 return '#%d' % (section + 1)
     # END Required implementations of QAbstractTableModel functions
 
+    def set_message_limit(self, new_limit):
+        self._message_limit = new_limit
+        self.manage_message_limit()
+
+    def manage_message_limit(self):
+        if len(self.get_message_list()) > self._message_limit:
+            self.beginRemoveRows(QModelIndex(), 0, len(self.get_message_list()) - self._message_limit - 1)
+            del self.get_message_list()[0:len(self.get_message_list()) - self._message_limit]
+            self.endRemoveRows()
+
     def insert_rows(self, msgs):
         """
         Wraps the insert_row function to minimize gui notification calls
@@ -101,11 +111,7 @@ class MessageDataModel(QAbstractTableModel):
         for msg in msgs:
             self.insert_row(msg, False)
         self.endInsertRows()
-
-        if len(self.get_message_list()) > self._message_limit:
-            self.beginRemoveRows(QModelIndex(), 0, len(self.get_message_list()) - self._message_limit - 1)
-            del self.get_message_list()[0:len(self.get_message_list()) - self._message_limit]
-            self.endRemoveRows()
+        self.manage_message_limit()
 
     def insert_row(self, msg, notify_model=True):
         if notify_model:
