@@ -63,11 +63,14 @@ class MessageDataModel(QAbstractTableModel):
         if index.row() >= 0 and index.row() < len(messagelist):
             if index.column() >= 0 and index.column() < messagelist[index.row()].count():
                 elements = self._messages.message_members()
-                if role == Qt.DisplayRole and elements[index.column()] == '_time':
-                    return messagelist[index.row()].time_as_string()
-                elif role == Qt.UserRole or role == Qt.DisplayRole:
-                    elements = self._messages.message_members()
-                    return getattr(messagelist[index.row()], elements[index.column()])
+                if role == Qt.DisplayRole or role == Qt.UserRole:
+                    if elements[index.column()] == '_time':
+                        data = messagelist[index.row()].time_as_string()
+                    else:
+                        data = getattr(messagelist[index.row()], elements[index.column()])
+                    if role == Qt.UserRole:
+                        data += ' (%d)' % index.row()
+                    return data
                 elif role == Qt.DecorationRole and index.column() == 0:
                     msgseverity = messagelist[index.row()].get_data(1)
                     if msgseverity in (self.tr('Debug'), self.tr('Info')):
