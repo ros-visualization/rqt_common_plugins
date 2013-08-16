@@ -47,7 +47,7 @@ class ConsoleSubscriberDialog(QDialog):
         :param topics: list of topics to allow switching, ''list of string''
         :param limit: displayed in the message buffer size spin box, ''int''
         """
-        super(QDialog, self).__init__()
+        super(ConsoleSubscriberDialog, self).__init__()
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_console'), 'resource', 'console_subscriber_dialog.ui')
         loadUi(ui_file, self)
