@@ -580,6 +580,7 @@ class ConsoleWidget(QWidget):
             filter_settings = instance_settings.get_settings('highlight_filter_' + str(index))
             item[1].save_settings(filter_settings)
         instance_settings.set_value('highlight_filters', pack(highlight_filters))
+        instance_settings.set_value('message_limit', self._datamodel._message_limit)
 
     def restore_settings(self, pluggin_settings, instance_settings):
         if instance_settings.contains('table_splitter'):
@@ -621,3 +622,6 @@ class ConsoleWidget(QWidget):
                     self._highlight_filters[-1][1].restore_settings(filter_settings)
         else:
             self._add_highlight_filter('message')
+
+        if instance_settings.contains('message_limit'):
+            self._datamodel._message_limit = int(instance_settings.value('message_limit'))
