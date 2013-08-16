@@ -21,7 +21,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="_layout_h">
+    <layout class="QHBoxLayout" name="_layout_h" stretch="0,0,1,0,0">
      <item>
       <widget class="QLabel" name="_paramname_label">
        <property name="text">

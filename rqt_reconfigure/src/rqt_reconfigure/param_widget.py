@@ -102,8 +102,8 @@ class ParamWidget(QWidget):
         self._splitter.insertWidget(1, reconf_widget)
         # 1st column, _vlayout_nodesel_widget, to minimize width.
         # 2nd col to keep the possible max width.
-        self._splitter.setStretchFactor(0, 1)
-        self._splitter.setStretchFactor(1, 0)
+        self._splitter.setStretchFactor(0, 0)
+        self._splitter.setStretchFactor(1, 1)
 
         # Signal from paramedit widget to node selector widget.
         reconf_widget.sig_node_disabled_selected.connect(
