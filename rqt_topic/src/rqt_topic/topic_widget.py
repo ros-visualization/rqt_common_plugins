@@ -266,6 +266,11 @@ class TopicWidget(QWidget):
                                         self._tree_items[topic_name],
                                         topic_name + '[%d]' % index,
                                         base_type_str, slot)
+            # remove obsolete children
+            if len(message) < self._tree_items[topic_name].childCount():
+                for i in range(len(message), self._tree_items[topic_name].childCount()):
+                    item_topic_name = topic_name + '[%d]' % i
+                    self._recursive_delete_widget_items(self._tree_items[item_topic_name])
         else:
             if topic_name in self._tree_items:
                 self._tree_items[topic_name].setText(self._column_index['value'],
@@ -310,6 +315,15 @@ class TopicWidget(QWidget):
                 for index in range(array_size):
                     self._recursive_create_widget_items(item, topic_name + '[%d]' % index, base_type_str, base_instance)
         return item
+
+    def _recursive_delete_widget_items(self, item):
+        def _recursive_remove_items_from_tree(item):
+            for index in reversed(range(item.childCount())):
+                _recursive_remove_items_from_tree(item.child(index))
+            topic_name = item.data(0, Qt.UserRole)
+            del self._tree_items[topic_name]
+        _recursive_remove_items_from_tree(item)
+        item.parent().removeChild(item)
 
     @Slot('QPoint')
     def handle_header_view_customContextMenuRequested(self, pos):
