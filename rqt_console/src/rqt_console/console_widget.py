@@ -480,8 +480,7 @@ class ConsoleWidget(QWidget):
             self._browsers[-1].show()
 
     def _handle_clear_button_clicked(self, checked):
-        self.table_view.setSelection(QRect(0, 0, self._datamodel._message_limit, self._datamodel._message_limit), QItemSelectionModel.Select)
-        self._delete_selected_rows()
+        self._datamodel.remove_rows([])
 
     def _handle_load_clicked(self, checked):
         filename = QFileDialog.getOpenFileName(self, self.tr('Load from File'), '.', self.tr('rqt_console message file {.csv} (*.csv)'))
