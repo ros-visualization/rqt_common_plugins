@@ -123,7 +123,7 @@ class GroupWidget(QWidget):
         font.setBold(True)
 
         # Button to close a node.
-        _icon_disable_node = QIcon.fromTheme('emblem-unreadable')
+        _icon_disable_node = QIcon.fromTheme('window-close')
         _bt_disable_node = QPushButton(_icon_disable_node, '', self)
         _bt_disable_node.setToolTip('Hide this node')
         _bt_disable_node_size = QSize(36, 24)
