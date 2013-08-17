@@ -148,11 +148,18 @@ class RosPackageGraphDotcodeGenerator:
                         self.add_package_ancestors_recursively(name)
             for stackname in self.rosstack.list():
                 if matches_any(stackname, self.selected_names):
-                    for package_name in self.rosstack.packages_of(stackname):
+                    manifest = self.rosstack.get_manifest(stackname)
+                    if manifest.is_catkin:
                         if descendants:
-                            self.add_package_descendants_recursively(package_name)
+                            self.add_package_descendants_recursively(stackname)
                         if ancestors:
-                            self.add_package_ancestors_recursively(package_name)
+                            self.add_package_ancestors_recursively(stackname)
+                    else:
+                        for package_name in self.rosstack.packages_of(stackname):
+                            if descendants:
+                                self.add_package_descendants_recursively(package_name)
+                            if ancestors:
+                                self.add_package_ancestors_recursively(package_name)
 
         drawing_args = {
             'dotcode_factory': dotcode_factory,
@@ -362,7 +369,15 @@ class RosPackageGraphDotcodeGenerator:
         expanded.append(package_name)
         if (depth != 1):
             try:
-                depends = self.rospack.get_depends(package_name, implicit=implicit)
+                try:
+                    depends = self.rospack.get_depends(package_name, implicit=implicit)
+                except ResourceNotFound:
+                    # try falling back to rosstack to find wet metapackages
+                    manifest = self.rosstack.get_manifest(package_name)
+                    if manifest.is_catkin:
+                        depends = [d.name for d in manifest.depends]
+                    else:
+                        raise
             except ResourceNotFound as e:
                 print('RosPackageGraphDotcodeGenerator.add_package_descendants_recursively(%s), parent: %s: ResourceNotFound:' % (package_name, parent), e)
                 depends = []
