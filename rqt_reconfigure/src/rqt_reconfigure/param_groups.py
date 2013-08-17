@@ -139,7 +139,7 @@ class GroupWidget(QWidget):
         grid_widget = QWidget(self)
         self.grid = QFormLayout(grid_widget)
         verticalLayout.addWidget(_widget_nodeheader)
-        verticalLayout.addWidget(grid_widget)
+        verticalLayout.addWidget(grid_widget, 1)
         # Again, these UI operation above needs to happen in .ui file.
 
         self.tab_bar = None  # Every group can have one tab bar
