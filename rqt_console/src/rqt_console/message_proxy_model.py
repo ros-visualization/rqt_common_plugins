@@ -106,7 +106,7 @@ class MessageProxyModel(QSortFilterProxyModel):
         """
         Invalidates filters and triggers refiltering
         """
-        self.invalidate()
+        self.invalidateFilter()
 
     def add_exclude_filter(self, newfilter):
         self._exclude_filters.append(newfilter)
