@@ -80,7 +80,12 @@ class MessageDataModel(QAbstractTableModel):
                     elif msgseverity in (self.tr('Error'), self.tr('Fatal')):
                         return self._error_icon
                 elif role == Qt.ToolTipRole:
-                    return self.tr('Right click for menu.')
+                    if elements[index.column()] == '_time':
+                        data = messagelist[index.row()].time_as_string()
+                    else:
+                        data = getattr(messagelist[index.row()], elements[index.column()])
+                    # <FONT> tag enables word wrap by forcing rich text
+                    return '<FONT>' + data + '<br><br>' + self.tr('Right click for menu.') + '</FONT>'
 
     def headerData(self, section, orientation, role=None):
         if role is None:
