@@ -166,7 +166,7 @@
           <string>Messages matching ANY of these rules will NOT be displayed</string>
          </property>
          <property name="title">
-          <string>Exclude Rules:</string>
+          <string>Exclude Messages...</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
@@ -221,7 +221,7 @@
           <string>Message matching ANY of these rules will be highlighted</string>
          </property>
          <property name="title">
-          <string>Highlight Rules:</string>
+          <string>Highlight Messages...</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
