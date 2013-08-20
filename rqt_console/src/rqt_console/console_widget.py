@@ -125,13 +125,13 @@ class ConsoleWidget(QWidget):
         # Filter factory dictionary:
         # index 0 is a label describing the widget, index 1 is the class that provides filtering logic
         # index 2 is the widget that sets the data in the filter class, index 3 are the arguments for the widget class constructor
-        self.filter_factory = {'message': (self.tr('Message Filter'), MessageFilter, TextFilterWidget, []),
-                               'severity': (self.tr('Severity Filter'), SeverityFilter, ListFilterWidget, [self._datamodel.get_severity_list]),
-                               'node': (self.tr('Node Filter'), NodeFilter, ListFilterWidget, [self._datamodel.get_unique_col_data, 2]),
-                               'time': (self.tr('Time Filter'), TimeFilter, TimeFilterWidget, [self.get_time_range_from_selection]),
-                               'topic': (self.tr('Topic Filter'), TopicFilter, ListFilterWidget, [self._datamodel.get_unique_col_data, 4]),
-                               'location': (self.tr('Location Filter'), LocationFilter, TextFilterWidget, []),
-                               'custom': (self.tr('Custom Filter'), CustomFilter, CustomFilterWidget, [self._datamodel.get_severity_list, self._datamodel.get_unique_col_data, 2, self._datamodel.get_unique_col_data, 4])}
+        self.filter_factory = {'message': (self.tr('...containing'), MessageFilter, TextFilterWidget, []),
+                               'severity': (self.tr('...with severities'), SeverityFilter, ListFilterWidget, [self._datamodel.get_severity_list]),
+                               'node': (self.tr('...from node'), NodeFilter, ListFilterWidget, [self._datamodel.get_unique_col_data, 2]),
+                               'time': (self.tr('...from time range'), TimeFilter, TimeFilterWidget, [self.get_time_range_from_selection]),
+                               'topic': (self.tr('...from topic'), TopicFilter, ListFilterWidget, [self._datamodel.get_unique_col_data, 4]),
+                               'location': (self.tr('...from location'), LocationFilter, TextFilterWidget, []),
+                               'custom': (self.tr('Custom'), CustomFilter, CustomFilterWidget, [self._datamodel.get_severity_list, self._datamodel.get_unique_col_data, 2, self._datamodel.get_unique_col_data, 4])}
 
         # list of TextBrowserDialogs to close when cleaning up
         self._browsers = []
@@ -241,7 +241,7 @@ class ConsoleWidget(QWidget):
             filter_select_menu = QMenu()
             for index, item in self.filter_factory.items():
                 # flattens the _highlight filters list and only adds the item if it doesn't already exist
-                if self.filter_factory[index][0] == self.tr('Message Filter') or not self.filter_factory[index][1] in [type(item) for sublist in self._highlight_filters for item in sublist]:
+                if index == 'message' or not self.filter_factory[index][1] in [type(item) for sublist in self._highlight_filters for item in sublist]:
                     filter_select_menu.addAction(self.filter_factory[index][0])
             action = filter_select_menu.exec_(QCursor.pos())
             if action is None:
@@ -285,7 +285,7 @@ class ConsoleWidget(QWidget):
             filter_select_menu = QMenu()
             for index, item in self.filter_factory.items():
                 # flattens the _exclude filters list and only adds the item if it doesn't already exist
-                if self.filter_factory[index][0] == self.tr('Message Filter') or not self.filter_factory[index][1] in [type(item) for sublist in self._exclude_filters for item in sublist]:
+                if  index == 'message' or not self.filter_factory[index][1] in [type(item) for sublist in self._exclude_filters for item in sublist]:
                     filter_select_menu.addAction(self.filter_factory[index][0])
             action = filter_select_menu.exec_(QCursor.pos())
             if action is None:
