@@ -63,6 +63,6 @@ class SeverityFilter(BaseFilter):
         """
         if self.is_enabled():
             for item in self._list:
-                if message._severity == item.text():
+                if message._severity.split(' *rowID*(')[0] in item.text():
                     return True
         return False

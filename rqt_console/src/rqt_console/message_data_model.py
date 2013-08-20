@@ -69,7 +69,7 @@ class MessageDataModel(QAbstractTableModel):
                     else:
                         data = getattr(messagelist[index.row()], elements[index.column()])
                     if role == Qt.UserRole:
-                        data += ' (%d)' % index.row()
+                        data += ' *rowID*(%d)' % index.row()
                     return data
                 elif role == Qt.DecorationRole and index.column() == 0:
                     msgseverity = messagelist[index.row()].get_data(1)

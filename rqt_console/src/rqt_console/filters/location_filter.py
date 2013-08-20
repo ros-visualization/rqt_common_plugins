@@ -91,6 +91,6 @@ class LocationFilter(BaseFilter):
                 if QRegExp(temp).exactMatch(message._location):
                     return True
             else:
-                if message._location.find(self._text) != -1:
+                if self._text in message._location.split(' *rowID*(')[0]:
                     return True
         return False
