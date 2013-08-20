@@ -109,7 +109,7 @@
         <string>Resizes message table columns to fit their contents exactly</string>
        </property>
        <property name="text">
-        <string>Resize Columns</string>
+        <string>Fit Columns</string>
        </property>
       </widget>
      </item>
