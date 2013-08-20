@@ -64,6 +64,6 @@ class NodeFilter(BaseFilter):
         """
         if self.is_enabled():
             for item in self._list:
-                if message._node == item.text():
+                if item.text() == message._node.split(' *rowID*(')[0]:
                     return True
         return False

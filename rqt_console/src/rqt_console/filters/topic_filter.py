@@ -64,6 +64,6 @@ class TopicFilter(BaseFilter):
         """
         if self.is_enabled():
             for item in self._list:
-                if item.text() in message._topics.split(', '):
+                if item.text() in message._topics.split(' *rowID*(')[0]:
                     return True
         return False

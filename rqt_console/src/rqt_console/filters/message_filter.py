@@ -91,6 +91,6 @@ class MessageFilter(BaseFilter):
                 if QRegExp(temp).exactMatch(message._message):
                     return True
             else:
-                if message._message.find(self._text) != -1:
+                if self._text in message._message.split(' *rowID*(')[0]:
                     return True
         return False

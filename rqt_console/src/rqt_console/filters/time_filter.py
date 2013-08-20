@@ -87,7 +87,7 @@ class TimeFilter(BaseFilter):
         :param message: the message to be tested against the filters, ''Message''
         :returns: True if the message matches, ''bool''
         """
-        message_time = message._time
+        message_time = message._time.split(' *rowID*(')[0]
         if message_time < self._start_time:
             return False
         if self._stop_time_enabled and self._stop_time < message_time:
