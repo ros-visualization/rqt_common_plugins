@@ -24,6 +24,12 @@
        <property name="toolTip">
         <string>Refresh ROS graph</string>
        </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
       </widget>
      </item>
      <item>
@@ -74,12 +80,24 @@
        <property name="toolTip">
         <string>Load DOT graph from file</string>
        </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="save_dot_push_button">
        <property name="toolTip">
         <string>Save as DOT graph</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -88,12 +106,24 @@
        <property name="toolTip">
         <string>Save as SVG</string>
        </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="save_as_image_push_button">
        <property name="toolTip">
         <string>Save as image</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -189,6 +219,12 @@
        <widget class="QPushButton" name="fit_in_view_push_button">
         <property name="toolTip">
          <string>Fit graph in view</string>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>16</width>
+          <height>16</height>
+         </size>
         </property>
        </widget>
       </item>

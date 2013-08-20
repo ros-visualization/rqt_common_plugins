@@ -33,6 +33,12 @@
        <property name="text">
         <string>Load</string>
        </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
       </widget>
      </item>
      <item>
@@ -43,6 +49,12 @@
        <property name="text">
         <string>Save</string>
        </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
       </widget>
      </item>
      <item>
@@ -52,6 +64,12 @@
        </property>
        <property name="text">
         <string>Pause</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -188,6 +206,12 @@
             <property name="text">
              <string/>
             </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
+            </property>
            </widget>
           </item>
          </layout>
@@ -242,6 +266,12 @@
               <property name="text">
                <string/>
               </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
               <property name="checkable">
                <bool>true</bool>
               </property>
@@ -263,6 +293,12 @@
               </property>
               <property name="text">
                <string/>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
               </property>
              </widget>
             </item>
