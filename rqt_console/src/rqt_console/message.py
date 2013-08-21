@@ -161,8 +161,8 @@ class Message(QObject):
         sc_index = text.find('";"')
         if sc_index == -1:
             raise ValueError('File format is incorrect, missing ";" marker')
-        sec, nsec = text[:sc_index].split('.')
-        self._time = self.datestamp_to_qdatetime(sec, nsec)
+        sec, msec = text[:sc_index].split('.')
+        self._time = self.datestamp_to_qdatetime(sec, msec + '000000')
         text = text[text.find('";"') + 3:]
         sc_index = text.find('";"')
         if sc_index == -1:
