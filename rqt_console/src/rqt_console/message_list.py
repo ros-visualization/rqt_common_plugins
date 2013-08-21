@@ -54,6 +54,7 @@ class MessageList(object):
     def append_from_text(self, text):
         newmessage = Message()
         newmessage.file_load(text)
+        newmessage.set_time_format(self._time_format)
         self._messagelist.append(newmessage)
 
     def get_data(self, row, col):
