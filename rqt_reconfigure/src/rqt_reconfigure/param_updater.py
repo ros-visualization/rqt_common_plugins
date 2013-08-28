@@ -39,12 +39,14 @@ import rospy
 
 
 class ParamUpdater(threading.Thread):
-    """
+    '''
     Using dynamic_reconfigure that is passed in __init__, this thread updates
     the Dynamic Reconfigure server's value.
-    """
 
-    #TODO: Modify variable names to the ones that make more intuition.
+    This class works for a single element in a single parameter.
+    '''
+
+    #TODO: Modify variable names to the ones that's more intuitive.
 
     def __init__(self, reconf):
         """

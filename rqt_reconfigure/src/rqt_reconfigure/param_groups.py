@@ -56,10 +56,10 @@ _GROUP_TYPES = {
 
 
 def find_cfg(config, name):
-    """
+    '''
     (Ze'ev) reaaaaallly cryptic function which returns the config object for
     specified group.
-    """
+    '''
     cfg = None
     for k, v in config.items():
         try:
@@ -81,21 +81,21 @@ def find_cfg(config, name):
 
 
 class GroupWidget(QWidget):
-    """
+    '''
     (Isaac's guess as of 12/13/2012)
     This class bonds multiple Editor instances that are associated with
     a single node as a group.
-    """
+    '''
 
     # public signal
     sig_node_disabled_selected = Signal(str)
 
     def __init__(self, updater, config, nodename):
-        """
+        '''
         :param config:
         :type config: Dictionary? defined in dynamic_reconfigure.client.Client
         :type nodename: str
-        """
+        '''
 
         #TODO figure out what data type 'config' is. It is afterall returned
         #     from dynamic_reconfigure.client.get_parameter_descriptions()
@@ -163,9 +163,9 @@ class GroupWidget(QWidget):
         pass
 
     def _create_node_widgets(self, config):
-        """
+        '''
         :type config: Dict?
-        """
+        '''
         i_debug = 0
         for param in config['parameters']:
             begin = time.time() * 1000
@@ -233,9 +233,9 @@ class GroupWidget(QWidget):
             w.close()
 
     def get_treenode_names(self):
-        """
+        '''
         :rtype: str[]
-        """
+        '''
         return self._param_names
 
     def _node_disable_bt_clicked(self):
