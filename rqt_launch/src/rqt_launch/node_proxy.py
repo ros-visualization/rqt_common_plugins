@@ -53,10 +53,10 @@ class Polling(threading.Thread):
 
 
 class NodeProxy(object):
-    """
+    '''
     Works as a proxy between ROS Node
     (more in particular, roslaunch.nodeprocess) & GUI.
-    """
+    '''
 
     __slots__ = ['_run_id', 'master_uri', 'config', '_process']
 
@@ -87,10 +87,10 @@ class NodeProxy(object):
                 and not self._process.is_alive())
 
     def recreate_process(self):
-        """
+        '''
         Create and set roslaunch.nodeprocess.LocalProcess to member variable.
         @rtype: roslaunch.nodeprocess.LocalProcess
-        """
+        '''
         return nodeprocess.create_node_process(
                                     self._run_id, self.config, self.master_uri)
 

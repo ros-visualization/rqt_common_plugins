@@ -55,34 +55,34 @@ class NodeDelegate(QStyledItemDelegate):
         self._nodewidget_dict = {}  # { QModelIndex : QWidget }
 
     def createEditor(self, parent, option, index):
-        """Overridden"""
+        '''Overridden'''
 
         nodewidget = self._nodewidget_dict[index]
         #TODO: handle exception
         return nodewidget
 
     def setEditorData(self, spinBox, index):
-        """Overridden"""
+        '''Overridden'''
         value = index.model().data(index, Qt.EditRole)
 
         spinBox.setValue(value)
 
     def setModelData(self, spinBox, model, index):
-        """Overridden"""
+        '''Overridden'''
         spinBox.interpretText()
         value = spinBox.value()
 
         model.setData(index, value, Qt.EditRole)
 
     def updateEditorGeometry(self, editor, option, index):
-        """Overridden"""
+        '''Overridden'''
         editor.setGeometry(option.rect)
 
     def create_node_widget(self, qindex, launch_config,
                            status_label):
-        """
+        '''
         @type status_label: StatusIndicator
-        """
+        '''
         nodewidget = NodeWidget(self._rospack,
                                 self._master_uri, launch_config,
                                 status_label)
