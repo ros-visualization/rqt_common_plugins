@@ -2,6 +2,10 @@
 Changelog for package rqt_web
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.0 (2013-08-28)
+------------------
+* fix rendering of icons on OS X (`ros-visualization/rqt#83 <https://github.com/ros-visualization/rqt/issues/83>`_)
+
 0.2.17 (2013-07-04)
 -------------------
 

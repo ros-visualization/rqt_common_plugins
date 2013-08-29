@@ -2,6 +2,14 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.0 (2013-08-28)
+------------------
+* fix rendering of icons on OS X (`ros-visualization/rqt#83 <https://github.com/ros-visualization/rqt/issues/83>`_)
+* fix shutdown of plugin (`#31 <https://github.com/ros-visualization/rqt_common_plugins/issues/31>`_)
+* fix saving parts of a bag (`#96 <https://github.com/ros-visualization/rqt_common_plugins/issues/96>`_)
+* fix long topic names (`#114 <https://github.com/ros-visualization/rqt_common_plugins/issues/114>`_)
+* fix zoom behavior (`#76 <https://github.com/ros-visualization/rqt_common_plugins/issues/76>`_)
+
 0.2.17 (2013-07-04)
 -------------------
 

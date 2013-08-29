@@ -2,6 +2,10 @@
 Changelog for package rqt_topic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.0 (2013-08-28)
+------------------
+* fix cleaning old data in rqt_topic (fix `#74 <https://github.com/ros-visualization/rqt_common_plugins/issues/74>`_)
+
 0.2.17 (2013-07-04)
 -------------------
 

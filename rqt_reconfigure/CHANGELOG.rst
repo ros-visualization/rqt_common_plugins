@@ -2,6 +2,13 @@
 Changelog for package rqt_reconfigure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.0 (2013-08-28)
+------------------
+* fix updating range limits (`#108 <https://github.com/ros-visualization/rqt_common_plugins/issues/108>`_)
+* fix layout quirks (`#150 <https://github.com/ros-visualization/rqt_common_plugins/issues/150>`_)
+* fix icon for closing a node (`#48 <https://github.com/ros-visualization/rqt_common_plugins/issues/48>`_)
+* fix handling of enum parameters with strings
+
 0.2.17 (2013-07-04)
 -------------------
 * Improvement; "GUI hangs for awhile or completely, when any one of nodes doesn't return any value" (`#81 <https://github.com/ros-visualization/rqt_common_plugins/issues/81>`_)

@@ -2,6 +2,20 @@
 Changelog for package rqt_console
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.0 (2013-08-28)
+------------------
+* pause button no more saves state (`#125 <https://github.com/ros-visualization/rqt_common_plugins/issues/125>`_)
+* persist message limit (`#138 <https://github.com/ros-visualization/rqt_common_plugins/issues/138>`_)
+* add ability to set logger level (`#117 <https://github.com/ros-visualization/rqt_common_plugins/issues/117>`_)
+* add tooltips to table cells (`#143 <https://github.com/ros-visualization/rqt_common_plugins/issues/143>`_)
+* improve labels for filters (`#146 <https://github.com/ros-visualization/rqt_common_plugins/issues/146>`_)
+* fix time column when loading data from file (`#160 <https://github.com/ros-visualization/rqt_common_plugins/issues/160>`_)
+* fix applying message limit on change (`#133 <https://github.com/ros-visualization/rqt_common_plugins/issues/133>`_)
+* fix clear button to remove all messages (`#141 <https://github.com/ros-visualization/rqt_common_plugins/issues/141>`_)
+* fix sorting to use row index to decide order between equal values (except for time column) (`#124 <https://github.com/ros-visualization/rqt_common_plugins/issues/124>`_)
+* fix locking of message queue
+* fix rendering of icons on OS X (`ros-visualization/rqt#83 <https://github.com/ros-visualization/rqt/issues/83>`_)
+
 0.2.17 (2013-07-04)
 -------------------
 * added missing word in status tip
