@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>rqt_cpp_common</name>
-  <version>0.2.17</version>
+  <version>0.3.0</version>
   <description>This package provides common functionality for rqt plugins
       written in C++. Despite no plugin is provided, this package is part of
       the rqt_common_plugins repository to keep refactoring generic
