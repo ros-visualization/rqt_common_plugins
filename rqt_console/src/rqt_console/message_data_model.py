@@ -68,7 +68,7 @@ class MessageDataModel(QAbstractTableModel):
                         data = messagelist[index.row()].time_as_string()
                     else:
                         data = getattr(messagelist[index.row()], elements[index.column()])
-                    if role == Qt.UserRole:
+                    if role == Qt.UserRole and elements[index.column()] != '_time':
                         data += ' (%d)' % index.row()
                     return data
                 elif role == Qt.DecorationRole and index.column() == 0:
