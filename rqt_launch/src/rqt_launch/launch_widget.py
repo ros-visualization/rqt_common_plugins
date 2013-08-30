@@ -92,7 +92,8 @@ class LaunchWidget(QDialog):
         # NodeController used in controller class for launch operation.
         self._node_controllers = []
 
-        self._pushbutton_start_stop_all.clicked.connect(self._parent.start_all)
+        self._pushbutton_start_all.clicked.connect(self._parent.start_all)
+        self._pushbutton_stop_all.clicked.connect(self._parent.stop_all)
         # Bind package selection with .launch file selection.
         self._combobox_pkg.currentIndexChanged[str].connect(
                                                  self._refresh_launchfiles)

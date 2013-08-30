@@ -29,16 +29,29 @@
       <widget class="QComboBox" name="_combobox_launchfile_name"/>
      </item>
      <item>
-      <widget class="QPushButton" name="_pushbutton_start_stop_all">
+      <widget class="QPushButton" name="_pushbutton_start_all">
        <property name="text">
-        <string>&amp;Start all</string>
+        <string>S&amp;TART ALL</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="_pushbutton_stop_all">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>STO&amp;P ALL</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="_pushbutton_show_hide_console">
+       <property name="toolTip">
+        <string>(Not implemented yet)</string>
+       </property>
        <property name="text">
-        <string>&amp;Hide Console</string>
+        <string>&amp;Open Console</string>
        </property>
       </widget>
      </item>
