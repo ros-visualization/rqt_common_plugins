@@ -35,7 +35,7 @@
 import time
 import threading
 
-from roslaunch import nodeprocess
+from roslaunch import node_args, nodeprocess
 import rospy
 
 
@@ -91,8 +91,16 @@ class NodeProxy(object):
         Create and set roslaunch.nodeprocess.LocalProcess to member variable.
         @rtype: roslaunch.nodeprocess.LocalProcess
         '''
-        return nodeprocess.create_node_process(
+        _local_process = nodeprocess.LocalProcess
+        try:
+            _local_process = nodeprocess.create_node_process(
                                     self._run_id, self.config, self.master_uri)
+        except node_args.NodeParamsException as e:
+            rospy.logerr('roslaunch failed to load the node. {}'.format(
+                                                                   e.message))
+            #TODO: Show msg on GUI that the node wasn't loaded.
+
+        return _local_process
 
     def start_process(self):
         #TODO: add null exception check for _process
