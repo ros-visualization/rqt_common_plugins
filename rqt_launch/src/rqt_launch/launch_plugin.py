@@ -40,9 +40,9 @@ from rqt_launch.launch_main import LaunchMain
 class LaunchPlugin(Plugin):
 
     def __init__(self, context):
-        """
+        '''
         :type context: qt_gui.PluginContext
-        """
+        '''
 
         super(LaunchPlugin, self).__init__(context)
 

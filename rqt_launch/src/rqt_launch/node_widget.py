@@ -42,20 +42,20 @@ from rqt_launch.name_surrogate import NamesSurrogate
 
 
 class NodeWidget(QWidget):
-    """
+    '''
     Works as a proxy between ROS Node
-    (more in particular, roslaunch.nodeprocess) & GUI.
-    """
+    (more in particular, roslaunch.nodeprocess) and GUI.
+    '''
 
     __slots__ = ['_run_id', 'master_uri', 'config', '_process']
 
     def __init__(self, rospack, master_uri, launch_config,
                  label_status):
-        """
+        '''
         @type launch_node: roslaunch.core.Node
         @type launch_config: roslaunch.core.Config
         @type label_status: StatusIndicator
-        """
+        '''
         super(NodeWidget, self).__init__()
         self._rospack = rospack
         self._master_uri = master_uri
@@ -76,7 +76,7 @@ class NodeWidget(QWidget):
                       self._launch_config.namespace, self._launch_config.name))
         self._resolved_node_name = NamesSurrogate.ns_join(
                        self._launch_config.namespace, self._launch_config.name)
-        self._label_nodename.setText(self.get_node_name())
+        self._label_nodename.setText(self._get_node_name())
         self._label_pkg_name.setText(self._launch_config.package)
         self._label_name_executable.setText(self._launch_config.type)
 
@@ -89,7 +89,7 @@ class NodeWidget(QWidget):
 
         self._node_controller = None  # Connected in self.set_node_controller
 
-    def get_node_name(self):
+    def _get_node_name(self):
         return self._resolved_node_name
 
     def connect_start_stop_button(self, slot):
