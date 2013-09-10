@@ -33,7 +33,7 @@ import os
 import rospkg
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import QAbstractListModel, QFile, QIODevice, Qt, Signal
+from python_qt_binding.QtCore import QAbstractListModel, QFile, QIODevice, Qt, Signal, QTimer
 from python_qt_binding.QtGui import QCompleter, QFileDialog, QGraphicsScene, QIcon, QImage, QPainter, QWidget
 from python_qt_binding.QtSvg import QSvgGenerator
 
@@ -174,6 +174,9 @@ class RosGraph(Plugin):
         self._deferred_fit_in_view.emit()
 
         context.add_widget(self._widget)
+        self._auto_refresh_timer = QTimer(self)
+        self._auto_refresh_timer.timeout.connect(self._update_rosgraph)
+        self._auto_refresh_timer.start(1000)
 
     def save_settings(self, plugin_settings, instance_settings):
         instance_settings.set_value('graph_type_combo_box_index', self._widget.graph_type_combo_box.currentIndex())
