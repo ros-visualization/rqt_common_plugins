@@ -101,7 +101,7 @@ class PublisherWidget(QWidget):
             # this works up to electric
             packages = sorted(rosmsg.list_packages())
         for package in packages:
-            for base_type_str in rosmsg.list_msgs(package):
+            for base_type_str in rosmsg.list_msgs(package, rospack=rospack):
                 message_class = roslib.message.get_message_class(base_type_str)
                 if message_class is not None:
                     message_type_names.append(base_type_str)
