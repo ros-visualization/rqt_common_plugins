@@ -83,6 +83,7 @@ class MatDataPlot(QWidget):
 
     def __init__(self, parent=None):
         super(MatDataPlot, self).__init__(parent)
+        self._parent_widget = parent  # Necessary for receiving signal.
         self._canvas = MatDataPlot.Canvas()
         self._toolbar = NavigationToolbar(self._canvas, self._canvas)
         vbox = QVBoxLayout()
@@ -92,6 +93,14 @@ class MatDataPlot(QWidget):
 
         self._color_index = 0
         self._curves = {}
+
+        # Since this MatDataPlot class looks like that the original author
+        # might want to run as standalone, here I'm adding a check if a
+        # variable _sig_legend_toggled exists in the parent object.
+        if hasattr(self._parent_widget, '_sig_legend_toggled'):
+            self._parent_widget._sig_legend_toggled.connect(
+                                                          self._legend_toggled)
+            self._show_legend = self._parent_widget.togglemode()
 
     def add_curve(self, curve_id, curve_name, x, y):
         color = QColor(self._colors[self._color_index % len(self._colors)])
@@ -109,6 +118,12 @@ class MatDataPlot(QWidget):
             self._update_legend()
 
     def _update_legend(self):
+        '''
+        If  _show_legend is False, do nothing.
+        '''
+        if not self._show_legend:
+            return
+
         handles, labels = self._canvas.axes.get_legend_handles_labels()
         if handles:
             hl = sorted(zip(handles, labels), key=operator.itemgetter(1))
@@ -160,3 +175,13 @@ class MatDataPlot(QWidget):
             self._canvas.axes.set_ybound(lower=ymin, upper=ymax)
 
         self._canvas.draw()
+
+    @Slot(bool)
+    def _legend_toggled(self, toggled):
+        self._show_legend = toggled
+
+        if toggled:
+            self._update_legend()
+        else:
+            self._canvas.axes.legend().set_visible(toggled)
+            self._canvas.draw()
