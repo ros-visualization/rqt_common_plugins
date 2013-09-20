@@ -34,7 +34,7 @@ import os
 import rospkg
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt, QTimer, qWarning, Slot
+from python_qt_binding.QtCore import Qt, QTimer, qWarning, Signal, Slot
 from python_qt_binding.QtGui import QAction, QIcon, QMenu, QWidget
 
 import rospy
@@ -47,6 +47,7 @@ from . rosplot import ROSData, RosPlotException
 
 class PlotWidget(QWidget):
     _redraw_interval = 40
+    _sig_legend_toggled = Signal(bool)
 
     def __init__(self, initial_topics=None, start_paused=False):
         super(PlotWidget, self).__init__()
@@ -78,6 +79,8 @@ class PlotWidget(QWidget):
         # init and start update timer for plot
         self._update_plot_timer = QTimer(self)
         self._update_plot_timer.timeout.connect(self.update_plot)
+
+        self._checkbox_legend_on_off.clicked.connect(self.legend_toggled)
 
     def switch_data_plot_widget(self, data_plot):
         self.enable_timer(enabled=False)
@@ -220,3 +223,28 @@ class PlotWidget(QWidget):
             self._update_plot_timer.start(self._redraw_interval)
         else:
             self._update_plot_timer.stop()
+
+    def legend_toggled(self, is_toggled):
+        '''
+        Emit signal for toggled legend checkbox or not. This signal is intended
+        to be slotted in plot client (eg. pyqtgraph_data_plot).
+
+        @type is_toggled: bool
+        '''
+        self._checkbox_legend_on_off.setChecked(is_toggled)
+        rospy.logdebug('In _legend_toggled toggled? {}'.format(is_toggled))
+        self._sig_legend_toggled.emit(is_toggled)
+
+    def togglemode(self):
+        '''
+        @rtype: bool
+        '''
+        _istoggled = self._checkbox_legend_on_off.isChecked()
+        rospy.logdebug('togglemode={}'.format(_istoggled))
+        return _istoggled
+
+#     def set_togglemode(self, is_toggled):
+#         '''
+#         @type is_toggled: bool
+#         '''
+#         self._checkbox_legend_on_off.setCheckable(is_toggled)

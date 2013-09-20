@@ -35,6 +35,7 @@ import argparse
 from python_qt_binding import QT_BINDING
 from python_qt_binding.QtCore import qDebug
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
+import rospy
 from rqt_gui_py.plugin import Plugin
 
 from rqt_py_common.ini_helper import pack, unpack
@@ -167,6 +168,7 @@ class Plot(Plugin):
     def save_settings(self, plugin_settings, instance_settings):
         instance_settings.set_value('plot_type', self._plot_type_index)
         instance_settings.set_value('topics', pack(self._widget._rosdata.keys()))
+        instance_settings.set_value('show_legend', self._widget.togglemode())
 
     def restore_settings(self, plugin_settings, instance_settings):
         self._switch_data_plot_widget(int(instance_settings.value('plot_type', 0)))
@@ -176,6 +178,9 @@ class Plot(Plugin):
             if topics:
                 for topic in topics:
                     self._widget.add_topic(topic)
+        _toggle = instance_settings.value('show_legend', 0)
+        rospy.loginfo('_toggle={}'.format(bool(_toggle)))
+        self._widget.legend_toggled(_toggle in [True, 'true'])
 
     def trigger_configuration(self):
         dialog = SimpleSettingsDialog(title='Plot Options')
