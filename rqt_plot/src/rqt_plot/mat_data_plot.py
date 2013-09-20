@@ -94,7 +94,10 @@ class MatDataPlot(QWidget):
         self._color_index = 0
         self._curves = {}
 
-        if self._parent_widget._sig_legend_toggled:
+        # Since this MatDataPlot class looks like that the original author
+        # might want to run as standalone, here I'm adding a check if a
+        # variable _sig_legend_toggled exists in the parent object.
+        if hasattr(self._parent_widget, '_sig_legend_toggled'):
             self._parent_widget._sig_legend_toggled.connect(
                                                           self._legend_toggled)
             self._show_legend = self._parent_widget.togglemode()
