@@ -226,8 +226,8 @@ class PlotWidget(QWidget):
 
     def legend_toggled(self, is_toggled):
         '''
-        Emit signal for toggled legend checkbox or not. This signal is intended
-        to be slotted in plot client (eg. pyqtgraph_data_plot).
+        Emit signal for toggling legend checkbox or not. This signal is
+        intended to be slotted in plot client (eg. pyqtgraph_data_plot).
 
         @type is_toggled: bool
         '''
@@ -243,8 +243,3 @@ class PlotWidget(QWidget):
         rospy.logdebug('togglemode={}'.format(_istoggled))
         return _istoggled
 
-#     def set_togglemode(self, is_toggled):
-#         '''
-#         @type is_toggled: bool
-#         '''
-#         self._checkbox_legend_on_off.setCheckable(is_toggled)

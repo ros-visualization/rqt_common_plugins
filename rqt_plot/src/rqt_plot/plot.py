@@ -179,7 +179,7 @@ class Plot(Plugin):
                 for topic in topics:
                     self._widget.add_topic(topic)
         _toggle = instance_settings.value('show_legend', 0)
-        rospy.loginfo('_toggle={}'.format(bool(_toggle)))
+        rospy.logdebug('restore_settings _toggle={}'.format(bool(_toggle)))
         self._widget.legend_toggled(_toggle in [True, 'true'])
 
     def trigger_configuration(self):
