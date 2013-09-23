@@ -54,16 +54,16 @@ from rqt_py_common.rqt_roscomm_util import RqtRoscommUtil
 
 
 class LaunchWidget(QDialog):
-    """#TODO: comment
-    """
+    '''#TODO: comment
+    '''
 
     # To be connected to PluginContainerWidget
     sig_sysmsg = Signal(str)
 
     def __init__(self, parent):
-        """
+        '''
         @type parent: LaunchMain
-        """
+        '''
         super(LaunchWidget, self).__init__()
         self._parent = parent
 
@@ -92,7 +92,8 @@ class LaunchWidget(QDialog):
         # NodeController used in controller class for launch operation.
         self._node_controllers = []
 
-        self._pushbutton_start_stop_all.clicked.connect(self._parent.start_all)
+        self._pushbutton_start_all.clicked.connect(self._parent.start_all)
+        self._pushbutton_stop_all.clicked.connect(self._parent.stop_all)
         # Bind package selection with .launch file selection.
         self._combobox_pkg.currentIndexChanged[str].connect(
                                                  self._refresh_launchfiles)
@@ -138,10 +139,10 @@ class LaunchWidget(QDialog):
 
     def _create_launchconfig(self, launchfile_name, port_roscore=11311,
                              folder_name_launchfile='launch'):
-        """
+        '''
         @rtype: ROSLaunchConfig
         @raises RLException: raised by roslaunch.config.load_config_default.
-        """
+        '''
 
         pkg_name = self._combobox_pkg.currentText()
 
@@ -216,9 +217,9 @@ class LaunchWidget(QDialog):
         self._parent.set_node_controllers(self._node_controllers)
 
     def _update_pkgs_contain_launchfiles(self):
-        """
+        '''
         Inspired by rqt_msg.MessageWidget._update_pkgs_contain_launchfiles
-        """
+        '''
         packages = sorted([pkg_tuple[0]
                            for pkg_tuple
                            in RqtRoscommUtil.iterate_packages('launch')])
@@ -229,9 +230,9 @@ class LaunchWidget(QDialog):
         self._combobox_pkg.setCurrentIndex(0)
 
     def _refresh_launchfiles(self, package=None):
-        """
+        '''
         Inspired by rqt_msg.MessageWidget._refresh_msgs
-        """
+        '''
         if package is None or len(package) == 0:
             return
         self._launchfile_instances = []  # Launch[]

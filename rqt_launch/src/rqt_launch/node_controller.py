@@ -5,33 +5,33 @@ import rospy
 
 # Provides callback functions for the start and stop buttons
 class NodeController(object):
-    """
+    '''
     Containing both proxy and gui instances, this class gives a control of
     a node on both ROS & GUI sides.
-    """
+    '''
 
     # these values need to synch with member variables.
     # Eg. self.gui isn't legal.
     __slots__ = ['_proxy', '_gui']
 
     def __init__(self, proxy, gui):
-        """
+        '''
         @type proxy: rqt_launch.NodeProxy
         @type gui: QWidget
-        """
+        '''
         self._proxy = proxy
 
         self._gui = gui
         self._gui.set_node_controller(self)
 
     def start_stop_slot(self, signal):
-        """
+        '''
         Works as a slot particularly intended to work for
         QAbstractButton::toggled(checked). Internally calls
         NodeController.start / stop depending on `signal`.
 
         @type signal: bool
-        """
+        '''
         if self._proxy.is_running():
             self.stop()
             rospy.logdebug('---start_stop_slot stOP')
@@ -40,9 +40,9 @@ class NodeController(object):
             rospy.logdebug('==start_stop_slot StART')
 
     def start(self, restart=True):
-        """
+        '''
         Start a ROS node as a new _process.
-        """
+        '''
         rospy.logdebug('Controller.start restart={}'.format(restart))
 
         # Should be almost unreachable under current design where this 'start'
@@ -73,9 +73,9 @@ class NodeController(object):
                                               self._proxy.get_spawn_count()))
 
     def stop(self):
-        """
+        '''
         Stop a ROS node's _process.
-        """
+        '''
 
         #TODO: Need to check if the node is really running.
 
@@ -107,9 +107,9 @@ class NodeController(object):
                                              self._proxy._process.spawn_count))
 
     def get_node_widget(self):
-        """
+        '''
         @rtype: QWidget
-        """
+        '''
         return self._gui
 
     def is_node_running(self):
