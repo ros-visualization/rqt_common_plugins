@@ -45,9 +45,9 @@ class LaunchMain(object):
         super(LaunchMain, self).__init__()
         self._plugin_context = plugin_context
 
-        _main_launch_widget = LaunchWidget(self)
-        self._mainwidget = PluginContainerWidget(_main_launch_widget, True,
-                                                 False)
+        self._main_launch_widget = LaunchWidget(self)
+        self._mainwidget = PluginContainerWidget(self._main_launch_widget,
+                                                 True, False)
 
         self._run_id = None
         self._node_controllers = []
@@ -61,13 +61,32 @@ class LaunchMain(object):
         self._node_controllers = node_controllers
 
     def start_all(self):
-        rospy.loginfo("Starting all nodes")
+        '''
+        Checks nodes that's set (via self.set_node_controllers) one by one and
+        starts one if each node is not running. 
+        Then disable START ALL button and enable STOP ALL button.
+        '''
         for n in self._node_controllers:
-            n.start(restart=False)
+            if not n.is_node_running():
+                n.start(restart=False)
+
+        # Disable START ALL button.
+        self._main_launch_widget._pushbutton_start_all.setEnabled(False)
+        self._main_launch_widget._pushbutton_stop_all.setEnabled(True)
 
     def stop_all(self):
+        '''
+        Checks nodes that's set (via self.set_node_controllers) one by one and
+        stops one if each node is running.
+        Then enable START ALL button and disable STOP ALL button.
+        '''
         for n in self._node_controllers:
-            n.stop()
+            if n.is_node_running():
+                n.stop()
+
+        # Disable STOP ALL button.
+        self._main_launch_widget._pushbutton_start_all.setEnabled(True)
+        self._main_launch_widget._pushbutton_stop_all.setEnabled(False)
 
     def check_process_statuses(self):
         for n in self._node_controllers:
