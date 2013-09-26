@@ -63,13 +63,11 @@ class InteractiveGraphicsView(QGraphicsView):
 
     def wheelEvent(self, wheel_event):
         if wheel_event.modifiers() == Qt.NoModifier:
-            num_degrees = wheel_event.delta() / 8.0
-            num_steps = num_degrees / 15.0
+            delta = wheel_event.delta()
+            delta = max(min(delta, 480), -480)
             mouse_before_scale_in_scene = self.mapToScene(wheel_event.pos())
 
-            scale_factor = 1.2 * num_steps
-            if num_steps < 0:
-                scale_factor = -1.0 / scale_factor
+            scale_factor = 1 + (0.2 * (delta / 120.0))
             scaling = QTransform(scale_factor, 0, 0, scale_factor, 0, 0)
             self.setTransform(self.transform() * scaling)
 
