@@ -34,79 +34,84 @@ from python_qt_binding.QtCore import Qt, qWarning
 from python_qt_binding.QtGui import QBrush, QColor, QSortFilterProxyModel
 
 from .filters.filter_collection import FilterCollection
+from .message import Message
 
 
 class MessageProxyModel(QSortFilterProxyModel):
     """
     Provides sorting and filtering capabilities for the MessageDataModel.
-    Filtering is based on subclassed Filters stored in the FilterCollections.
+    Filtering is based on a collection of exclude and highlight filters.
     """
+
     def __init__(self):
         super(MessageProxyModel, self).__init__()
-        self._filters = []
         self.setDynamicSortFilter(True)
-        self._show_highlighted_only = False
-
-        self._exclude_filters = FilterCollection(self)
-        self._highlight_filters = FilterCollection(self)
         self.setFilterRole(Qt.UserRole)
+        self.setSortCaseSensitivity(Qt.CaseInsensitive)
         self.setSortRole(Qt.UserRole)
 
+        self._exclude_filters = FilterCollection()
+        self._highlight_filters = FilterCollection()
+        self._show_highlighted_only = False
+
+        # caching source model locally for better performance of filterAcceptsRow()
+        self._source_model = None
+
+    def setSourceModel(self, source_model):
+        super(MessageProxyModel, self).setSourceModel(source_model)
+        self._source_model = self.sourceModel()
+
     # BEGIN Required implementations of QSortFilterProxyModel functions
+
     def filterAcceptsRow(self, sourcerow, sourceparent):
         """
-        returns: True if the row does not match the exclude filters AND (_show_highlighted_only is False OR it matches the _highlight_filters, ''bool''
-        OR
-        returns: False if the row matches the exclude filters OR (_show_highlighted_only is True and it doesn't match the _highlight_filters, ''bool''
+        returns: True if the row does not match any exclude filter AND (_show_highlighted_only is False OR it matches any highlight filter), ''bool''
         """
-        rowdata = []
-        for index in range(self.sourceModel().columnCount()):
-            rowdata.append(self.sourceModel().index(sourcerow, index, sourceparent).data(Qt.UserRole))
-
-        if self._exclude_filters.test_message_array(rowdata):
+        msg = self._source_model._messages[sourcerow]
+        if self._exclude_filters.test_message(msg):
+            # hide excluded message
             return False
-        if self._highlight_filters.count_enabled_filters() == 0:
-            return True
-        match = self._highlight_filters.test_message_array(rowdata)
-        if match:
-            color = 'black'
-        else:
-            color = 'gray'
-        self.sourceModel()._messages.get_message_list()[sourcerow].set_color(color)
-        return not self._show_highlighted_only or match
 
-    def data(self, index, role=None):
+        highlighted = True
+        if self._highlight_filters.count_enabled_filters() > 0:
+            highlighted = self._highlight_filters.test_message(msg, default=True)
+        if self._show_highlighted_only and not highlighted:
+            # hide messages which are not highlighted when only highlightes messages should be visible
+            return False
+
+        # update message state
+        msg.highlighted = highlighted
+
+        return True
+
+    def data(self, proxy_index, role=None):
         """
-        Sets colors of items based on highlight filters and severity type
+        Set colors of items based on highlight filters.
         """
-        messagelist = self.sourceModel()._messages.get_message_list()
-        index = self.mapToSource(index)
-        if index.row() >= 0 or index.row() < len(messagelist):
-            if index.column() >= 0 or index.column() < messagelist[index.row()].count():
-                if role == Qt.ForegroundRole:
-                    if index.column() == 1:
-                        data = index.data()
-                        severity_levels = {'Debug': QBrush(Qt.cyan), \
-                                           'Info': QBrush(Qt.darkCyan), \
-                                           'Warn': QBrush(Qt.darkYellow), \
-                                           'Error': QBrush(Qt.darkRed), \
-                                           'Fatal': QBrush(Qt.red)}
-                        if data in severity_levels.keys():
-                            return severity_levels[data]
-                        else:
-                            raise KeyError('Unknown severity type: %s' % data)
-                    if self._highlight_filters.count_enabled_filters() > 0:
-                        return QBrush(QColor(messagelist[index.row()].get_color()))
-                    else:
-                        return QBrush(Qt.black)
-        return self.sourceModel().data(index, role)
+        index = self.mapToSource(proxy_index)
+        if role == Qt.ForegroundRole:
+            msg = self._source_model._messages[index.row()]
+            if not msg.highlighted:
+                return QBrush(Qt.gray)
+        return self._source_model.data(index, role)
+
     # END Required implementations of QSortFilterProxyModel functions
 
-    def handle_filters_changed(self):
+    def handle_exclude_filters_changed(self):
         """
-        Invalidates filters and triggers refiltering
+        Invalidate filters and trigger refiltering.
         """
         self.invalidateFilter()
+
+    def handle_highlight_filters_changed(self):
+        """
+        Invalidate filters and trigger refiltering.
+        """
+        if self._show_highlighted_only:
+            self.invalidateFilter()
+        else:
+            self.invalidateFilter()
+            self.dataChanged.emit(self.index(0, 0), self.index(self.rowCount() - 1, self.columnCount() - 1))
 
     def add_exclude_filter(self, newfilter):
         self._exclude_filters.append(newfilter)
@@ -115,36 +120,13 @@ class MessageProxyModel(QSortFilterProxyModel):
         self._highlight_filters.append(newfilter)
 
     def delete_exclude_filter(self, index):
-        if index < self._exclude_filters.count() and index >= 0:
-            del self._exclude_filters[index]
-            self.reset()
-            return True
-        return False
+        del self._exclude_filters[index]
+        self.handle_exclude_filters_changed()
 
     def delete_highlight_filter(self, index):
-        if index < self._highlight_filters.count() and index >= 0:
-            del self._highlight_filters[index]
-            self.reset()
-            return True
-        return False
+        del self._highlight_filters[index]
+        self.handle_highlight_filters_changed()
 
     def set_show_highlighted_only(self, show_highlighted_only):
         self._show_highlighted_only = show_highlighted_only
-        self.reset()
-
-    def save_to_file(self, filehandle):
-        """
-        Saves to an already open filehandle.
-        :return: True if file write is successful, ''bool''
-        OR
-        :return: False if file write fails, ''bool''
-        """
-        try:
-            filehandle.write(self.sourceModel()._messages.header_print())
-            for index in range(self.rowCount()):
-                row = self.mapToSource(self.index(index, 0)).row()
-                filehandle.write(self.sourceModel()._messages.get_message_list()[row].file_print())
-        except Exception as e:
-            qWarning('File save failed: %s' % str(e))
-            return False
-        return True
+        self.invalidateFilter()

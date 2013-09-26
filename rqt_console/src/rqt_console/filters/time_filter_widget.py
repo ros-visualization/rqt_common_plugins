@@ -40,7 +40,7 @@ from python_qt_binding.QtGui import QWidget
 
 
 class TimeFilterWidget(QWidget):
-    def __init__(self, parentfilter, display_list_args):
+    def __init__(self, parentfilter, time_range_provider):
         """
         Widget for displaying interactive data related to time filtering.
         :param parentfilter: buddy filter were data is stored, ''TimeFilter''
@@ -59,7 +59,7 @@ class TimeFilterWidget(QWidget):
         self.stop_enabled_check_box.clicked[bool].connect(self.handle_stop_enabled_changed)
 
         # Times are passed in unixtimestamp '.' decimal fraction of a second
-        mintime, maxtime = display_list_args[0]()
+        mintime, maxtime = time_range_provider()
         if mintime != -1:
             mintime = str(mintime).split('.')
             maxtime = str(maxtime).split('.')

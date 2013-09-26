@@ -30,180 +30,104 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from python_qt_binding.QtCore import QDateTime, QObject
+from rosgraph_msgs.msg import Log
+
+from python_qt_binding.QtCore import QCoreApplication, QDateTime, QObject
 
 
 class Message(QObject):
-    """
-    Basic Message object. To directly access members use the get_data() function.
-    """
-    def __init__(self, msg=None):
-        """
-        :param msg: a log message to initialize the message object, ''Log''
-        """
+
+    DEBUG = 1
+    INFO = 2
+    WARN = 4
+    ERROR = 8
+    FATAL = 16
+
+    SEVERITY_LABELS = {
+        DEBUG: QCoreApplication.translate('Message', 'Debug'),
+        INFO: QCoreApplication.translate('Message', 'Info'),
+        WARN: QCoreApplication.translate('Message', 'Warn'),
+        ERROR: QCoreApplication.translate('Message', 'Error'),
+        FATAL: QCoreApplication.translate('Message', 'Fatal'),
+    }
+
+    _next_id = 1
+
+    def __init__(self):
         super(Message, self).__init__()
-        self._messagemembers = self.get_message_members()
-        self._severity = {1: self.tr('Debug'), 2: self.tr('Info'), 4: self.tr('Warn'), 8: self.tr('Error'), 16: self.tr('Fatal')}
-        self._time_format = None
-        self.__color = 'black'
-        if msg is not None:
-            self._message = msg.msg
-            self._severity = self._severity[msg.level]
-            self._node = msg.name
-            self._time = self.datestamp_to_qdatetime(msg.header.stamp.secs, msg.header.stamp.nsecs)
-            self._topics = ', '.join(msg.topics)
-            self._location = msg.file + ':' + msg.function + ':' + str(msg.line)
+        self.id = Message._next_id
+        Message._next_id += 1
 
-    def set_color(self, color):
-        """
-        :param color: Color Keyword ''str''
-        """
-        self.__color = color
+        self.message = None
+        self.severity = None
+        self.node = None
+        self.__stamp = (None, None)
+        self.topics = []
+        self.location = None
 
-    def get_color(self):
-        """
-        :returns: Color Keyword ''str''
-        """
-        return self.__color
+        self._stamp_compare = None
+        self._stamp_qdatetime = None
 
-    def _get_time(self):
-        return self.__time
+        self._stamp_format = None
+        self._stamp_string = None
 
-    def _set_time(self, time):
-        """
-        :param time: date and time to set ''QDateTime''
-        """
-        self.__time = time
-        if self._time_format:
-            self._time_string = self._time.toString(self._time_format)
+        self.highlighted = True
 
-    _time = property(_get_time, _set_time)
+    def _get_stamp(self):
+        return self.__stamp
 
-    @staticmethod
-    def get_message_members():
-        return ('_message', '_severity', '_node', '_time', '_topics', '_location')
+    def _set_stamp(self, stamp):
+        """
+        Update the string representation of the timestamp.
+        :param stamp: a tuple containing seconds and nano seconds
+        """
+        assert len(stamp) == 2
+        self.__stamp = stamp
+        if None not in self.__stamp:
+            # shortest string representation to compare stamps
+            # floats do not provide enough precision
+            self._stamp_compare = '%08x%08x' % (self.__stamp[0], self.__stamp[1])
+        else:
+            self._stamp_compare = None
+        self._stamp_qdatetime = self._get_stamp_as_qdatetime(self.__stamp)
+        if self._stamp_format:
+            s = self._stamp_qdatetime.toString(self._stamp_format)
+            if 'ZZZ' in s:
+                s = s.replace('ZZZ', str(self.__stamp[1]).zfill(9))
+            self._stamp_string = s
 
-    @staticmethod
-    def header_print():
-        members = Message.get_message_members()
-        text = members[2][1:].capitalize() + ';'
-        text += members[3][1:].capitalize() + ';'
-        text += members[1][1:].capitalize() + ';'
-        text += members[4][1:].capitalize() + ';'
-        text += members[5][1:].capitalize() + ';'
-        text += members[0][1:].capitalize() + '\n'
-        return text
+    stamp = property(_get_stamp, _set_stamp)
 
-    def count(self):
-        return len(self._messagemembers)
+    def get_stamp_for_compare(self):
+        return self._stamp_compare
 
-    def set_time_format(self, format):
-        """
-        :param format: formatting characters are defined in the QDateTime documentation ''str''
-        """
-        self._time_format = format
-        self._time_string = self._time.toString(self._time_format)
+    def get_stamp_as_qdatetime(self):
+        return self._stamp_qdatetime
 
-    def time_as_string(self):
-        """
-        :returns: time in the format provided ''str''
-        """
-        return self._time.toString(self._time_format)
+    def _get_stamp_as_qdatetime(self, stamp):
+        if None in self.__stamp:
+            return None
+        dt = QDateTime()
+        dt.setTime_t(stamp[0])
+        dt.addMSecs(int(float(stamp[1]) / 10**6))
+        return dt
 
-    def time_as_datestamp(self):
-        """
-        :returns: seconds with decimal fractions of a second, ''str''
-        """
-        seconds = self._time.toTime_t()
-        seconds_in_qdate = QDateTime()
-        seconds_in_qdate.setTime_t(seconds)
-        msecs = seconds_in_qdate.msecsTo(self._time)
-        return str(seconds) + '.' + str(msecs)
+    def get_stamp_string(self):
+        return self._stamp_string
 
-    def datestamp_to_qdatetime(self, secs, nsecs):
-        """
-        :param secs: seconds from a datestamp ''int''
-        :param nsecs: nanoseconds from a datestamp ''int''
-        :returns: converted time ''QDateTime''
-        """
-        temp_time = QDateTime()
-        temp_time.setTime_t(int(secs))
-        return temp_time.addMSecs(int(str(nsecs).zfill(9)[:3]))
-
-    def load_from_array(self, rowdata):
-        """
-        :param rowdata:
-            [0] = message, ''str''
-            [1] = severity, ''str''
-            [2] = node name, ''str''
-            [3] = time in seconds including decimal, ''str''
-            [4] = topic name, ''str''
-            [5] = location value, ''str''
-        """
-        self._message = rowdata[0]
-        self._severity = rowdata[1]
-        self._node = rowdata[2]
-        self._time = rowdata[3]
-        self._topics = rowdata[4]
-        self._location = rowdata[5]
-        return self
-
-    def file_load(self, text):
-        """
-        :param text: delmited message text as follows, node;time;severity;topics;location;"message" , ''str''
-        """
-        text = text[1:]
-        sc_index = text.find('";"')
-        if sc_index == -1:
-            raise ValueError('File format is incorrect, missing ";" marker')
-        self._node = text[:sc_index]
-        text = text[text.find('";"') + 3:]
-        sc_index = text.find('";"')
-        if sc_index == -1:
-            raise ValueError('File format is incorrect, missing ";" marker')
-        sec, msec = text[:sc_index].split('.')
-        self._time = self.datestamp_to_qdatetime(sec, msec + '000000')
-        text = text[text.find('";"') + 3:]
-        sc_index = text.find('";"')
-        if sc_index == -1:
-            raise ValueError('File format is incorrect, missing ";" marker')
-        self._severity = text[:sc_index]
-        text = text[text.find('";"') + 3:]
-        sc_index = text.find('";"')
-        if sc_index == -1:
-            raise ValueError('File format is incorrect, missing ";" marker')
-        self._topics = text[:sc_index]
-        text = text[text.find('";"') + 3:]
-        sc_index = text.find('";"')
-        if sc_index == -1:
-            raise ValueError('File format is incorrect, missing ";" marker')
-        self._location = text[:sc_index]
-        text = text[sc_index + 2:]
-        text = text.replace('\\"', '"')
-        self._message = text[1:-2]
-        return
-
-    def file_print(self):
-        text = '"' + self._node + '";'
-        text += '"' + self.time_as_datestamp() + '";'
-        text += '"' + self._severity + '";'
-        text += '"' + self._topics + '";'
-        text += '"' + self._location + '";'
-        altered_message = self._message.replace('"', '\\"')
-        text += '"' + altered_message + '"\n'
-        return text
+    def set_stamp_format(self, format):
+        self._stamp_format = format
+        if None not in self.__stamp:
+            self.stamp = self.__stamp
 
     def pretty_print(self):
-        text = self.tr('Node: ') + self._node + '\n'
-        text += self.tr('Time: ') + self.time_as_datestamp() + '\n'
-        text += self.tr('Severity: ') + self._severity + '\n'
-        text += self.tr('Published Topics: ') + self._topics + '\n'
-        text += '\n' + self._message + '\n'
+        text = self.tr('Node: ') + self.node + '\n'
+        text += self.tr('Time: ') + self.get_stamp_string() + '\n'
+        text += self.tr('Severity: ') + Message.SEVERITY_LABELS[self.severity] + '\n'
+        text += self.tr('Published Topics: ') + ', '.join(self.topics) + '\n'
+        text += '\n' + self.message + '\n'
         text += '\n' + 'Location:'
-        text += '\n' + self._location + '\n\n'
+        text += '\n' + self.location + '\n\n'
         text += '-' * 100 + '\n\n'
 
         return text
-
-    def get_data(self, col):
-        return getattr(self, Message.get_message_members()[col])

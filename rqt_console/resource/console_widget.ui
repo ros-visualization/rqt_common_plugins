@@ -131,9 +131,18 @@
        <widget class="QWidget" name="PlaceHolder">
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
-          <widget class="ConsoleTableView" name="table_view">
+          <widget class="QTableView" name="table_view">
+           <property name="alternatingRowColors">
+            <bool>true</bool>
+           </property>
            <property name="selectionBehavior">
             <enum>QAbstractItemView::SelectRows</enum>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>16</width>
+             <height>16</height>
+            </size>
            </property>
            <property name="horizontalScrollMode">
             <enum>QAbstractItemView::ScrollPerPixel</enum>
@@ -141,11 +150,11 @@
            <property name="sortingEnabled">
             <bool>true</bool>
            </property>
-           <attribute name="verticalHeaderDefaultSectionSize">
-            <number>18</number>
+           <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+            <bool>false</bool>
            </attribute>
-           <attribute name="verticalHeaderMinimumSectionSize">
-            <number>18</number>
+           <attribute name="verticalHeaderVisible">
+            <bool>false</bool>
            </attribute>
           </widget>
          </item>
@@ -218,7 +227,7 @@
         </widget>
         <widget class="QGroupBox" name="highlight_group_box">
          <property name="toolTip">
-          <string>Message matching ANY of these rules will be highlighted</string>
+          <string>Messages matching ANY of these rules will be highlighted</string>
          </property>
          <property name="title">
           <string>Highlight Messages...</string>
@@ -313,13 +322,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>ConsoleTableView</class>
-   <extends>QTableView</extends>
-   <header>rqt_console.console_widget</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

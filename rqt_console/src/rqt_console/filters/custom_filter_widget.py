@@ -35,19 +35,24 @@ import rospkg
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QWidget
+from python_qt_binding.QtGui import QPalette, QWidget
 
 from rqt_py_common.ini_helper import pack, unpack
 
 
 class CustomFilterWidget(QWidget):
-    def __init__(self, parentfilter, display_list_args):
+    def __init__(self, parentfilter, item_providers):
         super(CustomFilterWidget, self).__init__()
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_console'), 'resource/filters', 'custom_filter_widget.ui')
         loadUi(ui_file, self)
         self.setObjectName('CustomFilterWidget')
         self._parentfilter = parentfilter  # When data is changed it is stored in the parent filter
+
+        # keep color for highlighted items even when not active
+        for list_widget in [self.severity_list, self.node_list, self.topic_list]:
+            active_color = list_widget.palette().brush(QPalette.Active, QPalette.Highlight).color().name()
+            list_widget.setStyleSheet('QListWidget:item:selected:!active { background: %s; }' % active_color)
 
         # Text Filter Initialization
         self.text_edit.textChanged.connect(self.handle_text_changed)
@@ -56,34 +61,30 @@ class CustomFilterWidget(QWidget):
 
         # Severity Filter Initialization
         self.severity_list.itemSelectionChanged.connect(self.handle_severity_item_changed)
-        newlist = display_list_args[0]()
-        for item in newlist:
+        new_items = item_providers[0]()
+        for key in sorted(new_items.keys()):
+            item = new_items[key]
             self.severity_list.addItem(item)
+            self.severity_list.item(self.severity_list.count() - 1).setData(Qt.UserRole, key)
 
         # Node Filter Initialization
-        self._node_list_populate_function = display_list_args[1]
-        self._node_function_argument = False
-        self._node_function_argument = display_list_args[2]
+        self._node_list_populate_function = item_providers[1]
         self.node_list.itemSelectionChanged.connect(self.handle_node_item_changed)
-        self._node_display_list = []
 
         # Topic Filter Initialization
-        self._topic_list_populate_function = display_list_args[3]
-        self._topic_function_argument = False
-        self._topic_function_argument = display_list_args[4]
+        self._topic_list_populate_function = item_providers[2]
         self.topic_list.itemSelectionChanged.connect(self.handle_topic_item_changed)
-        self._topic_display_list = []
 
         self.repopulate()
 
     def handle_node_item_changed(self):
-        self._parentfilter._node.set_list(self.node_list.selectedItems())
+        self._parentfilter._node.set_selected_items(self.node_list.selectedItems())
 
     def handle_topic_item_changed(self):
-        self._parentfilter._topic.set_list(self.topic_list.selectedItems())
+        self._parentfilter._topic.set_selected_items(self.topic_list.selectedItems())
 
     def handle_severity_item_changed(self):
-        self._parentfilter._severity.set_list(self.severity_list.selectedItems())
+        self._parentfilter._severity.set_selected_items(self.severity_list.selectedItems())
 
     def handle_text_changed(self):
         self._parentfilter._message.set_text(self.text_edit.text())
@@ -96,19 +97,25 @@ class CustomFilterWidget(QWidget):
         Repopulates the display widgets based on the function arguments passed
         in during initialization
         """
-        newlist = self._topic_list_populate_function(self._topic_function_argument)
-        if len(newlist) != len(self._topic_display_list):
-            for item in newlist:
-                if item not in self._topic_display_list:
-                    self.topic_list.addItem(item)
-        self._topic_display_list = list(set(newlist + self._topic_display_list))
+        newset = self._topic_list_populate_function()
+        for item in newset:
+            if len(self.topic_list.findItems(item, Qt.MatchExactly)) == 0:
+                self._add_item(self.topic_list, item)
 
-        newlist = self._node_list_populate_function(self._node_function_argument)
-        if len(newlist) != len(self._node_display_list):
-            for item in newlist:
-                if item not in self._node_display_list:
-                    self.node_list.addItem(item)
-        self._node_display_list = list(set(newlist + self._node_display_list))
+        newset = self._node_list_populate_function()
+        for item in newset:
+            if len(self.node_list.findItems(item, Qt.MatchExactly)) == 0:
+                self._add_item(self.node_list, item)
+
+    def _add_item(self, list_widget, item):
+        """
+        Insert item in alphabetical order.
+        """
+        for i in range(list_widget.count()):
+            if item <= list_widget.item(i).text():
+                list_widget.insertItem(i, item)
+                return
+        list_widget.addItem(item)
 
     def save_settings(self, settings):
         """
@@ -118,13 +125,11 @@ class CustomFilterWidget(QWidget):
         settings.set_value('text', self._parentfilter._message._text)
         settings.set_value('regex', self._parentfilter._message._regex)
 
-        settings.set_value('severityitemlist', pack(self._parentfilter._severity._list))
+        settings.set_value('severityitemlist', pack(self._parentfilter._severity._selected_items))
 
-        settings.set_value('topicdisplaylist', pack(self._topic_display_list))
-        settings.set_value('topicitemlist', pack(self._parentfilter._topic._list))
+        settings.set_value('topicitemlist', pack(self._parentfilter._topic._selected_items))
 
-        settings.set_value('nodedisplaylist', pack(self._node_display_list))
-        settings.set_value('nodeitemlist', pack(self._parentfilter._node._list))
+        settings.set_value('nodeitemlist', pack(self._parentfilter._node._selected_items))
 
         return
 
@@ -152,28 +157,24 @@ class CustomFilterWidget(QWidget):
         self.handle_severity_item_changed()
 
         #Restore Topics
-        self._topic_display_list = unpack(settings.value('topicdisplaylist'))
-        for item in self._topic_display_list:
-            if len(self.topic_list.findItems(item, Qt.MatchExactly)) == 0:
-                self.topic_list.addItem(item)
         for index in range(self.topic_list.count()):
             self.topic_list.item(index).setSelected(False)
         topic_item_list = unpack(settings.value('topicitemlist'))
         for item in topic_item_list:
+            if len(self.topic_list.findItems(item, Qt.MatchExactly)) == 0:
+                self.topic_list.addItem(item)
             items = self.topic_list.findItems(item, Qt.MatchExactly)
             for item in items:
                 item.setSelected(True)
         self.handle_topic_item_changed()
 
         #Restore Nodes
-        self._node_display_list = unpack(settings.value('nodedisplaylist'))
-        for item in self._node_display_list:
-            if len(self.node_list.findItems(item, Qt.MatchExactly)) == 0:
-                self.node_list.addItem(item)
         for index in range(self.node_list.count()):
             self.node_list.item(index).setSelected(False)
         node_item_list = unpack(settings.value('nodeitemlist'))
         for item in node_item_list:
+            if len(self.node_list.findItems(item, Qt.MatchExactly)) == 0:
+                self.node_list.addItem(item)
             items = self.node_list.findItems(item, Qt.MatchExactly)
             for item in items:
                 item.setSelected(True)

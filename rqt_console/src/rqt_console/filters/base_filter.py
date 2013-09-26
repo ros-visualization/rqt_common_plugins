@@ -35,7 +35,8 @@ from python_qt_binding.QtCore import QObject, QTimer, Signal
 
 class BaseFilter(QObject):
     """
-    Contains basic functions common to all filters. Handles enabled code and
+    Contains basic functions common to all filters.
+    Handles enabled logic and change notification.
     """
     filter_changed_signal = Signal()
 
@@ -68,3 +69,9 @@ class BaseFilter(QObject):
         """
         self._enabled = checked
         self.start_emit_timer(200)
+
+    def has_filter(self):
+        raise NotImplementedError()
+
+    def test_message(self, message):
+        raise NotImplementedError()

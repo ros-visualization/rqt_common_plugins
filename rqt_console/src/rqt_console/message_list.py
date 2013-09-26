@@ -1,6 +1,6 @@
 # Software License Agreement (BSD License)
 #
-# Copyright (c) 2012, Willow Garage, Inc.
+# Copyright (c) 2013, Open Source Robotics Foundation Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,77 +30,34 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from .message import Message
-
 
 class MessageList(object):
-    """
-    Partially simulates a two dimensional list with a single dimensional list of
-    message objects. Also provides utility functions to provide data in useful formats
-    """
+
     def __init__(self):
-        self._messagelist = []
-        self._time_format = 'hh:mm:ss.zzz (yyyy-MM-dd)'
+        super(MessageList, self).__init__()
+        self._messages = []
 
-    def column_count(self):
-        return len(Message.get_message_members())
+    def __getitem__(self, key):
+        return self._messages[len(self._messages) - key - 1]
 
-    def get_message_list(self):
-        return self._messagelist
-
-    def message_members(self):
-        return Message.get_message_members()
-
-    def append_from_text(self, text):
-        newmessage = Message()
-        newmessage.file_load(text)
-        newmessage.set_time_format(self._time_format)
-        self._messagelist.append(newmessage)
-
-    def get_data(self, row, col):
-        if row >= 0 and row < len(self.get_message_list()) and col >= 0 and col < len(Message.get_message_members()):
-            return self.get_message_list()[row].get_data(col)
+    def __delitem__(self, key):
+        if isinstance(key, slice):
+            assert key.step is None or key.step == 1, 'MessageList.__delitem__ not implemented for slices with step argument different than 1'
+            del self._messages[len(self._messages) - key.stop:len(self._messages) - key.start]
         else:
-            raise IndexError
+            del self._messages[len(self._messages) - key - 1]
 
-    def get_unique_col_data(self, index):
-        """
-        :param index: col index, ''int''
-        :returns: a unique list of data index, ''list[str]''
-        """
-        uniques_list = set()
-        for message in self._messagelist:
-            uniques_list.add(getattr(message, self.message_members()[index]))
-        return list(uniques_list)
+    def __iter__(self):
+        return reversed(self._messages)
 
-    def add_message(self, msg):
-        message = Message(msg)
-        message.set_time_format(self._time_format)
-        self._messagelist.append(message)
+    def __reversed__(self):
+        return iter(self._messages)
 
-    def set_time_format(self, format):
-        """
-        :param format: formatting characters are defined in the QDateTime documentation ''str''
-        """
-        self._time_format = format
-        for message in self._messagelist:
-            message.set_time_format(self._time_format)
+    def __contains__(self, item):
+        return item in self._messages
 
-    def header_print(self):
-        return Message.header_print()
+    def __len__(self):
+        return len(self._messages)
 
-    def get_messages_in_time_range(self, start_time, end_time=None):
-        """
-        :param start_time: time to start in timestamp form (including decimal
-        fractions of a second is acceptable, ''unixtimestamp''
-        :param end_time: time to end in timestamp form (including decimal
-        fractions of a second is acceptable, ''unixtimestamp'' (Optional)
-        :returns: list of messages in the time range ''list[message]''
-        """
-        message_list = self.get_message_list()
-        time_range_list = []
-        for message in message_list:
-            msg_time = message.time_as_datestamp()
-            if float(msg_time) >= float(start_time) and (end_time is None or float(msg_time) <= float(end_time)):
-                time_range_list.append(message)
-        return time_range_list
+    def extend(self, item):
+        self._messages.extend(item)

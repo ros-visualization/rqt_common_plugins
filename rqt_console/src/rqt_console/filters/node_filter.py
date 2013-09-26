@@ -35,24 +35,26 @@ from .base_filter import BaseFilter
 
 class NodeFilter(BaseFilter):
     """
-    Contains filter logic for a single node filter
+    Contains filter logic for a single node filter.
     If the message's node text matches any of the text in the stored list
     then it is considered a match.
     """
-
     def __init__(self):
         super(NodeFilter, self).__init__()
-        self._list = []
+        self._selected_items = []
 
-    def set_list(self, list_):
+    def set_selected_items(self, items):
         """
-        Setter for _list
+        Setter for selected items.
         :param list_" list of items to store for filtering ''list of QListWidgetItem''
         :emits filter_changed_signal: If _enabled is true
         """
-        self._list = list_
+        self._selected_items = items
         if self.is_enabled():
             self.start_emit_timer()
+
+    def has_filter(self):
+        return len(self._selected_items) > 0
 
     def test_message(self, message):
         """
@@ -62,8 +64,9 @@ class NodeFilter(BaseFilter):
         :param message: the message to be tested against the filters, ''Message''
         :returns: True if the message matches, ''bool''
         """
-        if self.is_enabled():
-            for item in self._list:
-                if message._node == item.text():
-                    return True
+        if not self.is_enabled():
+            return False
+        for item in self._selected_items:
+            if message.node == item.text():
+                return True
         return False

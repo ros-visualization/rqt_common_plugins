@@ -38,11 +38,10 @@ from python_qt_binding.QtGui import QWidget
 
 
 class TextFilterWidget(QWidget):
-    def __init__(self, parentfilter, display_list_args=None):
+    def __init__(self, parentfilter):
         """
         Widget for displaying interactive data related to text filtering.
         :param parentfilter: buddy filter were data is stored, ''TimeFilter''
-        :param display_list_args: empty list, ''list''
         """
         super(TextFilterWidget, self).__init__()
         rp = rospkg.RosPack()

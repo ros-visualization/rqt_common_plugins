@@ -41,37 +41,41 @@ class CustomFilter(BaseFilter):
     """
     Contains filter logic for the custom filter which allows message, severity,
     node and topic filtering simultaniously. All of these filters must match
-    together or the custom filter does not match
+    together (if they are used) or the custom filter does not match.
     """
 
     def __init__(self):
         super(CustomFilter, self).__init__()
 
         self._message = MessageFilter()
-        self._message.filter_changed_signal.connect(self.relay_emit_signal)
         self._severity = SeverityFilter()
-        self._severity.filter_changed_signal.connect(self.relay_emit_signal)
         self._node = NodeFilter()
-        self._node.filter_changed_signal.connect(self.relay_emit_signal)
         self._topic = TopicFilter()
-        self._topic.filter_changed_signal.connect(self.relay_emit_signal)
+
+        self._all_filters = [self._message, self._severity, self._node, self._topic]
+        for f in self._all_filters:
+            f.filter_changed_signal.connect(self._relay_signal)
 
     def set_enabled(self, checked):
         """
         :signal: emits filter_changed_signal
         :param checked: enables the filters if checked is True''bool''
         """
-        self._message.set_enabled(checked)
-        self._severity.set_enabled(checked)
-        self._node.set_enabled(checked)
-        self._topic.set_enabled(checked)
+        for f in self._all_filters:
+            f.set_enabled(checked)
         super(CustomFilter, self).set_enabled(checked)
 
-    def relay_emit_signal(self):
+    def _relay_signal(self):
         """
         Passes any signals emitted by the child filters along
         """
         self.start_emit_timer(1)
+
+    def has_filter(self):
+        for f in self._all_filters:
+            if f.has_filter():
+                return True
+        return False
 
     def test_message(self, message):
         """
@@ -79,4 +83,11 @@ class CustomFilter(BaseFilter):
         :param message: the message to be tested against the filters, ''Message''
         :returns: True if the message matches all child filters, ''bool''
         """
-        return self._message.test_message(message) and self._severity.test_message(message) and self._node.test_message(message) and self._topic.test_message(message)
+        if not self.is_enabled():
+            return False
+        # if non of the subfilters contains any input the custom filter does not match
+        if not self.has_filter():
+            return False
+        # the custom filter matches when all subfilters which contain input match
+        all_filters = [not f.has_filter() or f.test_message(message) for f in self._all_filters]
+        return False not in all_filters
