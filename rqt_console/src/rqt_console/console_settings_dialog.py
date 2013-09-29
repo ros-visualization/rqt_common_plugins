@@ -36,23 +36,40 @@ import rospkg
 from python_qt_binding import loadUi
 from python_qt_binding.QtGui import QDialog
 
+from rqt_logger_level.logger_level_widget import LoggerLevelWidget
+from rqt_logger_level.logger_level_service_caller import LoggerLevelServiceCaller
 
-class ConsoleSubscriberDialog(QDialog):
+
+class ConsoleSettingsDialog(QDialog):
     """
-    Dialog for use with ConsoleSubscriber class to change the subscribed topic
-    and alter the message buffer size
+    Dialog to change the subscribed topic and alter the message buffer size.
     """
-    def __init__(self, topics, limit):
+    def __init__(self, topics):
         """
         :param topics: list of topics to allow switching, ''list of string''
         :param limit: displayed in the message buffer size spin box, ''int''
         """
-        super(ConsoleSubscriberDialog, self).__init__()
+        super(ConsoleSettingsDialog, self).__init__()
         rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_console'), 'resource', 'console_subscriber_dialog.ui')
+        ui_file = os.path.join(rp.get_path('rqt_console'), 'resource', 'console_settings_dialog.ui')
         loadUi(ui_file, self)
-        topics.sort(reverse=True)
         for topic in topics:
-            if topic[1].find('Log') != -1:
-                self.topic_combo.addItem(topic[0] + ' (' + topic[1] + ')')
-        self.buffer_size_spin.setValue(limit)
+            self.topic_combo.addItem(topic[0] + ' (' + topic[1] + ')', topic[0])
+
+        self._service_caller = LoggerLevelServiceCaller()
+        self._logger_widget = LoggerLevelWidget(self._service_caller)
+        self.levelsLayout.addWidget(self._logger_widget)
+        self.adjustSize()
+
+    def query(self, topic, buffer_size):
+        index = self.topic_combo.findData(topic)
+        if index != -1:
+            self.topic_combo.setCurrentIndex(index)
+        self.buffer_size_spin.setValue(buffer_size)
+        ok = self.exec_()
+        if ok == 1:
+            index = self.topic_combo.currentIndex()
+            if index != -1:
+                topic = self.topic_combo.itemData(index)
+            buffer_size = self.buffer_size_spin.value()
+        return topic, buffer_size

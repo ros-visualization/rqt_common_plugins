@@ -30,116 +30,150 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from message_list import MessageList
-
 from python_qt_binding.QtCore import QAbstractTableModel, QModelIndex, Qt, qWarning
-from python_qt_binding.QtGui import QIcon
+from python_qt_binding.QtGui import QBrush, QIcon
+
+from .message import Message
+from .message_list import MessageList
 
 
 class MessageDataModel(QAbstractTableModel):
+
+    # the column names must match the message attributes
+    columns = ['message', 'severity', 'node', 'stamp', 'topics', 'location']
+
+    severity_colors = {
+        Message.DEBUG: QBrush(Qt.darkCyan),
+        Message.INFO: QBrush(Qt.darkBlue),
+        Message.WARN: QBrush(Qt.darkYellow),
+        Message.ERROR: QBrush(Qt.darkRed),
+        Message.FATAL: QBrush(Qt.red),
+    }
+
     def __init__(self):
         super(MessageDataModel, self).__init__()
         self._messages = MessageList()
-
-        self._insert_message_queue = []
-        self._paused = False
         self._message_limit = 20000
-        self._error_icon = QIcon.fromTheme('dialog-error')
-        self._warning_icon = QIcon.fromTheme('dialog-warning')
         self._info_icon = QIcon.fromTheme('dialog-information')
+        self._warning_icon = QIcon.fromTheme('dialog-warning')
+        self._error_icon = QIcon.fromTheme('dialog-error')
 
     # BEGIN Required implementations of QAbstractTableModel functions
 
     def rowCount(self, parent=None):
-        return len(self._messages.get_message_list())
+        return len(self._messages)
 
     def columnCount(self, parent=None):
-        return self._messages.column_count()
+        return len(MessageDataModel.columns) + 1
 
     def data(self, index, role=None):
         if role is None:
             role = Qt.DisplayRole
-        messagelist = self._messages.get_message_list()
-        if index.row() >= 0 and index.row() < len(messagelist):
-            if index.column() >= 0 and index.column() < messagelist[index.row()].count():
-                elements = self._messages.message_members()
+        if index.row() >= 0 and index.row() < len(self._messages):
+            msg = self._messages[index.row()]
+            if index.column() == 0:
+                if role == Qt.DisplayRole:
+                    return '#%d' % msg.id
+            elif index.column() > 0 and index.column() < len(MessageDataModel.columns) + 1:
+                column = MessageDataModel.columns[index.column() - 1]
                 if role == Qt.DisplayRole or role == Qt.UserRole:
-                    if elements[index.column()] == '_time':
-                        data = messagelist[index.row()].time_as_string()
+                    if column == 'stamp':
+                        if role != Qt.UserRole:
+                            data = msg.get_stamp_string()
+                        else:
+                            data = msg.get_stamp_for_compare()
                     else:
-                        data = getattr(messagelist[index.row()], elements[index.column()])
-                    if role == Qt.UserRole and elements[index.column()] != '_time':
-                        data += ' (%d)' % index.row()
+                        data = getattr(msg, column)
+                    # map severity enum to label
+                    if role == Qt.DisplayRole and column == 'severity':
+                        data = Message.SEVERITY_LABELS[data]
+                    # implode topic names
+                    if column == 'topics':
+                        data = ', '.join(data)
+                    # append row number to define strict order
+                    if role == Qt.UserRole:
+                        # append row number to define strict order
+                        # shortest string representation to compare stamps
+                        #print(column, data, str(index.row()).zfill(len(str(len(self._messages)))))
+                        data = str(data) + ' %08x' % index.row()
                     return data
-                elif role == Qt.DecorationRole and index.column() == 0:
-                    msgseverity = messagelist[index.row()].get_data(1)
-                    if msgseverity in (self.tr('Debug'), self.tr('Info')):
+
+                # decorate message column with severity icon
+                if role == Qt.DecorationRole and column == 'message':
+                    if msg.severity in [Message.DEBUG, Message.INFO]:
                         return self._info_icon
-                    elif msgseverity in (self.tr('Warn')):
+                    elif msg.severity in [Message.WARN]:
                         return self._warning_icon
-                    elif msgseverity in (self.tr('Error'), self.tr('Fatal')):
+                    elif msg.severity in [Message.ERROR, Message.FATAL]:
                         return self._error_icon
-                elif role == Qt.ToolTipRole:
-                    if elements[index.column()] == '_time':
-                        data = messagelist[index.row()].time_as_string()
+
+                # colorize severity label
+                if role == Qt.ForegroundRole and column =='severity':
+                    assert msg.severity in MessageDataModel.severity_colors, 'Unknown severity type: %s' % msg.severity
+                    return MessageDataModel.severity_colors[msg.severity]
+
+                if role == Qt.ToolTipRole and column != 'severity':
+                    if column == 'stamp':
+                        data = msg.get_stamp_string()
+                    elif column == 'topics':
+                        data = ', '.join(msg.topics)
                     else:
-                        data = getattr(messagelist[index.row()], elements[index.column()])
-                    # <FONT> tag enables word wrap by forcing rich text
-                    return '<FONT>' + data + '<br><br>' + self.tr('Right click for menu.') + '</FONT>'
+                        data = getattr(msg, column)
+                    # <font> tag enables word wrap by forcing rich text
+                    return '<font>' + data + '<br/><br/>' + self.tr('Right click for menu.') + '</font>'
 
     def headerData(self, section, orientation, role=None):
         if role is None:
             role = Qt.DisplayRole
-        if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal:
-                sections = self._messages.message_members()
-                retval = sections[section][1:].capitalize()
-                return retval
-            elif orientation == Qt.Vertical:
-                return '#%d' % (section + 1)
+        if orientation == Qt.Horizontal:
+            if role == Qt.DisplayRole:
+                if section == 0:
+                    return self.tr('#')
+                else:
+                    return MessageDataModel.columns[section - 1].capitalize()
+            if role == Qt.ToolTipRole:
+                if section == 0:
+                    return self.tr('Sort the rows by serial number in descendig order')
+                else:
+                    return self.tr('Sorting the table by a column other then the serial number slows down the interaction especially when recording high frequency data')
+
     # END Required implementations of QAbstractTableModel functions
+
+    def get_message_limit(self):
+        return self._message_limit
 
     def set_message_limit(self, new_limit):
         self._message_limit = new_limit
-        self.manage_message_limit()
+        self._enforce_message_limit(self._message_limit)
 
-    def manage_message_limit(self):
-        if len(self.get_message_list()) > self._message_limit:
-            self.beginRemoveRows(QModelIndex(), 0, len(self.get_message_list()) - self._message_limit - 1)
-            del self.get_message_list()[0:len(self.get_message_list()) - self._message_limit]
+    def _enforce_message_limit(self, limit):
+        if len(self._messages) > limit:
+            self.beginRemoveRows(QModelIndex(), limit, len(self._messages) - 1)
+            del self._messages[limit:len(self._messages)]
             self.endRemoveRows()
 
     def insert_rows(self, msgs):
-        """
-        Wraps the insert_row function to minimize gui notification calls
-        """
-        if len(msgs) == 0:
-            return
-        self.beginInsertRows(QModelIndex(), len(self._messages.get_message_list()), len(self._messages.get_message_list()) + len(msgs) - 1)
-        for msg in msgs:
-            self.insert_row(msg, False)
+        # never try to insert more message than the limit
+        if len(msgs) > self._message_limit:
+            msgs = msgs[-self._message_limit:]
+        # reduce model before insert
+        limit = self._message_limit - len(msgs)
+        self._enforce_message_limit(limit)
+        # insert newest messages
+        self.beginInsertRows(QModelIndex(), 0, len(msgs) - 1)
+        self._messages.extend(msgs)
         self.endInsertRows()
-        self.manage_message_limit()
-
-    def insert_row(self, msg, notify_model=True):
-        if notify_model:
-            self.beginInsertRows(QModelIndex(), len(self._messages.get_message_list()), len(self._messages.get_message_list()))
-        self._messages.add_message(msg)
-        if notify_model:
-            self.endInsertRows()
 
     def remove_rows(self, rowlist):
         """
         :param rowlist: list of row indexes, ''list(int)''
         :returns: True if the indexes were removed successfully, ''bool''
-        OR
-        :returns: False if there was an exception removing the rows, ''bool''
         """
         if len(rowlist) == 0:
-            if len(self.get_message_list()) > 0:
+            if len(self._messages) > 0:
                 try:
-                    self.beginRemoveRows(QModelIndex(), 0, len(self.get_message_list()))
-                    del self.get_message_list()[0:len(self.get_message_list())]
+                    self.beginRemoveRows(QModelIndex(), 0, len(self._messages))
+                    del self._messages[0:len(self._messages)]
                     self.endRemoveRows()
                 except:
                     return False
@@ -151,7 +185,7 @@ class MessageDataModel(QAbstractTableModel):
                 if dellist[-1] - 1 > row:
                     try:
                         self.beginRemoveRows(QModelIndex(), dellist[-1], dellist[0])
-                        del self.get_message_list()[dellist[-1]:dellist[0] + 1]
+                        del self._messages[dellist[-1]:dellist[0] + 1]
                         self.endRemoveRows()
                     except:
                         return False
@@ -160,7 +194,7 @@ class MessageDataModel(QAbstractTableModel):
             if len(dellist) > 0:
                 try:
                     self.beginRemoveRows(QModelIndex(), dellist[-1], dellist[0])
-                    del self.get_message_list()[dellist[-1]:dellist[0] + 1]
+                    del self._messages[dellist[-1]:dellist[0] + 1]
                     self.endRemoveRows()
                 except:
                     return False
@@ -177,7 +211,7 @@ class MessageDataModel(QAbstractTableModel):
             text = ''
             rowlist = list(set(rowlist))
             for row in rowlist:
-                text += self.get_message_list()[row].pretty_print()
+                text += self._messages[row].pretty_print()
         return text
 
     def get_time_range(self, rowlist):
@@ -188,80 +222,46 @@ class MessageDataModel(QAbstractTableModel):
         min_ = float("inf")
         max_ = float("-inf")
         for row in rowlist:
-            item = self.get_message_list()[row].time_as_datestamp()
+            item = self._messages[row].time_as_datestamp()
             if float(item) > float(max_):
                 max_ = item
             if float(item) < float(min_):
                 min_ = item
         return min_, max_
 
-    def get_unique_col_data(self, index, separate_topics=True):
-        """
-        :param index: column index, ''int''
-        :param separate_topics: if true separates comma delimited strings into
-        unique rows, ''bool''
-        :returns: list of unique strings in the column, ''list[str]''
-        """
-        if index == 4 and separate_topics:
-            unique_list = set()
-            for topiclists in self._messages.get_unique_col_data(index):
-                for item in topiclists.split(','):
-                    unique_list.add(item.strip())
-            return list(unique_list)
-        return self._messages.get_unique_col_data(index)
+    def get_unique_nodes(self):
+        nodes = set([])
+        for message in self._messages:
+            nodes.add(message.node)
+        return nodes
 
-    def get_severity_list(self):
-        return [self.tr('Debug'), self.tr('Info'), self.tr('Warn'), self.tr('Error'), self.tr('Fatal')]
+    def get_unique_severities(self):
+        severities = set([])
+        for message in self._messages:
+            severities.add(message.severity)
+        return severities
 
-    def get_data(self, row, col):
-        return self._messages.get_data(row, col)
+    def get_unique_topics(self):
+        topics = set([])
+        for message in self._messages:
+            for topic in message.topics:
+                topics.add(topic)
+        return topics
 
-    def message_members(self):
-        return self._messages.message_members()
+    def get_severity_dict(self):
+        return Message.SEVERITY_LABELS
 
-    def load_from_file(self, filehandle):
-        """
-        Saves to an already open filehandle.
-        :returns: True if loaded successfully, ''bool''
-        OR
-        :returns: False if load fails, ''bool''
-        """
-        line = filehandle.readline()
-        lines = []
-        if line == self._messages.header_print():
-            while 1:
-                line = filehandle.readline()
-                if not line:
-                    break
-                while line[-2] != "\"":
-                    newline = filehandle.readline()
-                    if not line:
-                        qWarning('File does not appear to be a rqt_console message file: missing " at end of file')
-                        return False
-                    line = line + newline
-                lines.append(line)
-            self.beginInsertRows(QModelIndex(), len(self._messages.get_message_list()), len(self._messages.get_message_list()) + len(lines) - 1)
-            for line in lines:
-                try:
-                    self._messages.append_from_text(line)
-                except ValueError:
-                    qWarning('File does not appear to be a rqt_console message file: File line is malformed %s' % line)
-            self.endInsertRows()
-            self._paused = True
-            return True
-        else:
-            qWarning('File does not appear to be a rqt_console message file: missing file header.')
-            return False
-
-    def get_message_list(self, start_time=None, end_time=None):
+    def get_message_between(self, start_time, end_time=None):
         """
         :param start_time: time to start in timestamp form (including decimal
-        fractions of a second is acceptable, ''unixtimestamp'' (Optional)
+        fractions of a second is acceptable, ''unixtimestamp''
         :param end_time: time to end in timestamp form (including decimal
         fractions of a second is acceptable, ''unixtimestamp'' (Optional)
         :returns: list of messages in the time range ''list[message]''
         """
-        if start_time is not None:
-            return self._messages.get_messages_in_time_range(start_time, end_time)
-        else:
-            return self._messages.get_message_list()
+        msgs = []
+        for message in self._messages:
+            msg_time = message.stamp[0] + float(message.stamp[1]) / 10**9
+            if msg_time >= float(start_time) and (end_time is None or msg_time <= float(end_time)):
+                msgs.append(message)
+        return msgs

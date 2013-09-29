@@ -35,7 +35,7 @@ import rospkg
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QWidget
+from python_qt_binding.QtGui import QPalette, QWidget
 
 from rqt_py_common.ini_helper import pack, unpack
 
@@ -45,13 +45,11 @@ class ListFilterWidget(QWidget):
     Generic List widget to be used when implementing filters that require
     limited dynamic selections
     """
-    def __init__(self, parentfilter, display_list_args):
+    def __init__(self, parentfilter, item_provider):
         """
         :param parentfilter: The filter object, must implement set_list and
         contain _list ''QObject''
-        :param display_list_args: list of arguments which must contain a
-        function designed to populate a list 'display_list_args[0]' and may
-        contain an optional variable to pass into that function 'display_list_args[1]'
+        :param item_provider: a function designed to provide a list or dict
         """
         super(ListFilterWidget, self).__init__()
         rp = rospkg.RosPack()
@@ -60,10 +58,11 @@ class ListFilterWidget(QWidget):
         self.setObjectName('ListFilterWidget')
         self._parentfilter = parentfilter  # When data is changed we need to store it in the parent filter
 
-        self._list_populate_function = display_list_args[0]
-        self._function_argument = False
-        if len(display_list_args) > 1:
-            self._function_argument = display_list_args[1]
+        # keep color for highlighted items even when not active
+        active_color = self.palette().brush(QPalette.Active, QPalette.Highlight).color().name()
+        self.setStyleSheet('QListWidget:item:selected:!active { background: %s; }' % active_color)
+
+        self._list_populate_function = item_provider
         self.list_widget.itemSelectionChanged.connect(self.handle_item_changed)
         self._display_list = []
         self.repopulate()
@@ -79,44 +78,57 @@ class ListFilterWidget(QWidget):
         self.handle_item_changed()
 
     def handle_item_changed(self):
-        self._parentfilter.set_list(self.list_widget.selectedItems())
+        self._parentfilter.set_selected_items(self.list_widget.selectedItems())
 
     def repopulate(self):
         """
         Repopulates the display widgets based on the function arguments passed
         in during initialization
         """
-        if not self._function_argument is False:
-            newlist = self._list_populate_function(self._function_argument)
-        else:
-            newlist = self._list_populate_function()
+        new_items = self._list_populate_function()
 
-        if len(newlist) != len(self._display_list):
-            for item in newlist:
-                if item not in self._display_list:
-                    self.list_widget.addItem(item)
-        self._display_list = list(set(newlist + self._display_list))
+        new_set = set(new_items.values() if isinstance(new_items, dict) else new_items)
+
+        if len(new_items) != len(self._display_list):
+            if isinstance(new_items, dict):
+                # for dictionaries store the key as user role data
+                for key in sorted(new_items.keys()):
+                    item = new_items[key]
+                    if item not in self._display_list:
+                        self.list_widget.addItem(item)
+                        self.list_widget.item(self.list_widget.count() - 1).setData(Qt.UserRole, key)
+            else:
+                for item in new_items:
+                    if item not in self._display_list:
+                        self._add_item(item)
+        self._display_list = sorted(set(new_set) | set(self._display_list))
+
+    def _add_item(self, item):
+        """
+        Insert item in alphabetical order.
+        """
+        for i in range(self.list_widget.count()):
+            if item <= self.list_widget.item(i).text():
+                self.list_widget.insertItem(i, item)
+                return
+        self.list_widget.addItem(item)
 
     def save_settings(self, settings):
         """
         Saves the settings for this filter.
         :param settings: used to write the settings to an ini file ''qt_gui.settings.Settings''
         """
-        settings.set_value('displist', pack(self._display_list))
-        settings.set_value('itemlist', pack(self._parentfilter._list))
+        settings.set_value('itemlist', pack(self._parentfilter._selected_items))
 
     def restore_settings(self, settings):
         """
         Restores the settings for this filter from an ini file.
         :param settings: used to extract the settings from an ini file ''qt_gui.settings.Settings''
         """
-        self._display_list = unpack(settings.value('displist'))
-        for item in self._display_list:
-            if len(self.list_widget.findItems(item, Qt.MatchExactly)) == 0:
-                self.list_widget.addItem(item)
-
         for index in range(self.list_widget.count()):
             self.list_widget.item(index).setSelected(False)
         item_list = unpack(settings.value('itemlist'))
         for item in item_list:
+            if len(self.list_widget.findItems(item, Qt.MatchExactly)) == 0:
+                self.list_widget.addItem(item)
             self.select_item(item)

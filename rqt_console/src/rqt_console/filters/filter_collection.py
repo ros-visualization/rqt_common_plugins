@@ -30,64 +30,38 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from ..message import Message
-
 
 class FilterCollection:
     """
-    This class provides an interface to filter Message objects based on
-    of a set of filters which will be boolean combined with either 'or'
-    or 'and' based on the combination type passed by the user.
-    ''True'' for and combine and ''False'' for or combine
+    Collection of filters to test messages against.
     """
-    def __init__(self, proxymodel):
-        """
-        :param proxymodel: , ''QSortFilterProxyModel''
-        """
+    def __init__(self):
         self._filters = []
-        self._proxymodel = proxymodel
 
-    def test_message_array(self, message):
+    def test_message(self, message, default=False):
         """
-        test_message function for an array formatted message
-        :param message: array of the message member data in order ''list'':
-                        message text ''str'', severity ''str'', node ''str'',
-                        time in seconds with decimals ''str'', topic ''str'',
-        """
-        newmessage = Message()
-        message = newmessage.load_from_array(message)
-        return self.test_message(message)
-
-    def test_message(self, message):
-        """
-        Tests if the message matches the entire list of filters.
-        if passed an array of the 6 data elements of a message it will build one
+        Test if the message matches any filter.
         :param message: message to be tested against the filters, ''Message''
-        :returns: True if the message matches the filters, ''bool''
+        :param default: return value when there is no active filter, ''bool''
+        :returns: True if the message matches any filter, ''bool''
         """
-        for item in self._filters:
-            if item.is_enabled() and item.test_message(message):
-                return True
-        return False
+        match = default
+        for f in self._filters:
+            if f.is_enabled() and f.has_filter():
+                if f.test_message(message):
+                    return True
+                else:
+                    match = False
+        return match
 
-    def append(self, newfilter):
-        """
-        Adds a new filter to the filter list and returns the index
-        :returns: The index of the filter appended, ''int''
-        """
-        self._filters.append(newfilter)
+    def append(self, filter):
+        self._filters.append(filter)
 
     def count_enabled_filters(self):
-        enabled = 0
-        for item in self._filters:
-            if item.is_enabled():
-                enabled += 1
-        return enabled
+        enabled = [f for f in self._filters if f.is_enabled()]
+        return len(enabled)
 
     def __len__(self):
-        return len(self._filters)
-
-    def count(self):
         return len(self._filters)
 
     def __delitem__(self, index):

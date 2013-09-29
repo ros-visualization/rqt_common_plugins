@@ -30,67 +30,16 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from python_qt_binding.QtCore import QRegExp
-from .base_filter import BaseFilter
+from .message_filter import MessageFilter
 
 
-class LocationFilter(BaseFilter):
+class LocationFilter(MessageFilter):
     """
-    Contains filter logic for a single location filter. If the regex flag is False
-    simple 'is this in that' text matching is used on _text. If the regex flag is True
-    _text is treated as a regular expression with one exception. If it does not
-    start with a ^ a .* is appended, and if it does not end with a $ then a .*
-    is added to the end.
-    The filter_changed signal should be connected to a slot which notifies the
-    overall filtering system that it needs to reevaluate all entries.
+    Contains filter logic for a location filter.
     """
 
     def __init__(self):
         super(LocationFilter, self).__init__()
-        self._text = ''
-        self._regex = False
-
-    def set_text(self, text):
-        """
-        Setter for _text
-        :param text: text to set ''str''
-        :emits filter_changed_signal: If _enabled is true
-        """
-        self._text = text
-        if self.is_enabled():
-            self.start_emit_timer(500)
-
-    def set_regex(self, checked):
-        """
-        Setter for _regex
-        :param checked" boolean flag to set ''bool''
-        :emits filter_changed_signal: If _enabled is true
-        """
-        self._regex = checked
-        if self.is_enabled():
-            self.start_emit_timer(500)
 
     def test_message(self, message):
-        """
-        Tests if the message matches the filter.
-        If the regex flag is False simple 'is this in that' text matching is used
-        on _text. If the regex flag is True _text is treated as a regular expression
-        with one exception. If it does not start with a ^ a .* is appended, and if
-        it does not end with a $ then a .* is added to the end.
-
-        :param message: the message to be tested against the filters, ''Message''
-        :returns: True if the message matches, ''bool''
-        """
-        if self.is_enabled() and self._text != '':
-            if self._regex:
-                temp = self._text
-                if temp[0] != '^':
-                    temp = '.*' + temp
-                if temp[-1] != '$':
-                    temp += '.*'
-                if QRegExp(temp).exactMatch(message._location):
-                    return True
-            else:
-                if message._location.find(self._text) != -1:
-                    return True
-        return False
+        return self._test_message(message.location)

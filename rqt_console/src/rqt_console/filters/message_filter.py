@@ -36,7 +36,7 @@ from .base_filter import BaseFilter
 
 class MessageFilter(BaseFilter):
     """
-    Contains filter logic for a single message filter. If the regex flag is False
+    Contains filter logic for a message filter. If the regex flag is False
     simple 'is this in that' text matching is used on _text. If the regex flag is True
     _text is treated as a regular expression with one exception. If it does not
     start with a ^ a .* is appended, and if it does not end with a $ then a .*
@@ -70,6 +70,9 @@ class MessageFilter(BaseFilter):
         if self.is_enabled():
             self.start_emit_timer(500)
 
+    def has_filter(self):
+        return self._text != ''
+
     def test_message(self, message):
         """
         Tests if the message matches the filter.
@@ -77,20 +80,25 @@ class MessageFilter(BaseFilter):
         on _text. If the regex flag is True _text is treated as a regular expression
         with one exception. If it does not start with a ^ a .* is appended, and if
         it does not end with a $ then a .* is added to the end.
+
         :param message: the message to be tested against the filters, ''Message''
         :returns: True if the message matches, ''bool''
         """
+        return self._test_message(message.message)
 
-        if self.is_enabled() and self._text != '':
+    def _test_message(self, value):
+        if not self.is_enabled():
+            return False
+        if self._text != '':
             if self._regex:
                 temp = self._text
                 if temp[0] != '^':
                     temp = '.*' + temp
                 if temp[-1] != '$':
                     temp += '.*'
-                if QRegExp(temp).exactMatch(message._message):
+                if QRegExp(temp).exactMatch(value):
                     return True
             else:
-                if message._message.find(self._text) != -1:
+                if value.find(self._text) != -1:
                     return True
         return False

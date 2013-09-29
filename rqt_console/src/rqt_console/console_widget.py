@@ -34,8 +34,8 @@ import os
 import rospkg
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QApplication, QCursor, QFileDialog, QIcon, QItemSelectionModel, QMenu, QMessageBox, QTableView, QWidget
-from python_qt_binding.QtCore import QRect, QRegExp, Qt, qWarning
+from python_qt_binding.QtGui import QApplication, QCursor, QFileDialog, QHeaderView,QIcon, QMenu, QMessageBox, QTableView, QWidget
+from python_qt_binding.QtCore import QRegExp, Qt, qWarning
 
 import time
 import datetime
@@ -56,42 +56,50 @@ from .filters.list_filter_widget import ListFilterWidget
 from .filters.text_filter_widget import TextFilterWidget
 from .filters.time_filter_widget import TimeFilterWidget
 
+from .message import Message
+from .message_data_model import MessageDataModel
+
 from .text_browse_dialog import TextBrowseDialog
-
-
-class ConsoleTableView(QTableView):
-    def __init__(self, parent=None):
-        super(ConsoleTableView, self).__init__()
 
 
 class ConsoleWidget(QWidget):
     """
     Primary widget for the rqt_console plugin.
     """
-    def __init__(self, proxymodel, minimal=False):
+    def __init__(self, proxy_model, minimal=False):
         """
         :param proxymodel: the proxy model to display in the widget,''QSortFilterProxyModel''
         :param minimal: if true the load, save and column buttons will be hidden as well as the filter splitter, ''bool''
         """
         super(ConsoleWidget, self).__init__()
+        self._proxy_model = proxy_model
+        self._model = self._proxy_model.sourceModel()
+        self._paused = False
+
+        # These are lists of Tuples = (,)
+        self._exclude_filters = []
+        self._highlight_filters = []
 
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_console'), 'resource', 'console_widget.ui')
-        loadUi(ui_file, self, {'ConsoleTableView': ConsoleTableView})
+        loadUi(ui_file, self)
 
         if minimal:
             self.load_button.hide()
             self.save_button.hide()
             self.column_resize_button.hide()
         self.setObjectName('ConsoleWidget')
-        self.table_view.setModel(proxymodel)
-        self._proxymodel = proxymodel
-        self._datamodel = proxymodel.sourceModel()
+        self.table_view.setModel(proxy_model)
 
-        self._columnwidth = (600, 140, 200, 200, 200, 600)
+        self._columnwidth = (60, 100, 70, 100, 100, 100, 100)
         for idx, width in enumerate(self._columnwidth):
             self.table_view.horizontalHeader().resizeSection(idx, width)
-        self.table_view.sortByColumn(3, Qt.DescendingOrder)
+
+        def update_sort_indicator(logical_index, order):
+            if logical_index == 0:
+                self._proxy_model.sort(-1)
+            self.table_view.horizontalHeader().setSortIndicatorShown(logical_index != 0)
+        self.table_view.horizontalHeader().sortIndicatorChanged.connect(update_sort_indicator)
 
         self.add_exclude_button.setIcon(QIcon.fromTheme('list-add'))
         self.add_highlight_button.setIcon(QIcon.fromTheme('list-add'))
@@ -111,13 +119,8 @@ class ConsoleWidget(QWidget):
         self.table_view.mouseDoubleClickEvent = self._handle_mouse_double_click
         self.table_view.mousePressEvent = self._handle_mouse_press
         self.table_view.keyPressEvent = self._handle_custom_keypress
-        self.severitylist = self._datamodel.get_severity_list()
 
-        # These are lists of Tuples = (,)
-        self._exclude_filters = []
-        self._highlight_filters = []
-
-        self.highlight_exclude_button.clicked[bool].connect(self._proxymodel.set_show_highlighted_only)
+        self.highlight_exclude_button.clicked[bool].connect(self._proxy_model.set_show_highlighted_only)
 
         self.add_highlight_button.clicked.connect(self._add_highlight_filter)
         self.add_exclude_button.clicked.connect(self._add_exclude_filter)
@@ -125,19 +128,25 @@ class ConsoleWidget(QWidget):
         # Filter factory dictionary:
         # index 0 is a label describing the widget, index 1 is the class that provides filtering logic
         # index 2 is the widget that sets the data in the filter class, index 3 are the arguments for the widget class constructor
-        self.filter_factory = {'message': (self.tr('...containing'), MessageFilter, TextFilterWidget, []),
-                               'severity': (self.tr('...with severities'), SeverityFilter, ListFilterWidget, [self._datamodel.get_severity_list]),
-                               'node': (self.tr('...from node'), NodeFilter, ListFilterWidget, [self._datamodel.get_unique_col_data, 2]),
-                               'time': (self.tr('...from time range'), TimeFilter, TimeFilterWidget, [self.get_time_range_from_selection]),
-                               'topic': (self.tr('...from topic'), TopicFilter, ListFilterWidget, [self._datamodel.get_unique_col_data, 4]),
-                               'location': (self.tr('...from location'), LocationFilter, TextFilterWidget, []),
-                               'custom': (self.tr('Custom'), CustomFilter, CustomFilterWidget, [self._datamodel.get_severity_list, self._datamodel.get_unique_col_data, 2, self._datamodel.get_unique_col_data, 4])}
+        self._filter_factory_order = ['message', 'severity', 'node', 'time', 'topic', 'location', 'custom']
+        self.filter_factory = {'message': (self.tr('...containing'), MessageFilter, TextFilterWidget),
+                               'severity': (self.tr('...with severities'), SeverityFilter, ListFilterWidget, self._model.get_severity_dict),
+                               'node': (self.tr('...from node'), NodeFilter, ListFilterWidget, self._model.get_unique_nodes),
+                               'time': (self.tr('...from time range'), TimeFilter, TimeFilterWidget, self.get_time_range_from_selection),
+                               'topic': (self.tr('...from topic'), TopicFilter, ListFilterWidget, self._model.get_unique_topics),
+                               'location': (self.tr('...from location'), LocationFilter, TextFilterWidget),
+                               'custom': (self.tr('Custom'), CustomFilter, CustomFilterWidget, [self._model.get_severity_dict, self._model.get_unique_nodes, self._model.get_unique_topics])}
+
+        self._model.rowsInserted.connect(self.update_status)
+        self._model.rowsRemoved.connect(self.update_status)
+        self._proxy_model.rowsInserted.connect(self.update_status)
+        self._proxy_model.rowsRemoved.connect(self.update_status)
 
         # list of TextBrowserDialogs to close when cleaning up
         self._browsers = []
 
         # This defaults the filters panel to start by taking 50% of the available space
-        if(minimal):
+        if minimal:
             self.table_splitter.setSizes([1, 0])
         else:
             self.table_splitter.setSizes([1, 1])
@@ -160,7 +169,7 @@ class ConsoleWidget(QWidget):
         else:
             end_time = None
 
-        message_subset = self._datamodel.get_message_list(start_time, end_time)
+        message_subset = self._model.get_message_between(start_time, end_time)
 
         class Message_Summary(object):
             __slots__ = 'fatal', 'error', 'warn', 'info', 'debug'
@@ -172,17 +181,18 @@ class ConsoleWidget(QWidget):
                 self.info = 0
                 self.debug = 0
                 for message in messages:
-                    severity = message.get_data(1)
-                    if severity == 'Debug':
+                    if message.severity == Message.DEBUG:
                         self.debug += 1
-                    elif severity == 'Info':
+                    elif message.severity == Message.INFO:
                         self.info += 1
-                    elif severity == 'Warn':
+                    elif message.severity == Message.WARN:
                         self.warn += 1
-                    elif severity == 'Error':
+                    elif message.severity == Message.ERROR:
                         self.error += 1
-                    elif severity == 'Fatal':
+                    elif message.severity == Message.FATAL:
                         self.fatal += 1
+                    else:
+                        assert False, "Unknown severity type '%s'" % str(message.severity)
 
         return Message_Summary(message_subset)
 
@@ -194,10 +204,10 @@ class ConsoleWidget(QWidget):
         indexes = self.table_view.selectionModel().selectedIndexes()
 
         if indexes:
-            rowlist = [self._proxymodel.mapToSource(current).row() for current in indexes]
+            rowlist = [self._proxy_model.mapToSource(current).row() for current in indexes]
             rowlist = sorted(list(set(rowlist)))
 
-            mintime, maxtime = self._datamodel.get_time_range(rowlist)
+            mintime, maxtime = self._model.get_time_range(rowlist)
             return (mintime, maxtime)
         return (-1, -1)
 
@@ -207,12 +217,12 @@ class ConsoleWidget(QWidget):
         """
         for index, item in enumerate(self._highlight_filters):
             if item[1].delete_button.isChecked():
-                if self._proxymodel.delete_highlight_filter(index):
-                    self.highlight_table.removeCellWidget(index, 0)
-                    self.highlight_table.removeRow(index)
-                    item[0].filter_changed_signal.disconnect(self._proxymodel.handle_filters_changed)
-                    item[1].delete_button.clicked.disconnect(self._delete_highlight_filter)
-                    del self._highlight_filters[index]
+                self._proxy_model.delete_highlight_filter(index)
+                self.highlight_table.removeCellWidget(index, 0)
+                self.highlight_table.removeRow(index)
+                item[0].filter_changed_signal.disconnect(self._proxy_model.handle_highlight_filters_changed)
+                item[1].delete_button.clicked.disconnect(self._delete_highlight_filter)
+                del self._highlight_filters[index]
 
     def _delete_exclude_filter(self):
         """
@@ -220,12 +230,12 @@ class ConsoleWidget(QWidget):
         """
         for index, item in enumerate(self._exclude_filters):
             if item[1].delete_button.isChecked():
-                if self._proxymodel.delete_exclude_filter(index):
-                    self.exclude_table.removeCellWidget(index, 0)
-                    self.exclude_table.removeRow(index)
-                    item[0].filter_changed_signal.disconnect(self._proxymodel.handle_filters_changed)
-                    item[1].delete_button.clicked.disconnect(self._delete_exclude_filter)
-                    del self._exclude_filters[index]
+                self._proxy_model.delete_exclude_filter(index)
+                self.exclude_table.removeCellWidget(index, 0)
+                self.exclude_table.removeRow(index)
+                item[0].filter_changed_signal.disconnect(self._proxy_model.handle_exclude_filters_changed)
+                item[1].delete_button.clicked.disconnect(self._delete_exclude_filter)
+                del self._exclude_filters[index]
 
     def _add_highlight_filter(self, filter_index=False):
         """
@@ -239,14 +249,14 @@ class ConsoleWidget(QWidget):
         if filter_index is False:
             filter_index = -1
             filter_select_menu = QMenu()
-            for index, item in self.filter_factory.items():
+            for index in self._filter_factory_order:
                 # flattens the _highlight filters list and only adds the item if it doesn't already exist
-                if index == 'message' or not self.filter_factory[index][1] in [type(item) for sublist in self._highlight_filters for item in sublist]:
+                if index in ['message', 'location'] or not self.filter_factory[index][1] in [type(item) for sublist in self._highlight_filters for item in sublist]:
                     filter_select_menu.addAction(self.filter_factory[index][0])
             action = filter_select_menu.exec_(QCursor.pos())
             if action is None:
                 return
-            for index, item in self.filter_factory.items():
+            for index in self._filter_factory_order:
                 if self.filter_factory[index][0] == action.text():
                     filter_index = index
             if filter_index == -1:
@@ -254,14 +264,17 @@ class ConsoleWidget(QWidget):
 
         index = len(self._highlight_filters)
         newfilter = self.filter_factory[filter_index][1]()
-        newwidget = self.filter_factory[filter_index][2](newfilter, self.filter_factory[filter_index][3])
+        if len(self.filter_factory[filter_index]) >= 4:
+            newwidget = self.filter_factory[filter_index][2](newfilter, self.filter_factory[filter_index][3])
+        else:
+            newwidget = self.filter_factory[filter_index][2](newfilter)
 
         # pack the new filter tuple onto the filter list
         self._highlight_filters.append((newfilter, FilterWrapperWidget(newwidget, self.filter_factory[filter_index][0]), filter_index))
-        self._proxymodel.add_highlight_filter(newfilter)
-        newfilter.filter_changed_signal.connect(self._proxymodel.handle_filters_changed)
+        self._proxy_model.add_highlight_filter(newfilter)
+        newfilter.filter_changed_signal.connect(self._proxy_model.handle_highlight_filters_changed)
         self._highlight_filters[index][1].delete_button.clicked.connect(self._delete_highlight_filter)
-        self._datamodel.rowsInserted.connect(self._highlight_filters[index][1].repopulate)
+        self._model.rowsInserted.connect(self._highlight_filters[index][1].repopulate)
 
         # place the widget in the proper location
         self.highlight_table.insertRow(index)
@@ -283,14 +296,14 @@ class ConsoleWidget(QWidget):
         if filter_index is False:
             filter_index = -1
             filter_select_menu = QMenu()
-            for index, item in self.filter_factory.items():
+            for index in self._filter_factory_order:
                 # flattens the _exclude filters list and only adds the item if it doesn't already exist
-                if  index == 'message' or not self.filter_factory[index][1] in [type(item) for sublist in self._exclude_filters for item in sublist]:
+                if index in ['message', 'location'] or not self.filter_factory[index][1] in [type(item) for sublist in self._exclude_filters for item in sublist]:
                     filter_select_menu.addAction(self.filter_factory[index][0])
             action = filter_select_menu.exec_(QCursor.pos())
             if action is None:
                 return None
-            for index, item in self.filter_factory.items():
+            for index in self._filter_factory_order:
                 if self.filter_factory[index][0] == action.text():
                     filter_index = index
             if filter_index == -1:
@@ -298,14 +311,17 @@ class ConsoleWidget(QWidget):
 
         index = len(self._exclude_filters)
         newfilter = self.filter_factory[filter_index][1]()
-        newwidget = self.filter_factory[filter_index][2](newfilter, self.filter_factory[filter_index][3])
+        if len(self.filter_factory[filter_index]) >= 4:
+            newwidget = self.filter_factory[filter_index][2](newfilter, self.filter_factory[filter_index][3])
+        else:
+            newwidget = self.filter_factory[filter_index][2](newfilter)
 
         # pack the new filter tuple onto the filter list
         self._exclude_filters.append((newfilter, FilterWrapperWidget(newwidget, self.filter_factory[filter_index][0]), filter_index))
-        self._proxymodel.add_exclude_filter(newfilter)
-        newfilter.filter_changed_signal.connect(self._proxymodel.handle_filters_changed)
+        self._proxy_model.add_exclude_filter(newfilter)
+        newfilter.filter_changed_signal.connect(self._proxy_model.handle_exclude_filters_changed)
         self._exclude_filters[index][1].delete_button.clicked.connect(self._delete_exclude_filter)
-        self._datamodel.rowsInserted.connect(self._exclude_filters[index][1].repopulate)
+        self._model.rowsInserted.connect(self._exclude_filters[index][1].repopulate)
 
         # place the widget in the proper location
         self.exclude_table.insertRow(index)
@@ -342,13 +358,11 @@ class ConsoleWidget(QWidget):
                 if exclude:
                     filter_index = self._add_exclude_filter(selectiontype.lower())
                     filter_widget = self._exclude_filters[filter_index][1].findChildren(QWidget, QRegExp('.*FilterWidget.*'))[0]
-                    filter_widget.set_regex(True)
-                    filter_widget.set_text('^' + message + '$')
                 else:
                     filter_index = self._add_highlight_filter(col)
                     filter_widget = self._highlight_filters[filter_index][1].findChildren(QWidget, QRegExp('.*FilterWidget.*'))[0]
-                    filter_widget.set_regex(True)
-                    filter_widget.set_text('^' + message + '$')
+                filter_widget.set_regex(True)
+                filter_widget.set_text('^' + message + '$')
 
         else:
             if exclude:
@@ -381,20 +395,12 @@ class ConsoleWidget(QWidget):
         from the passed in datamodel and then launches it modally
         :param event: the mouse event object, ''QMouseEvent''
         """
-        severities = self._datamodel.get_unique_col_data(1)
-        nodes = self._datamodel.get_unique_col_data(2)
-        topics = self._datamodel.get_unique_col_data(4)
-        temp = []
-        for topic in topics:
-            if topic.find(', ') == -1:
-                temp.append(topic)
-            else:
-                temp = temp + topic.split(', ')
-        topics = list(set(temp))
-
-        columns = list(self._datamodel.message_members())
-        for index in range(len(columns)):
-            columns[index] = [columns[index][1:].capitalize()]
+        severities = {}
+        for severity, label in Message.SEVERITY_LABELS.items():
+            if severity in self._model.get_unique_severities():
+                severities[severity] = label
+        nodes = sorted(self._model.get_unique_nodes())
+        topics = sorted(self._model.get_unique_topics())
 
         # menutext entries turned into
         menutext = []
@@ -412,8 +418,13 @@ class ConsoleWidget(QWidget):
                 for subitem in item[1]:
                     if len(subitem) > 1:
                         subsubmenus.append(QMenu(subitem[0], submenus[-1]))
-                        for subsubitem in subitem[1]:
-                            subsubmenus[-1].addAction(subsubitem)
+                        if isinstance(subitem[1], dict):
+                            for key in sorted(subitem[1].keys()):
+                                action = subsubmenus[-1].addAction(subitem[1][key])
+                                action.setData(key)
+                        else:
+                            for subsubitem in subitem[1]:
+                                subsubmenus[-1].addAction(subsubitem)
                         submenus[-1].addMenu(subsubmenus[-1])
                     else:
                         submenus[-1].addAction(subitem[0])
@@ -429,8 +440,8 @@ class ConsoleWidget(QWidget):
         elif action.text() == self.tr('Copy Selected'):
             rowlist = []
             for current in self.table_view.selectionModel().selectedIndexes():
-                rowlist.append(self._proxymodel.mapToSource(current).row())
-            copytext = self._datamodel.get_selected_text(rowlist)
+                rowlist.append(self._proxy_model.mapToSource(current).row())
+            copytext = self._model.get_selected_text(rowlist)
             if copytext is not None:
                 clipboard = QApplication.clipboard()
                 clipboard.setText(copytext)
@@ -454,16 +465,15 @@ class ConsoleWidget(QWidget):
                 self._process_highlight_exclude_filter(action.text(), action.parentWidget().title(), True)
             else:
                 raise RuntimeError("Unknown Root Action %s selected in ConsoleWidget._rightclick_menu()" % roottitle)
-        self.update_status()
 
     def update_status(self):
         """
         Sets the message display label to the current value
         """
-        if self._datamodel.rowCount() == self._proxymodel.rowCount():
-            tip = self.tr('Displaying %d messages') % (self._datamodel.rowCount())
+        if self._model.rowCount() == self._proxy_model.rowCount():
+            tip = self.tr('Displaying %d messages') % (self._model.rowCount())
         else:
-            tip = self.tr('Displaying %d of %d messages') % (self._proxymodel.rowCount(), self._datamodel.rowCount())
+            tip = self.tr('Displaying %d of %d messages') % (self._proxy_model.rowCount(), self._model.rowCount())
         self.messages_label.setText(tip)
 
     def cleanup_browsers_on_close(self):
@@ -473,28 +483,117 @@ class ConsoleWidget(QWidget):
     def _show_browsers(self):
         rowlist = []
         for current in self.table_view.selectionModel().selectedIndexes():
-            rowlist.append(self._proxymodel.mapToSource(current).row())
-        browsetext = self._datamodel.get_selected_text(rowlist)
+            rowlist.append(self._proxy_model.mapToSource(current).row())
+        browsetext = self._model.get_selected_text(rowlist)
         if browsetext is not None:
             self._browsers.append(TextBrowseDialog(browsetext))
             self._browsers[-1].show()
 
     def _handle_clear_button_clicked(self, checked):
-        self._datamodel.remove_rows([])
+        self._model.remove_rows([])
+        Message._next_id = 1
 
     def _handle_load_clicked(self, checked):
         filename = QFileDialog.getOpenFileName(self, self.tr('Load from File'), '.', self.tr('rqt_console message file {.csv} (*.csv)'))
         if filename[0] != '':
             try:
-                handle = open(filename[0])
+                with open(filename[0], 'r') as h:
+                    lines = h.read().splitlines()
             except IOError as e:
                 qWarning(str(e))
-                return
-            self.pause_button.setChecked(True)
-            self._handle_pause_clicked(True)
-            self._datamodel.load_from_file(handle)
-            handle.close()
-            self.update_status()
+                return False
+
+            # extract column header
+            columns = lines[0].split(';')
+            if len(lines) < 2:
+                return True
+
+            # join wrapped lines
+            rows = []
+            last_wrapped = False
+            for line in lines[1:]:
+                # ignore empty lines
+                if not line:
+                    continue
+                # check for quotes and remove them
+                if line == '"':
+                    has_prefix = not last_wrapped
+                    has_suffix = last_wrapped
+                    line = ''
+                else:
+                    has_prefix = line[0] == '"'
+                    if has_prefix:
+                        line = line[1:]
+                    has_suffix = line[-1] == '"'
+                    if has_suffix:
+                        line = line[:-1]
+
+                # ignore line without prefix if previous line was not wrapped
+                if not has_prefix and not last_wrapped:
+                    continue
+                # remove wrapped line which is not continued on the next line
+                if last_wrapped and has_prefix:
+                    rows.pop()
+
+                # add/append lines
+                if last_wrapped:
+                    rows[-1] += line
+                else:
+                    # add line without quote prefix
+                    rows.append(line)
+
+                last_wrapped = not has_suffix
+
+            # generate message for each row
+            messages = []
+            skipped = []
+            for row in rows:
+                data = row.split('";"')
+                msg = Message()
+                msg.set_stamp_format('hh:mm:ss.ZZZ (yyyy-MM-dd)')
+                for i, column in enumerate(columns):
+                    value = data[i]
+                    if column == 'message':
+                        msg.message = value.replace('\\"', '"')
+                    elif column == 'severity':
+                        msg.severity = int(value)
+                        if msg.severity not in Message.SEVERITY_LABELS:
+                            skipped.append('Unknown severity value: %s' % value)
+                            msg = None
+                            break
+                    elif column == 'stamp':
+                        parts = value.split('.')
+                        if len(parts) != 2:
+                            skipped.append('Unknown timestamp format: %s' % value)
+                            msg = None
+                            break
+                        msg.stamp = (int(parts[0]), int(parts[1]))
+                    elif column == 'topics':
+                        msg.topics = value.split(',')
+                    elif column == 'node':
+                        msg.node = value
+                    elif column == 'location':
+                        msg.location = value
+                    else:
+                        skipped.append('Unknown column: %s' % column)
+                        msg = None
+                        break
+                if msg:
+                    messages.append(msg)
+            if skipped:
+                qWarning('Skipped %d rows since they do not appear to be in rqt_console message file format:\n- %s' % (len(skipped), '\n- '.join(skipped)))
+
+            if messages:
+                self._model.insert_rows(messages)
+
+                self.pause_button.setChecked(True)
+                self._handle_pause_clicked(True)
+
+            return True
+
+        else:
+            qWarning('File does not appear to be a rqt_console message file: missing file header.')
+            return False
 
     def _handle_save_clicked(self, checked):
         filename = QFileDialog.getSaveFileName(self, 'Save to File', '.', self.tr('rqt_console msg file {.csv} (*.csv)'))
@@ -507,13 +606,32 @@ class ConsoleWidget(QWidget):
             except IOError as e:
                 qWarning(str(e))
                 return
-            self._proxymodel.save_to_file(handle)
-            handle.close()
-            self.update_status()
+            try:
+                handle.write(';'.join(MessageDataModel.columns) + '\n')
+                for index in range(self._proxy_model.rowCount()):
+                    row = self._proxy_model.mapToSource(self._proxy_model.index(index, 0)).row()
+                    msg = self._model._messages[row]
+                    data = {}
+                    data['message'] = msg.message.replace('"', '\\"')
+                    data['severity'] = str(msg.severity)
+                    data['node'] = msg.node
+                    data['stamp'] = str(msg.stamp[0]) + '.' + str(msg.stamp[1]).zfill(9)
+                    data['topics'] = ','.join(msg.topics)
+                    data['location'] = msg.location
+                    line = []
+                    for column in MessageDataModel.columns:
+                        line.append('"%s"' % data[column])
+                    handle.write(';'.join(line) + '\n')
+            except Exception as e:
+                qWarning('File save failed: %s' % str(e))
+                return False
+            finally:
+                handle.close()
+            return True
 
     def _handle_pause_clicked(self, checked):
-        self._datamodel._paused = checked
-        if self._datamodel._paused:
+        self._paused = checked
+        if self._paused:
             self.pause_button.setIcon(self._recordicon)
             self.pause_button.setText(self.tr('Resume'))
         else:
@@ -526,22 +644,21 @@ class ConsoleWidget(QWidget):
     def _delete_selected_rows(self):
         rowlist = []
         for current in self.table_view.selectionModel().selectedIndexes():
-            rowlist.append(self._proxymodel.mapToSource(current).row())
+            rowlist.append(self._proxy_model.mapToSource(current).row())
         rowlist = list(set(rowlist))
-        return self._datamodel.remove_rows(rowlist)
+        return self._model.remove_rows(rowlist)
 
     def _handle_custom_keypress(self, event, old_keyPressEvent=QTableView.keyPressEvent):
         """
         Handles the delete key.
         The delete key removes the tableview's selected rows from the datamodel
         """
-        if event.key() == Qt.Key_Delete and len(self._datamodel.get_message_list()) > 0:
+        if event.key() == Qt.Key_Delete and len(self._model._messages) > 0:
             delete = QMessageBox.Yes
             if len(self.table_view.selectionModel().selectedIndexes()) == 0:
                 delete = QMessageBox.question(self, self.tr('Message'), self.tr("Are you sure you want to delete all messages?"), QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if delete == QMessageBox.Yes and event.key() == Qt.Key_Delete and event.modifiers() == Qt.NoModifier:
                 if self._delete_selected_rows():
-                    self.update_status()
                     event.accept()
         return old_keyPressEvent(self.table_view, event)
 
@@ -563,6 +680,7 @@ class ConsoleWidget(QWidget):
         instance_settings.set_value('table_splitter', self.table_splitter.saveState())
         instance_settings.set_value('filter_splitter', self.filter_splitter.saveState())
 
+        instance_settings.set_value('paused', self.pause_button.isChecked())
         instance_settings.set_value('show_highlighted_only', self.highlight_exclude_button.isChecked())
 
         exclude_filters = []
@@ -578,20 +696,20 @@ class ConsoleWidget(QWidget):
             filter_settings = instance_settings.get_settings('highlight_filter_' + str(index))
             item[1].save_settings(filter_settings)
         instance_settings.set_value('highlight_filters', pack(highlight_filters))
-        instance_settings.set_value('message_limit', self._datamodel._message_limit)
+        instance_settings.set_value('message_limit', self._model.get_message_limit())
 
     def restore_settings(self, pluggin_settings, instance_settings):
         if instance_settings.contains('table_splitter'):
             self.table_splitter.restoreState(instance_settings.value('table_splitter'))
-        else:
-            self.table_splitter.setSizes([1000, 100])
         if instance_settings.contains('filter_splitter'):
             self.filter_splitter.restoreState(instance_settings.value('filter_splitter'))
         else:
-            self.table_splitter.setSizes([500, 500])
+            self.filter_splitter.setSizes([1, 1])
 
+        self.pause_button.setChecked(instance_settings.value('paused') in [True, 'true'])
+        self._handle_pause_clicked(self.pause_button.isChecked())
         self.highlight_exclude_button.setChecked(instance_settings.value('show_highlighted_only') in [True, 'true'])
-        self._proxymodel.set_show_highlighted_only(self.highlight_exclude_button.isChecked())
+        self._proxy_model.set_show_highlighted_only(self.highlight_exclude_button.isChecked())
 
         for item in self._exclude_filters:
             item[1].delete_button.setChecked(True)
@@ -620,4 +738,4 @@ class ConsoleWidget(QWidget):
             self._add_highlight_filter('message')
 
         if instance_settings.contains('message_limit'):
-            self._datamodel._message_limit = int(instance_settings.value('message_limit'))
+            self._model.set_message_limit(int(instance_settings.value('message_limit')))

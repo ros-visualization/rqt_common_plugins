@@ -30,12 +30,16 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from rosgraph_msgs.msg import Log
+import rospy
+
 from python_qt_binding.QtCore import QMutex, QMutexLocker, QTimer
 
 from qt_gui.plugin import Plugin
 
-from .console_subscriber import ConsoleSubscriber
+from .console_settings_dialog import ConsoleSettingsDialog
 from .console_widget import ConsoleWidget
+from .message import Message
 from .message_data_model import MessageDataModel
 from .message_proxy_model import MessageProxyModel
 
@@ -52,54 +56,81 @@ class Console(Plugin):
         super(Console, self).__init__(context)
         self.setObjectName('Console')
 
-        self._datamodel = MessageDataModel()
-        self._proxymodel = MessageProxyModel()
-        self._proxymodel.setSourceModel(self._datamodel)
+        self._model = MessageDataModel()
+        self._proxy_model = MessageProxyModel()
+        self._proxy_model.setSourceModel(self._model)
 
-        self._mainwindow = ConsoleWidget(self._proxymodel)
+        self._widget = ConsoleWidget(self._proxy_model)
         if context.serial_number() > 1:
-            self._mainwindow.setWindowTitle(self._mainwindow.windowTitle() + (' (%d)' % context.serial_number()))
-        context.add_widget(self._mainwindow)
+            self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
+        context.add_widget(self._widget)
 
-        self._consolesubscriber = ConsoleSubscriber(self.message_callback)
-
-        # Timer and Mutex for flushing recieved messages to datamodel.
-        # Required since QSortProxyModel can not handle a high insert rate
+        # queue to store incoming data which get flushed periodically to the model
+        # required since QSortProxyModel can not handle a high insert rate
+        self._message_queue = []
         self._mutex = QMutex()
         self._timer = QTimer()
         self._timer.timeout.connect(self.insert_messages)
         self._timer.start(100)
 
+        self._subscriber = None
+        self._topic = '/rosout_agg'
+        self._subscribe(self._topic)
+
+    def queue_message(self, log_msg):
+        """
+        Callback for adding an incomming message to the queue.
+        """
+        if not self._widget._paused:
+            msg = Console.convert_rosgraph_log_message(log_msg)
+            with QMutexLocker(self._mutex):
+                self._message_queue.append(msg)
+
+    @staticmethod
+    def convert_rosgraph_log_message(log_msg):
+        msg = Message()
+        msg.set_stamp_format('hh:mm:ss.ZZZ (yyyy-MM-dd)')
+        msg.message = log_msg.msg
+        msg.severity = log_msg.level
+        msg.node = log_msg.name
+        msg.stamp = (log_msg.header.stamp.secs, log_msg.header.stamp.nsecs)
+        msg.topics = sorted(log_msg.topics)
+        msg.location = log_msg.file + ':' + log_msg.function + ':' + str(log_msg.line)
+        return msg
+
     def insert_messages(self):
         """
-        Callback for flushing incoming Log messages from the queue to the datamodel
+        Callback for flushing incoming Log messages from the queue to the model.
         """
         with QMutexLocker(self._mutex):
-            msgs = self._datamodel._insert_message_queue
-            self._datamodel._insert_message_queue = []
-        self._datamodel.insert_rows(msgs)
-        self._mainwindow.update_status()
-
-    def message_callback(self, msg):
-        """
-        Callback for adding an incomming message to the queue
-        """
-        if not self._datamodel._paused:
-            with QMutexLocker(self._mutex):
-                self._datamodel._insert_message_queue.append(msg)
+            msgs = self._message_queue
+            self._message_queue = []
+        if msgs:
+            self._model.insert_rows(msgs)
 
     def shutdown_plugin(self):
-        self._consolesubscriber.unsubscribe_topic()
+        self._subscriber.unregister()
         self._timer.stop()
-        self._mainwindow.cleanup_browsers_on_close()
+        self._widget.cleanup_browsers_on_close()
 
     def save_settings(self, plugin_settings, instance_settings):
-        self._mainwindow.save_settings(plugin_settings, instance_settings)
+        self._widget.save_settings(plugin_settings, instance_settings)
 
     def restore_settings(self, plugin_settings, instance_settings):
-        self._mainwindow.restore_settings(plugin_settings, instance_settings)
+        self._widget.restore_settings(plugin_settings, instance_settings)
 
     def trigger_configuration(self):
-        self._consolesubscriber.set_message_limit(self._datamodel._message_limit)
-        if self._consolesubscriber.show_dialog():
-            self._datamodel.set_message_limit(self._consolesubscriber.get_message_limit())
+        topics = [t for t in rospy.get_published_topics() if t[1] == 'rosgraph_msgs/Log']
+        topics.sort(key=lambda tup: tup[0])
+        dialog = ConsoleSettingsDialog(topics)
+        (topic, message_limit) = dialog.query(self._topic, self._model.get_message_limit())
+        if topic != self._topic:
+            self._subscribe(topic)
+        if message_limit != self._model.get_message_limit():
+            self._model.set_message_limit(message_limit)
+
+    def _subscribe(self, topic):
+        if self._subscriber:
+            self._subscriber.unregister()
+        self._subscriber = rospy.Subscriber(topic, Log, self.queue_message)
+        self._currenttopic = topic

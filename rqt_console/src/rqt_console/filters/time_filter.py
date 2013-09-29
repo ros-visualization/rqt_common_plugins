@@ -36,7 +36,7 @@ from .base_filter import BaseFilter
 
 class TimeFilter(BaseFilter):
     """
-    Contains filter logic for a single time filter
+    Contains filter logic for a time filter.
     If _stop_time_enabled is true then the message's time value must be between the dates provided
     to be considered a match
     If _stop_time_enabled is false then the time must simply be after _start_time
@@ -78,6 +78,9 @@ class TimeFilter(BaseFilter):
         if self.is_enabled():
             self.start_emit_timer()
 
+    def has_filter(self):
+        return True
+
     def test_message(self, message):
         """
         Tests if the message matches the filter.
@@ -87,7 +90,9 @@ class TimeFilter(BaseFilter):
         :param message: the message to be tested against the filters, ''Message''
         :returns: True if the message matches, ''bool''
         """
-        message_time = message._time
+        if not self.is_enabled():
+            return False
+        message_time = message.get_stamp_as_qdatetime()
         if message_time < self._start_time:
             return False
         if self._stop_time_enabled and self._stop_time < message_time:
