@@ -180,7 +180,7 @@ class TopicWidget(QWidget):
                 if topic_name not in self._topics or \
                    self._topics[topic_name]['type'] != topic_type:
                     # create new TopicInfo
-                    topic_info = TopicInfo(topic_name)
+                    topic_info = TopicInfo(topic_name, topic_type)
                     # if successful, add it to the dict and tree view
                     if topic_info._topic_name:
                         topic_item = self._recursive_create_widget_items(

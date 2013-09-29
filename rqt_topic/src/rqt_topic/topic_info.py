@@ -36,13 +36,14 @@ from StringIO import StringIO
 
 from python_qt_binding.QtCore import qWarning
 
+import roslib
 import rospy
-from rostopic import get_topic_class, ROSTopicHz
+from rostopic import ROSTopicHz
 
 
 class TopicInfo(ROSTopicHz):
 
-    def __init__(self, topic_name):
+    def __init__(self, topic_name, topic_type):
         super(TopicInfo, self).__init__(100)
         self._subscriber = None
         self.monitoring = False
@@ -50,8 +51,8 @@ class TopicInfo(ROSTopicHz):
         self.message_class = None
         self._topic_name = None
         try:
-            self.message_class, self._topic_name, _ = \
-                                                   get_topic_class(topic_name)
+            self.message_class = roslib.message.get_message_class(topic_type)
+            self._topic_name = topic_name
         except Exception as e:
             self.message_class = None
             self._topic_name = None
