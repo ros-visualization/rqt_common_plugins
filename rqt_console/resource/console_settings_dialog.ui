@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ConsoleSubscriberDialog</class>
- <widget class="QDialog" name="ConsoleSubscriberDialog">
+ <class>ConsoleSettingsDialog</class>
+ <widget class="QDialog" name="ConsoleSettingsDialog">
   <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>368</width>
-    <height>119</height>
+    <height>123</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -71,8 +71,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="levelsLayout">
-    </layout>
+    <layout class="QHBoxLayout" name="levelsLayout"/>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -88,7 +87,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>ConsoleSubscriberDialog</receiver>
+   <receiver>ConsoleSettingsDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -104,7 +103,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>ConsoleSubscriberDialog</receiver>
+   <receiver>ConsoleSettingsDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
