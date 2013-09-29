@@ -292,11 +292,12 @@ class TopicWidget(QWidget):
         if parent is self.topics_tree_widget:
             # show full topic name with preceding namespace on toplevel item
             topic_text = topic_name
+            item = TreeWidgetItem(self._toggle_monitoring, topic_name, parent)
         else:
             topic_text = topic_name.split('/')[-1]
             if '[' in topic_text:
                 topic_text = topic_text[topic_text.index('['):]
-        item = QTreeWidgetItem(parent)
+            item = QTreeWidgetItem(parent)
         item.setText(self._column_index['topic'], topic_text)
         item.setText(self._column_index['type'], type_name)
         item.setData(0, Qt.UserRole, topic_name)
@@ -315,6 +316,13 @@ class TopicWidget(QWidget):
                 for index in range(array_size):
                     self._recursive_create_widget_items(item, topic_name + '[%d]' % index, base_type_str, base_instance)
         return item
+
+    def _toggle_monitoring(self, topic_name):
+        item = self._tree_items[topic_name]
+        if item.checkState(0):
+            self._topics[topic_name]['info'].start_monitoring()
+        else:
+            self._topics[topic_name]['info'].stop_monitoring()
 
     def _recursive_delete_widget_items(self, item):
         def _recursive_remove_items_from_tree(item):
@@ -349,20 +357,12 @@ class TopicWidget(QWidget):
 
         # show context menu
         menu = QMenu(self)
-        action_moggle_monitoring = menu.addAction(QIcon.fromTheme('search'), 'Toggle Monitoring')
         action_item_expand = menu.addAction(QIcon.fromTheme('zoom-in'), 'Expand All Children')
         action_item_collapse = menu.addAction(QIcon.fromTheme('zoom-out'), 'Collapse All Children')
         action = menu.exec_(self.topics_tree_widget.mapToGlobal(pos))
 
         # evaluate user action
-        if action is action_moggle_monitoring:
-            root_item = item
-            while root_item.parent() is not None:
-                root_item = root_item.parent()
-            root_topic_name = root_item.data(0, Qt.UserRole)
-            self._topics[root_topic_name]['info'].toggle_monitoring()
-
-        elif action in (action_item_expand, action_item_collapse):
+        if action in (action_item_expand, action_item_collapse):
             expanded = (action is action_item_expand)
 
             def recursive_set_expanded(item):
@@ -384,3 +384,19 @@ class TopicWidget(QWidget):
         rospy.logdebug('set_selected_topics topics={}'.format(
                                                          len(selected_topics)))
         self._selected_topics = selected_topics
+
+
+class TreeWidgetItem(QTreeWidgetItem):
+
+    def __init__(self, check_state_changed_callback, topic_name, parent=None):
+        super(TreeWidgetItem, self).__init__(parent)
+        self._check_state_changed_callback = check_state_changed_callback
+        self._topic_name = topic_name
+        self.setCheckState(0, Qt.Unchecked)
+
+    def setData(self, column, role, value):
+        if role == Qt.CheckStateRole:
+            state = self.checkState(column)
+        super(TreeWidgetItem, self).setData(column, role, value)
+        if role == Qt.CheckStateRole and state != self.checkState(column):
+            self._check_state_changed_callback(self._topic_name)
