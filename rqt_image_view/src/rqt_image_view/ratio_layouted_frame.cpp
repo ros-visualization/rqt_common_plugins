@@ -40,10 +40,25 @@ RatioLayoutedFrame::RatioLayoutedFrame(QWidget* parent, Qt::WFlags flags)
   : QFrame()
   , aspect_ratio_(4, 3)
 {
+  connect(this, SIGNAL(delayed_update()), this, SLOT(update()), Qt::QueuedConnection);
 }
 
 RatioLayoutedFrame::~RatioLayoutedFrame()
 {
+}
+
+const QImage& RatioLayoutedFrame::getImage() const
+{
+  return qimage_;
+}
+
+void RatioLayoutedFrame::setImage(const QImage& image)//, QMutex* image_mutex)
+{
+  qimage_mutex_.lock();
+  qimage_ = image.copy();
+  qimage_mutex_.unlock();
+  setAspectRatio(qimage_.width(), qimage_.height());
+  emit delayed_update();
 }
 
 void RatioLayoutedFrame::resizeToFitAspectRatio()
@@ -77,7 +92,7 @@ void RatioLayoutedFrame::setInnerFrameMinimumSize(const QSize& size)
   QSize new_size = size;
   new_size += QSize(2 * border, 2 * border);
   setMinimumSize(new_size);
-  update();
+  emit delayed_update();
 }
 
 void RatioLayoutedFrame::setInnerFrameMaximumSize(const QSize& size)
@@ -86,7 +101,7 @@ void RatioLayoutedFrame::setInnerFrameMaximumSize(const QSize& size)
   QSize new_size = size;
   new_size += QSize(2 * border, 2 * border);
   setMaximumSize(new_size);
-  update();
+  emit delayed_update();
 }
 
 void RatioLayoutedFrame::setInnerFrameFixedSize(const QSize& size)
@@ -102,6 +117,28 @@ void RatioLayoutedFrame::setAspectRatio(unsigned short width, unsigned short hei
     aspect_ratio_.setWidth(width / divisor);
     aspect_ratio_.setHeight(height / divisor);
   }
+}
+
+void RatioLayoutedFrame::paintEvent(QPaintEvent* event)
+{
+  QPainter painter(this);
+  qimage_mutex_.lock();
+  if (!qimage_.isNull())
+  {
+    resizeToFitAspectRatio();
+    // TODO: check if full draw is really necessary
+    //QPaintEvent* paint_event = dynamic_cast<QPaintEvent*>(event);
+    //painter.drawImage(paint_event->rect(), qimage_);
+    painter.drawImage(contentsRect(), qimage_);
+  } else {
+    // default image with gradient
+    QLinearGradient gradient(0, 0, frameRect().width(), frameRect().height());
+    gradient.setColorAt(0, Qt::white);
+    gradient.setColorAt(1, Qt::black);
+    painter.setBrush(gradient);
+    painter.drawRect(0, 0, frameRect().width() + 1, frameRect().height() + 1);
+  }
+  qimage_mutex_.unlock();
 }
 
 int RatioLayoutedFrame::greatestCommonDivisor(int a, int b)

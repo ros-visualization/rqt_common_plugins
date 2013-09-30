@@ -42,9 +42,7 @@
 
 #include <opencv2/core/core.hpp>
 
-#include <QImage>
 #include <QList>
-#include <QMutex>
 #include <QString>
 #include <QSize>
 #include <QWidget>
@@ -64,8 +62,6 @@ public:
   ImageView();
 
   virtual void initPlugin(qt_gui_cpp::PluginContext& context);
-
-  virtual bool eventFilter(QObject* watched, QEvent* event);
 
   virtual void shutdownPlugin();
 
@@ -100,9 +96,6 @@ protected:
   QWidget* widget_;
 
   image_transport::Subscriber subscriber_;
-
-  QImage qimage_;
-  QMutex qimage_mutex_;
 
   cv::Mat conversion_mat_;
 

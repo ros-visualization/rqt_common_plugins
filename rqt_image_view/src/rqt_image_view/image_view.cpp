@@ -62,8 +62,6 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   }
   context.addWidget(widget_);
 
-  ui_.image_frame->installEventFilter(this);
-
   updateTopicList();
   ui_.topics_combo_box->setCurrentIndex(ui_.topics_combo_box->findText(""));
   connect(ui_.topics_combo_box, SIGNAL(currentIndexChanged(int)), this, SLOT(onTopicChanged(int)));
@@ -75,34 +73,6 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   connect(ui_.zoom_1_push_button, SIGNAL(toggled(bool)), this, SLOT(onZoom1(bool)));
   
   connect(ui_.dynamic_range_check_box, SIGNAL(toggled(bool)), this, SLOT(onDynamicRange(bool)));
-}
-
-bool ImageView::eventFilter(QObject* watched, QEvent* event)
-{
-  if (watched == ui_.image_frame && event->type() == QEvent::Paint)
-  {
-    QPainter painter(ui_.image_frame);
-    if (!qimage_.isNull())
-    {
-      ui_.image_frame->resizeToFitAspectRatio();
-      // TODO: check if full draw is really necessary
-      //QPaintEvent* paint_event = dynamic_cast<QPaintEvent*>(event);
-      //painter.drawImage(paint_event->rect(), qimage_);
-      qimage_mutex_.lock();
-      painter.drawImage(ui_.image_frame->contentsRect(), qimage_);
-      qimage_mutex_.unlock();
-    } else {
-      // default image with gradient
-      QLinearGradient gradient(0, 0, ui_.image_frame->frameRect().width(), ui_.image_frame->frameRect().height());
-      gradient.setColorAt(0, Qt::white);
-      gradient.setColorAt(1, Qt::black);
-      painter.setBrush(gradient);
-      painter.drawRect(0, 0, ui_.image_frame->frameRect().width() + 1, ui_.image_frame->frameRect().height() + 1);
-    }
-    return false;
-  }
-
-  return QObject::eventFilter(watched, event);
 }
 
 void ImageView::shutdownPlugin()
@@ -229,8 +199,7 @@ void ImageView::onTopicChanged(int index)
   subscriber_.shutdown();
 
   // reset image on topic change
-  qimage_ = QImage();
-  ui_.image_frame->update();
+  ui_.image_frame->setImage(QImage());
 
   QStringList parts = ui_.topics_combo_box->itemData(index).toString().split(" ");
   QString topic = parts.first();
@@ -253,11 +222,11 @@ void ImageView::onZoom1(bool checked)
 {
   if (checked)
   {
-    if (qimage_.isNull())
+    if (ui_.image_frame->getImage().isNull())
     {
       return;
     }
-    ui_.image_frame->setInnerFrameFixedSize(qimage_.size());
+    ui_.image_frame->setInnerFrameFixedSize(ui_.image_frame->getImage().size());
     widget_->resize(ui_.image_frame->size());
     widget_->setMinimumSize(widget_->sizeHint());
     widget_->setMaximumSize(widget_->sizeHint());
@@ -313,24 +282,20 @@ void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)
       cv::cvtColor(img_scaled_8u, conversion_mat_, CV_GRAY2RGB);
     } else {
       qWarning("ImageView.callback_image() could not convert image from '%s' to 'rgb8' (%s)", msg->encoding.c_str(), e.what());
-      qimage_ = QImage();
+      ui_.image_frame->setImage(QImage());
       return;
     }
   }
 
-  // copy temporary image as it uses the conversion_mat_ for storage which is asynchronously overwritten in the next callback invocation
+  // image must be copied since it uses the conversion_mat_ for storage which is asynchronously overwritten in the next callback invocation
   QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, QImage::Format_RGB888);
-  qimage_mutex_.lock();
-  qimage_ = image.copy();
-  qimage_mutex_.unlock();
+  ui_.image_frame->setImage(image);
 
-  ui_.image_frame->setAspectRatio(qimage_.width(), qimage_.height());
   if (!ui_.zoom_1_push_button->isEnabled())
   {
     ui_.zoom_1_push_button->setEnabled(true);
     onZoom1(ui_.zoom_1_push_button->isChecked());
   }
-  ui_.image_frame->update();
 }
 
 }

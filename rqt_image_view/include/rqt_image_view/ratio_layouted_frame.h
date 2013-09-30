@@ -34,8 +34,10 @@
 #define rqt_image_view__RatioLayoutedFrame_H
 
 #include <QFrame>
+#include <QImage>
 #include <QLayout>
 #include <QLayoutItem>
+#include <QMutex>
 #include <QPainter>
 #include <QRect>
 #include <QSize>
@@ -58,6 +60,10 @@ public:
 
   virtual ~RatioLayoutedFrame();
 
+  const QImage& getImage() const;
+
+  void setImage(const QImage& image);
+
   QRect getAspectRatioCorrectPaintArea();
 
   void resizeToFitAspectRatio();
@@ -68,13 +74,24 @@ public:
 
   void setInnerFrameFixedSize(const QSize& size);
 
+signals:
+
+  void delayed_update();
+
+protected:
+
   void setAspectRatio(unsigned short width, unsigned short height);
+
+  void paintEvent(QPaintEvent* event);
 
 private:
 
   static int greatestCommonDivisor(int a, int b);
 
   QSize aspect_ratio_;
+
+  QImage qimage_;
+  QMutex qimage_mutex_;
 
 };
 
