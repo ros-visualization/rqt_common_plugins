@@ -66,8 +66,8 @@ class MessagesWidget(QWidget):
         """
 
         super(MessagesWidget, self).__init__()
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path(pkg_name), 'resource', ui_filename)
+        self._rospack = rospkg.RosPack()
+        ui_file = os.path.join(self._rospack.get_path(pkg_name), 'resource', ui_filename)
         loadUi(ui_file, self, {'MessagesTreeView': MessagesTreeView})
         self.setObjectName(ui_filename)
         self._mode = mode
@@ -82,15 +82,13 @@ class MessagesWidget(QWidget):
         self._browsers = []
 
     def _refresh_packages(self, mode=rosmsg.MODE_MSG):
-        rospack = rospkg.RosPack()
-
         if (self._mode == rosmsg.MODE_MSG) or self._mode == rosmsg.MODE_SRV:
             packages = sorted([pkg_tuple[0] for pkg_tuple in
-                               rosmsg.iterate_packages(rospack, self._mode)])
+                               rosmsg.iterate_packages(self._rospack, self._mode)])
         elif self._mode == rosaction.MODE_ACTION:
             packages = sorted([pkg_tuple[0]
                                for pkg_tuple in rosaction.iterate_packages(
-                                                         rospack, self._mode)])
+                                                         self._rospack, self._mode)])
         self._package_list = packages
         rospy.logdebug('pkgs={}'.format(self._package_list))
         self._package_combo.clear()

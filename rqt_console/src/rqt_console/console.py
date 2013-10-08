@@ -31,6 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from rosgraph_msgs.msg import Log
+import rospkg
 import rospy
 
 from python_qt_binding.QtCore import QMutex, QMutexLocker, QTimer
@@ -56,11 +57,13 @@ class Console(Plugin):
         super(Console, self).__init__(context)
         self.setObjectName('Console')
 
+        self._rospack = rospkg.RosPack()
+
         self._model = MessageDataModel()
         self._proxy_model = MessageProxyModel()
         self._proxy_model.setSourceModel(self._model)
 
-        self._widget = ConsoleWidget(self._proxy_model)
+        self._widget = ConsoleWidget(self._proxy_model, self._rospack)
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
         context.add_widget(self._widget)
@@ -122,7 +125,7 @@ class Console(Plugin):
     def trigger_configuration(self):
         topics = [t for t in rospy.get_published_topics() if t[1] == 'rosgraph_msgs/Log']
         topics.sort(key=lambda tup: tup[0])
-        dialog = ConsoleSettingsDialog(topics)
+        dialog = ConsoleSettingsDialog(topics, self._rospack)
         (topic, message_limit) = dialog.query(self._topic, self._model.get_message_limit())
         if topic != self._topic:
             self._subscribe(topic)

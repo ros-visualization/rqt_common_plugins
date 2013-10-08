@@ -107,7 +107,6 @@ class GroupWidget(QWidget):
         self._toplevel_treenode_name = nodename
 
         # TODO: .ui file needs to be back into usage in later phase.
-#        rp = rospkg.RosPack()
 #        ui_file = os.path.join(rp.get_path('rqt_reconfigure'),
 #                               'resource', 'singlenode_parameditor.ui')
 #        loadUi(ui_file, self)
