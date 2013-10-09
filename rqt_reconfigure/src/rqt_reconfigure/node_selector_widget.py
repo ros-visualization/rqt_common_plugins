@@ -43,7 +43,6 @@ from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, Signal
 from python_qt_binding.QtGui import (QHeaderView, QItemSelectionModel,
                                      QWidget)
-import rospkg
 import rospy
 from rospy.exceptions import ROSException
 import rosservice
@@ -62,7 +61,7 @@ class NodeSelectorWidget(QWidget):
     # public signal
     sig_node_selected = Signal(DynreconfClientWidget)
 
-    def __init__(self, parent, signal_msg=None):
+    def __init__(self, parent, rospack, signal_msg=None):
         """
         @param signal_msg: Signal to carries a system msg that is shown on GUI.
         @type signal_msg: QtCore.Signal
@@ -72,8 +71,7 @@ class NodeSelectorWidget(QWidget):
         self.stretch = None
         self._signal_msg = signal_msg
 
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_reconfigure'), 'resource',
+        ui_file = os.path.join(rospack.get_path('rqt_reconfigure'), 'resource',
                                'node_selector.ui')
         loadUi(ui_file, self)
 

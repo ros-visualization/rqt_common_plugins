@@ -38,14 +38,13 @@ from python_qt_binding.QtGui import QWidget
 
 
 class TextFilterWidget(QWidget):
-    def __init__(self, parentfilter):
+    def __init__(self, parentfilter, rospack):
         """
         Widget for displaying interactive data related to text filtering.
         :param parentfilter: buddy filter were data is stored, ''TimeFilter''
         """
         super(TextFilterWidget, self).__init__()
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_console'), 'resource/filters', 'text_filter_widget.ui')
+        ui_file = os.path.join(rospack.get_path('rqt_console'), 'resource/filters', 'text_filter_widget.ui')
         loadUi(ui_file, self)
         self.setObjectName('TextFilterWidget')
         self._parentfilter = parentfilter  # When data is changed it is stored in the parent filter

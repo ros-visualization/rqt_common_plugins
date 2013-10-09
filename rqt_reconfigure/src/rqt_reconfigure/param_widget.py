@@ -34,6 +34,7 @@
 
 from __future__ import division
 
+import rospkg
 import sys
 
 from python_qt_binding.QtCore import Signal
@@ -70,6 +71,8 @@ class ParamWidget(QWidget):
         self.setObjectName(self._TITLE_PLUGIN)
         self.setWindowTitle(self._TITLE_PLUGIN)
 
+        rp = rospkg.RosPack()
+
         #TODO: .ui file needs to replace the GUI components declaration
         #            below. For unknown reason, referring to another .ui files
         #            from a .ui that is used in this class failed. So for now,
@@ -84,19 +87,19 @@ class ParamWidget(QWidget):
         _hlayout_filter_widget = QWidget(self)
         _hlayout_filter = QHBoxLayout()
         self._text_filter = TextFilter()
-        self.filter_lineedit = TextFilterWidget(self._text_filter)
+        self.filter_lineedit = TextFilterWidget(self._text_filter, rp)
         self.filterkey_label = QLabel("&Filter key:")
         self.filterkey_label.setBuddy(self.filter_lineedit)
         _hlayout_filter.addWidget(self.filterkey_label)
         _hlayout_filter.addWidget(self.filter_lineedit)
         _hlayout_filter_widget.setLayout(_hlayout_filter)
-        self._nodesel_widget = NodeSelectorWidget(self, self.sig_sysmsg)
+        self._nodesel_widget = NodeSelectorWidget(self, rp, self.sig_sysmsg)
         _vlayout_nodesel_side.addWidget(_hlayout_filter_widget)
         _vlayout_nodesel_side.addWidget(self._nodesel_widget)
         _vlayout_nodesel_side.setSpacing(1)
         _vlayout_nodesel_widget.setLayout(_vlayout_nodesel_side)
 
-        reconf_widget = ParameditWidget()
+        reconf_widget = ParameditWidget(rp)
 
         self._splitter.insertWidget(0, _vlayout_nodesel_widget)
         self._splitter.insertWidget(1, reconf_widget)
