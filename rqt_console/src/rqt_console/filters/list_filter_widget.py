@@ -45,15 +45,14 @@ class ListFilterWidget(QWidget):
     Generic List widget to be used when implementing filters that require
     limited dynamic selections
     """
-    def __init__(self, parentfilter, item_provider):
+    def __init__(self, parentfilter, rospack, item_provider):
         """
         :param parentfilter: The filter object, must implement set_list and
         contain _list ''QObject''
         :param item_provider: a function designed to provide a list or dict
         """
         super(ListFilterWidget, self).__init__()
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_console'), 'resource/filters', 'list_filter_widget.ui')
+        ui_file = os.path.join(rospack.get_path('rqt_console'), 'resource/filters', 'list_filter_widget.ui')
         loadUi(ui_file, self)
         self.setObjectName('ListFilterWidget')
         self._parentfilter = parentfilter  # When data is changed we need to store it in the parent filter

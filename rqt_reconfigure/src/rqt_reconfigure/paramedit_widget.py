@@ -40,7 +40,6 @@ from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, Signal
 from python_qt_binding.QtGui import QVBoxLayout, QWidget, QWidgetItem
 from rqt_py_common.layout_util import LayoutUtil
-import rospkg
 import rospy
 
 from .dynreconf_client_widget import DynreconfClientWidget
@@ -56,12 +55,11 @@ class ParameditWidget(QWidget):
     # public signal
     sig_node_disabled_selected = Signal(str)
 
-    def __init__(self):
+    def __init__(self, rospack):
         """"""
         super(ParameditWidget, self).__init__()
 
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_reconfigure'),
+        ui_file = os.path.join(rospack.get_path('rqt_reconfigure'),
                                'resource', 'paramedit_pane.ui')
         loadUi(ui_file, self, {'ParameditWidget': ParameditWidget})
 

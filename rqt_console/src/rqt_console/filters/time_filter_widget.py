@@ -40,7 +40,7 @@ from python_qt_binding.QtGui import QWidget
 
 
 class TimeFilterWidget(QWidget):
-    def __init__(self, parentfilter, time_range_provider):
+    def __init__(self, parentfilter, rospack, time_range_provider):
         """
         Widget for displaying interactive data related to time filtering.
         :param parentfilter: buddy filter were data is stored, ''TimeFilter''
@@ -48,8 +48,7 @@ class TimeFilterWidget(QWidget):
         the min and max time to be displayed, ''list of tuple''
         """
         super(TimeFilterWidget, self).__init__()
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_console'), 'resource/filters', 'time_filter_widget.ui')
+        ui_file = os.path.join(rospack.get_path('rqt_console'), 'resource/filters', 'time_filter_widget.ui')
         loadUi(ui_file, self)
         self.setObjectName('TimeFilterWidget')
         self._parentfilter = parentfilter  # When data is changed it is stored in the parent filter

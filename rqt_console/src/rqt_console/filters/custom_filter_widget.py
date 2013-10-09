@@ -41,10 +41,9 @@ from rqt_py_common.ini_helper import pack, unpack
 
 
 class CustomFilterWidget(QWidget):
-    def __init__(self, parentfilter, item_providers):
+    def __init__(self, parentfilter, rospack, item_providers):
         super(CustomFilterWidget, self).__init__()
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_console'), 'resource/filters', 'custom_filter_widget.ui')
+        ui_file = os.path.join(rospack.get_path('rqt_console'), 'resource/filters', 'custom_filter_widget.ui')
         loadUi(ui_file, self)
         self.setObjectName('CustomFilterWidget')
         self._parentfilter = parentfilter  # When data is changed it is stored in the parent filter
