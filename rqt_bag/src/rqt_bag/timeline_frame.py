@@ -667,15 +667,10 @@ class TimelineFrame(QGraphicsItem):
         return [RawView] + self._viewer_types.get('*', []) + self._viewer_types.get(datatype, [])
 
     def load_plugins(self):
-        try:
-            from rqt_gui.rospkg_plugin_provider import RospkgPluginProvider
-            ActualRosPluginProvider = RospkgPluginProvider
-        except ImportError:
-            from rqt_gui.roslib_plugin_provider import RoslibPluginProvider
-            ActualRosPluginProvider = RoslibPluginProvider
-        self.plugin_provider = ActualRosPluginProvider('rqt_bag', 'rqt_bag::Plugin')
+        from rqt_gui.rospkg_plugin_provider import RospkgPluginProvider
+        self.plugin_provider = RospkgPluginProvider('rqt_bag', 'rqt_bag::Plugin')
 
-        plugin_descriptors = self.plugin_provider.discover()
+        plugin_descriptors = self.plugin_provider.discover(None)
         for plugin_descriptor in plugin_descriptors:
             try:
                 plugin = self.plugin_provider.load(plugin_descriptor.plugin_id(), plugin_context=None)
