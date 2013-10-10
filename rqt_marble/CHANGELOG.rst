@@ -2,6 +2,9 @@
 Changelog for package rqt_marble
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.3.0 (2013-08-28)
 ------------------
 * fix compile-time warning

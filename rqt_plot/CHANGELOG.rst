@@ -2,6 +2,9 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.3.0 (2013-08-28)
 ------------------
 * fix waiting on unpublished topics (`#110 <https://github.com/ros-visualization/rqt_common_plugins/issues/110>`_)

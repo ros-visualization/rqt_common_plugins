@@ -2,6 +2,9 @@
 Changelog for package rqt_top
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.3.0 (2013-08-28)
 ------------------
 * remove copy of psutil module and implement missing function (`#105 <https://github.com/ros-visualization/rqt_common_plugins/issues/105>`_)

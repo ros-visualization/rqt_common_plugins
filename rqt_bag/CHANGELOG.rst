@@ -2,6 +2,10 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update rqt_bag plugin interface to work with qt_gui_core 0.2.18
+
 0.3.0 (2013-08-28)
 ------------------
 * fix rendering of icons on OS X (`ros-visualization/rqt#83 <https://github.com/ros-visualization/rqt/issues/83>`_)

@@ -2,6 +2,10 @@
 Changelog for package rqt_console
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* rewrite of rqt_console to drastically improve performance (`#186 <https://github.com/ros-visualization/rqt_common_plugins/pull/186>`_)
+
 0.3.0 (2013-08-28)
 ------------------
 * pause button no more saves state (`#125 <https://github.com/ros-visualization/rqt_common_plugins/issues/125>`_)
