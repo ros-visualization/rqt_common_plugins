@@ -2,8 +2,8 @@
 Changelog for package rqt_console
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.1 (2013-10-09)
+------------------
 * rewrite of rqt_console to drastically improve performance (`#186 <https://github.com/ros-visualization/rqt_common_plugins/pull/186>`_)
 
 0.3.0 (2013-08-28)

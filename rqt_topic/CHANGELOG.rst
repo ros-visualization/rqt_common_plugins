@@ -2,8 +2,8 @@
 Changelog for package rqt_topic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.1 (2013-10-09)
+------------------
 * improve rqt_topic initialization time (`#62 <https://github.com/ros-visualization/rqt_common_plugins/issues/62>`_)
 * modified toggling topics to use checkbox instead of context menu (`#75 <https://github.com/ros-visualization/rqt_common_plugins/issues/75>`_)
 
