@@ -2,6 +2,10 @@
 Changelog for package rqt_publisher
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix regression of 0.3.1 (rospack not defined)
+
 0.3.1 (2013-10-09)
 ------------------
 * improve performance to fill combo box with message types (`#177 <https://github.com/ros-visualization/rqt_common_plugins/issues/177>`_)

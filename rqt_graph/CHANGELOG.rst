@@ -2,6 +2,9 @@
 Changelog for package rqt_graph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.3.1 (2013-10-09)
 ------------------
 * modified zooming method to work better on high-res trackpads like Macbook Pros (`#187 <https://github.com/ros-visualization/rqt_common_plugins/pull/187>`_)

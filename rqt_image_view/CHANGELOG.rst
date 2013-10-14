@@ -2,6 +2,9 @@
 Changelog for package rqt_image_view
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.3.1 (2013-10-09)
 ------------------
 * fix event handling for rqt_image_view enabling to run multiple instances simultaneously (`#66 <https://github.com/ros-visualization/rqt_common_plugins/issues/66>`_)

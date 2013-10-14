@@ -2,6 +2,9 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.3.1 (2013-10-09)
 ------------------
 * update rqt_bag plugin interface to work with qt_gui_core 0.2.18

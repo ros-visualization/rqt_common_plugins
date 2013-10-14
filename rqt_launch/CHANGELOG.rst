@@ -2,6 +2,9 @@
 Changelog for package rqt_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.3.1 (2013-10-09)
 ------------------
 * add stop-all-nodes button
