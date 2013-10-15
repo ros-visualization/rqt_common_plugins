@@ -61,7 +61,7 @@ MarblePlugin::MarblePlugin() :
   // give QObjects reasonable names
   setObjectName("MarbleWidgetPlugin");
 
-  this->ros_navigation = new rqt_marble::BridgeRosMarble();
+  this->ros_navigation = new BridgeRosMarble();
 
   ROS_INFO("in constructor");
 }
