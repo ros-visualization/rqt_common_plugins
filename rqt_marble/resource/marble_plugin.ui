@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>GPS Plot on Marble</string>
   </property>
   <layout class="QHBoxLayout" name="_layout_h_view">
    <item>

@@ -39,7 +39,6 @@
 #include <rqt_marble/bridge_ros_marble.h>
 
 using namespace rqt_marble;
-using namespace rqt_cpp_common;
 using namespace sensor_msgs;
 
 BridgeRosMarble::BridgeRosMarble()
