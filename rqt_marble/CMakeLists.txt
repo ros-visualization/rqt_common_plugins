@@ -52,6 +52,7 @@ add_library(${PROJECT_NAME}
             ${rqt_marble_SRCS} ${rqt_marble_MOCS} ${rqt_marble_UIS_H})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${QT_QTCORE_LIBRARY}
                       ${QT_QTGUI_LIBRARY} ${MARBLE_LIBRARIES})
+add_dependencies(${PROJECT_NAME} rqt_marble_gencpp) 
 
 find_package(class_loader)
 class_loader_hide_library_symbols(${PROJECT_NAME})
