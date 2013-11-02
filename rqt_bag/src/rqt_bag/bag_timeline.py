@@ -88,7 +88,7 @@ class BagTimeline(QGraphicsScene):
         self.stick_to_end = False  # should the playhead stick to the end?
         self._play_timer = QTimer()
         self._play_timer.timeout.connect(self.on_idle)
-        self._play_timer.start(3)
+        self._play_timer.setInterval(3)
 
         # Plugin popup management
         self._context = context
@@ -118,6 +118,7 @@ class BagTimeline(QGraphicsScene):
             return
         else:
             self.__closed = True
+        self._play_timer.stop()
         for topic in self._get_topics():
             self.stop_publishing(topic)
             self._message_loaders[topic].stop()
@@ -749,9 +750,11 @@ class BagTimeline(QGraphicsScene):
 
     def navigate_play(self):
         self.play_speed = 1.0
+        self._play_timer.start()
 
     def navigate_stop(self):
         self.play_speed = 0.0
+        self._play_timer.stop()
 
     def navigate_rewind(self):
         if self._play_speed < 0.0:
