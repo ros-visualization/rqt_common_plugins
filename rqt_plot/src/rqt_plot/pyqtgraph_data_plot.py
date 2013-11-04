@@ -43,6 +43,7 @@ class PyQtGraphDataPlot(QWidget):
     def __init__(self, parent=None):
         super(PyQtGraphDataPlot, self).__init__(parent)
         self._plot_widget = PlotWidget()
+        self._plot_widget.getPlotItem().addLegend()
         self._plot_widget.setBackground((255, 255, 255))
         self._plot_widget.setXRange(0, 10, padding=0)
         vbox = QVBoxLayout()
@@ -55,23 +56,27 @@ class PyQtGraphDataPlot(QWidget):
     def add_curve(self, curve_id, curve_name, data_x, data_y):
         color = QColor(self._colors[self._color_index % len(self._colors)])
         self._color_index += 1
-        pen = mkPen(color, width=1)
+        pen = mkPen(color, width=2)
+        # this adds the item to the plot and legend
         plot = self._plot_widget.plot(name=curve_name, pen=pen)
         data_x = numpy.array(data_x)
         data_y = numpy.array(data_y)
         self._curves[curve_id] = {'x': data_x, 'y': data_y, 'plot': plot}
-        self._update_legend()
 
     def remove_curve(self, curve_id):
         curve_id = str(curve_id)
         if curve_id in self._curves:
-            self._plot_widget.removeItem(self._curves[curve_id]['plot'])
+            self._plot_widget.getPlotItem().removeItem(self._curves[curve_id]['plot'])
             del self._curves[curve_id]
             self._update_legend()
-
+           
     def _update_legend(self):
-        pass
-
+        # clear and rebuild legend (there is no remove item method for the legend...)
+        self._plot_widget.getPlotItem().clear()
+        self._plot_widget.getPlotItem().legend.items = []
+        for curve in self._curves.values():
+            self._plot_widget.getPlotItem().addItem(curve['plot'])
+ 
     @Slot(str, list, list)
     def update_values(self, curve_id, x, y):
         curve = self._curves[curve_id]
