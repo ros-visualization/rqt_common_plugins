@@ -60,7 +60,7 @@
      <item>
       <widget class="QPushButton" name="pause_button">
        <property name="toolTip">
-        <string>Pause/Resume the message stream</string>
+        <string>Pause the message stream</string>
        </property>
        <property name="text">
         <string>Pause</string>
@@ -71,8 +71,21 @@
          <height>16</height>
         </size>
        </property>
-       <property name="checkable">
-        <bool>true</bool>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="record_button">
+       <property name="toolTip">
+        <string>Resume the message stream</string>
+       </property>
+       <property name="text">
+        <string>Resume</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
        </property>
       </widget>
      </item>
