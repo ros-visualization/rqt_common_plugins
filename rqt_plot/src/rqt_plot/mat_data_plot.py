@@ -92,6 +92,10 @@ class MatDataPlot(QWidget):
 
         self._color_index = 0
         self._curves = {}
+        self._autoscroll = False
+
+    def autoscroll(self, enabled=True):
+        self._autoscroll = enabled
 
     def add_curve(self, curve_id, curve_name, x, y):
         color = QColor(self._colors[self._color_index % len(self._colors)])
@@ -155,7 +159,7 @@ class MatDataPlot(QWidget):
             ymin -= .05 * delta
             ymax += .05 * delta
 
-        if ymin is not None:
+        if self._autoscroll and ymin is not None:
             self._canvas.axes.set_xbound(lower=xmax - 5, upper=xmax)
             self._canvas.axes.set_ybound(lower=ymin, upper=ymax)
 

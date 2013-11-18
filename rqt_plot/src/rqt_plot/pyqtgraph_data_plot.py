@@ -50,6 +50,7 @@ class PyQtGraphDataPlot(QWidget):
         vbox.addWidget(self._plot_widget)
         self.setLayout(vbox)
 
+        self._autoscroll = False
         self._color_index = 0
         self._curves = {}
 
@@ -83,16 +84,23 @@ class PyQtGraphDataPlot(QWidget):
         curve['x'] = numpy.append(curve['x'], x)
         curve['y'] = numpy.append(curve['y'], y)
 
-    def redraw(self):
-        # Set axis bounds
-        x_range, _ = self._plot_widget.viewRange()
-        x_delta = x_range[1] - x_range[0]
-        x_max = 0
-        for curve in self._curves.values():
-            if len(curve['x']) == 0:
-                continue
+    def autoscroll(self, enabled=True):
+        self._autoscroll = enabled
 
-            x_max = max(x_max, curve['x'][-1])
+    def redraw(self):
+        for curve in self._curves.values():
             curve['plot'].setData(curve['x'], curve['y'])
 
-        self._plot_widget.setXRange(x_max - x_delta, x_max, padding=0)
+        if self._autoscroll:
+            # Set axis bounds
+            x_range, _ = self._plot_widget.viewRange()
+            x_delta = x_range[1] - x_range[0]
+            x_max = 0
+
+            for curve in self._curves.values():
+                if len(curve['x']) == 0:
+                    continue
+                x_max = max(x_max, curve['x'][-1])
+
+            self._plot_widget.setXRange(x_max - x_delta, x_max, padding=0)
+

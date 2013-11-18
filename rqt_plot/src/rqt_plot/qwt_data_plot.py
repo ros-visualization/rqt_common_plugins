@@ -63,6 +63,7 @@ class QwtDataPlot(Qwt.QwtPlot):
         self._pressed_canvas_y = 0
         self._last_click_coordinates = None
         self._color_index = 0
+        self._autoscroll = False
 
         marker_axis_y = Qwt.QwtPlotMarker()
         marker_axis_y.setLabelAlignment(Qt.AlignRight | Qt.AlignTop)
@@ -113,6 +114,9 @@ class QwtDataPlot(Qwt.QwtPlot):
         #super(QwtDataPlot, self).resizeEvent(event)
         Qwt.QwtPlot.resizeEvent(self, event)
         self.rescale()
+
+    def autoscroll(self, enabled=True):
+        self._autoscroll = enabled
 
     def add_curve(self, curve_id, curve_name, values_x, values_y):
         curve_id = str(curve_id)
@@ -168,8 +172,8 @@ class QwtDataPlot(Qwt.QwtPlot):
         y_step_size = round(y_delta / y_num_ticks, presicion)
 
         self.setAxisScale(Qwt.QwtPlot.yLeft, y_lower_limit, y_upper_limit, y_step_size)
-
         self.setAxisScale(Qwt.QwtPlot.xBottom, 0, len(self._time_axis))
+
         self.redraw()
 
     def rescale_axis_x(self, delta__x):

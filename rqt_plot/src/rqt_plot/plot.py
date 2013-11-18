@@ -166,9 +166,11 @@ class Plot(Plugin):
 
     def save_settings(self, plugin_settings, instance_settings):
         instance_settings.set_value('plot_type', self._plot_type_index)
+        instance_settings.set_value('autoscroll', self._widget.autoscroll_checkbox.isChecked())
         instance_settings.set_value('topics', pack(self._widget._rosdata.keys()))
 
     def restore_settings(self, plugin_settings, instance_settings):
+        self._widget.autoscroll_checkbox.setChecked(instance_settings.value('autoscroll', True) in [True, 'true'])
         self._switch_data_plot_widget(int(instance_settings.value('plot_type', 0)))
 
         if len(self._widget._rosdata.keys()) == 0 and not self._args.start_empty:
