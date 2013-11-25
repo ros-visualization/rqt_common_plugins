@@ -297,7 +297,7 @@ void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)
   }
 
   // image must be copied since it uses the conversion_mat_ for storage which is asynchronously overwritten in the next callback invocation
-  QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, QImage::Format_RGB888);
+  QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, conversion_mat_.step[0], QImage::Format_RGB888);
   ui_.image_frame->setImage(image);
 
   if (!ui_.zoom_1_push_button->isEnabled())
