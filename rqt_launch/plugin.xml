@@ -10,7 +10,7 @@
         <icon type="theme">folder</icon>
         <statustip>Plugins related to configuration.</statustip>
       </group>
-      <label>Launch</label>
+      <label>Launch (experimental)</label>
       <icon type="theme">mail-message-new</icon>
       <statustip>A Python GUI plugin for editing, rnuning and stopping launch files.</statustip>
     </qtgui>
