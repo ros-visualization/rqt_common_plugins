@@ -1,12 +1,17 @@
 <library path="src">
   <class name="Messages" type="rqt_msg.messages.Messages" base_class_type="rqt_gui_py::Plugin">
     <description>
-      A Python GUI plugin for introspecting available ROS message types.
+      A Python GUI plugin for browsing available ROS message types.
     </description>
     <qtgui>
-      <label>Message Introspection</label>
+      <group>
+        <label>Topics</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to ROS topics.</statustip>
+      </group>
+      <label>Message Type Browser</label>
       <icon type="theme">mail-read</icon>
-      <statustip>A Python GUI plugin for introspecting available ROS message types.</statustip>
+      <statustip>A Python GUI plugin for browsing available ROS message types.</statustip>
     </qtgui>
   </class>
 </library>

@@ -42,7 +42,7 @@ class Services(Plugin):
         super(Services, self).__init__(context)
         self.setObjectName('servicess')
         self._widget = MessagesWidget(rosmsg.MODE_SRV)
-        self._widget.setWindowTitle('Service Introspection')
+        self._widget.setWindowTitle('Service Type Browser')
         self._widget.type_label.setText('Service:')
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))

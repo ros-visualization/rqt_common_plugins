@@ -4,9 +4,14 @@
       Provides information similar to that provided in UNIX top for running ROS nodes.
     </description>
     <qtgui>
+      <group>
+        <label>Introspection</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to introspection.</statustip>
+      </group>
       <label>Process Monitor</label>
       <icon type="theme">utilities-system-monitor</icon> 
-      <statustip>Python GUI to view process information about running ROS processes.</statustip>
+      <statustip>A Python GUI plugin for viewing process information about running ROS processes.</statustip>
     </qtgui>
   </class>
 </library>

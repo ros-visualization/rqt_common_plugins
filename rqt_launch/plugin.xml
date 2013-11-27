@@ -5,10 +5,14 @@
       A Python GUI plugin for for edit launch file, run and stop nodes.
     </description>
     <qtgui>
+      <group>
+        <label>Configuration</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to configuration.</statustip>
+      </group>
       <label>Launch</label>
       <icon type="theme">mail-message-new</icon>
-      <statustip>A Python GUI plugin for for edit launch file, run and stop 
-      nodes.</statustip>
+      <statustip>A Python GUI plugin for editing, rnuning and stopping launch files.</statustip>
     </qtgui>
   </class>
 </library>

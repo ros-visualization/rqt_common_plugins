@@ -4,9 +4,14 @@
       A Python GUI plugin calling ROS services.
     </description>
     <qtgui>
-      <label>ServiceCaller</label>
+      <group>
+        <label>Services</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to ROS services.</statustip>
+      </group>
+      <label>Service Caller</label>
       <icon type="theme">media-playback-start</icon>
-      <statustip>A Python GUI plugin calling ROS services.</statustip>
+      <statustip>A Python GUI plugin for calling ROS services.</statustip>
     </qtgui>
   </class>
 </library>

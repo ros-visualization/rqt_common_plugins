@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ROS Package Graph</string>
+   <string>Package Graph</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
    <item>

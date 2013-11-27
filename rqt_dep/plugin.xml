@@ -4,9 +4,14 @@
       A Python GUI plugin to visualize a ROS package network.
     </description>
     <qtgui>
-      <label>ROS Package Dependency</label>
+      <group>
+        <label>Introspection</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to introspection.</statustip>
+      </group>
+      <label>Package Graph</label>
       <icon type="theme">preferences-system-network</icon>
-      <statustip>A Python GUI plugin to visualize a ROS package network.</statustip>
+      <statustip>A Python GUI plugin for visualizing the ROS package dependencies.</statustip>
     </qtgui>
   </class>
 </library>

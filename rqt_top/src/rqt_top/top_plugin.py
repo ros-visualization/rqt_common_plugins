@@ -87,6 +87,7 @@ class Top(Plugin):
 
         # Create a container widget and give it a layout
         self._container = QWidget()
+        self._container.setWindowTitle('Process Monitor')
         self._layout    = QVBoxLayout()
         self._container.setLayout(self._layout)
 

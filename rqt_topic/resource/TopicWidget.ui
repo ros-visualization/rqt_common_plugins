@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Topic Introspection</string>
+   <string>Topic Monitor</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

@@ -4,7 +4,12 @@
       A Python GUI plugin providing an interactive Python console.
     </description>
     <qtgui>
-      <label>PyConsole</label>
+      <group>
+        <label>Miscellaneous Tools</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to miscellaneous tools.</statustip>
+      </group>
+      <label>Python Console</label>
       <icon type="theme">applications-python</icon>
       <statustip>A Python GUI plugin providing an interactive Python console.</statustip>
     </qtgui>

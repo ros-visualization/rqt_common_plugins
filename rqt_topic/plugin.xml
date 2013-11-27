@@ -4,9 +4,14 @@
       A Python GUI plugin to introspect ROS topics.
     </description>
     <qtgui>
-      <label>Topic Introspection</label>
+      <group>
+        <label>Topics</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to ROS topics.</statustip>
+      </group>
+      <label>Topic Monitor</label>
       <icon type="theme">system-search</icon>
-      <statustip>A Python GUI plugin to introspect ROS topics.</statustip>
+      <statustip>A Python GUI plugin for monitoring ROS topics.</statustip>
     </qtgui>
   </class>
 </library>
