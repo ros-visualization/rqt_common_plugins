@@ -55,7 +55,7 @@ class BagWidget(QWidget):
     Widget for use with Bag class to display and replay bag files
     Handles all widget callbacks and contains the instance of BagTimeline for storing visualizing bag data
     """
-    def __init__(self, context):
+    def __init__(self, context, publish_clock):
         """
         :param context: plugin context hook to enable adding widgets as a ROS_GUI pane, ''PluginContext''
         """
@@ -66,7 +66,7 @@ class BagWidget(QWidget):
 
         self.setObjectName('BagWidget')
 
-        self._timeline = BagTimeline(context)
+        self._timeline = BagTimeline(context, publish_clock)
         self.graphics_view.setScene(self._timeline)
 
         self.graphics_view.resizeEvent = self._resizeEvent

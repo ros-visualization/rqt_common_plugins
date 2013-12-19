@@ -35,10 +35,11 @@ Player listens to messages from the timeline and publishes them to ROS.
 """
 
 import rospy
-
+import rosgraph_msgs
 
 from python_qt_binding.QtCore import QObject
 
+CLOCK_TOPIC = "/clock"
 
 class Player(QObject):
     """
@@ -50,6 +51,8 @@ class Player(QObject):
 
         self._publishing = set()
         self._publishers = {}
+
+        self._publish_clock = False
 
     def is_publishing(self, topic):
         return topic in self._publishing
@@ -71,9 +74,32 @@ class Player(QObject):
 
         self._publishing.remove(topic)
 
+    def start_clock_publishing(self):
+        if CLOCK_TOPIC not in self._publishers:
+            # Activate clock publishing only if the publisher was created successful
+            self._publish_clock = self.create_publisher(CLOCK_TOPIC, rosgraph_msgs.msg.Clock())
+
+    def stop_clock_publishing(self):
+        self._publish_clock = False
+        if CLOCK_TOPIC in self._publishers:
+            self._publishers[CLOCK_TOPIC].unregister()
+            del self._publishers[CLOCK_TOPIC]
+
     def stop(self):
         for topic in list(self._publishing):
             self.stop_publishing(topic)
+        self.stop_clock_publishing()
+
+    def create_publisher(self, topic, msg):
+        try:
+            self._publishers[topic] = rospy.Publisher(topic, type(msg))
+            return True
+        except Exception as ex:
+            # Any errors, stop listening/publishing to this topic
+            rospy.logerr('Error creating publisher on topic %s for type %s. \nError text: %s' % (topic, str(type(msg)), str(ex)))
+            if topic != CLOCK_TOPIC:
+                self.stop_publishing(topic)
+            return False
 
     def message_viewed(self, bag, msg_data):
         """
@@ -85,16 +111,16 @@ class Player(QObject):
         if self.timeline.play_speed <= 0.0:
             return
 
-        topic, msg, _ = msg_data
+        topic, msg, clock = msg_data
 
         # Create publisher if this is the first message on the topic
         if topic not in self._publishers:
-            try:
-                self._publishers[topic] = rospy.Publisher(topic, type(msg))
-            except Exception as ex:
-                # Any errors, stop listening/publishing to this topic
-                rospy.logerr('Error creating publisher on topic %s for type %s. \nError text: %s' % (topic, str(type(msg)), str(ex)))
-                self.stop_publishing(topic)
+            self.create_publisher(topic, msg)
+
+        if self._publish_clock:
+            time_msg = rosgraph_msgs.msg.Clock()
+            time_msg.clock = clock
+            self._publishers[CLOCK_TOPIC].publish(time_msg)
 
         self._publishers[topic].publish(msg)
 

@@ -56,7 +56,7 @@ class BagTimeline(QGraphicsScene):
     """
     status_bar_changed_signal = Signal()
 
-    def __init__(self, context):
+    def __init__(self, context, publish_clock):
         """
         :param context: plugin context hook to enable adding rqt_bag plugin widgets as ROS_GUI snapin panes, ''PluginContext''
         """
@@ -80,6 +80,7 @@ class BagTimeline(QGraphicsScene):
         self._messages = {}  # topic -> (bag, msg_data)
         self._message_listener_threads = {}  # listener -> MessageListenerThread
         self._player = False
+        self._publish_clock = publish_clock
         self._recorder = None
         self.last_frame = None
         self.last_playhead = None
@@ -494,6 +495,8 @@ class BagTimeline(QGraphicsScene):
         if not self._player:
             try:
                 self._player = Player(self)
+                if self._publish_clock:
+                    self._player.start_clock_publishing()
             except Exception as ex:
                 qWarning('Error starting player; aborting publish: %s' % str(ex))
                 return False

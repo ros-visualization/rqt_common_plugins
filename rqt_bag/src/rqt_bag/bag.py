@@ -47,12 +47,14 @@ class Bag(Plugin):
         """
         super(Bag, self).__init__(context)
         self.setObjectName('Bag')
-        self._widget = BagWidget(context)
+
+        args = self._parse_args(context.argv())
+
+        self._widget = BagWidget(context, args.clock)
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
         context.add_widget(self._widget)
 
-        args = self._parse_args(context.argv())
         for bagfile in args.bagfiles:
             self._widget.load_bag(bagfile)
 
@@ -64,6 +66,7 @@ class Bag(Plugin):
     @staticmethod
     def add_arguments(parser):
         group = parser.add_argument_group('Options for rqt_bag plugin')
+        group.add_argument('--clock', action='store_true', help='publish the clock time')
         group.add_argument('bagfiles', type=argparse.FileType('r'), nargs='*', default=[], help='Bagfiles to load')
 
     def shutdown_plugin(self):
