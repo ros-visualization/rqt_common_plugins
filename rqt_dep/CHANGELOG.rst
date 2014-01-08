@@ -2,6 +2,11 @@
 Changelog for package rqt_dep
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add groups for rqt plugins, renamed some plugins (`#167 <https://github.com/ros-visualization/rqt_common_plugins/issues/167>`_)
+* make it a non ros plugin startable without a roscore (`#200 <https://github.com/ros-visualization/rqt_common_plugins/issues/200>`_)
+
 0.3.2 (2013-10-14)
 ------------------
 

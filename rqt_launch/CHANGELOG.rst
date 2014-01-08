@@ -2,6 +2,11 @@
 Changelog for package rqt_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add groups for rqt plugins, renamed some plugins (`#167 <https://github.com/ros-visualization/rqt_common_plugins/issues/167>`_)
+* mark rqt_launch and rqt_reconfigure as experimental (`#167 <https://github.com/ros-visualization/rqt_common_plugins/issues/167>`_)
+
 0.3.2 (2013-10-14)
 ------------------
 

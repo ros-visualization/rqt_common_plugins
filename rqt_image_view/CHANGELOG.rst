@@ -2,6 +2,12 @@
 Changelog for package rqt_image_view
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add groups for rqt plugins, renamed some plugins (`#167 <https://github.com/ros-visualization/rqt_common_plugins/issues/167>`_)
+* properly handle aligned images
+* wrap cv calls in try-catch-block (`#201 <https://github.com/ros-visualization/rqt_common_plugins/issues/201>`_)
+
 0.3.2 (2013-10-14)
 ------------------
 
