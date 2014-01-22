@@ -38,13 +38,25 @@ import re
 from threading import RLock
 import textwrap
 
+
+class TopWidgetItem(QTreeWidgetItem):
+    def __init__(self, parent=None):
+        super(TopWidgetItem, self).__init__(parent)
+        
+    def __lt__(self, other):
+        col = self.treeWidget().sortColumn()
+        dtype = Top.SORT_TYPE[col]
+        return dtype(self.text(col)) < dtype(other.text(col))
+
+
 class Top(Plugin):
 
-    node_fields   = [             'pid', 'get_cpu_percent', 'get_memory_percent', 'get_num_threads']
-    out_fields    = ['node_name', 'pid', 'cpu_percent',     'memory_percent',     'num_threads'    ]
-    format_strs   = ['%s',        '%s',  '%0.2f',           '%0.2f',              '%s'             ]
-    node_labels   = ['Node',      'PID', 'CPU %',           'Mem %',              'Num Threads'    ]
-    tooltips      = {
+    NODE_FIELDS   = [             'pid', 'get_cpu_percent', 'get_memory_percent', 'get_num_threads']
+    OUT_FIELDS    = ['node_name', 'pid', 'cpu_percent',     'memory_percent',     'num_threads'    ]
+    FORMAT_STRS   = ['%s',        '%s',  '%0.2f',           '%0.2f',              '%s'             ]
+    NODE_LABELS   = ['Node',      'PID', 'CPU %',           'Mem %',              'Num Threads'    ]
+    SORT_TYPE     = [str,         str,   float,             float,                float            ]
+    TOOLTIPS      = {
         0: ('cmdline', lambda x: '\n'.join(textwrap.wrap(' '.join(x)))),
         3: ('memory_info', lambda x: ('Resident: %0.2f MiB, Virtual: %0.2f MiB' % (x[0]/2**20, x[1]/2**20)))
     }
@@ -96,8 +108,8 @@ class Top(Plugin):
         # Create the table widget
         self._table_widget = QTreeWidget()
         self._table_widget.setObjectName('TopTable')
-        self._table_widget.setColumnCount(len(self.node_labels))
-        self._table_widget.setHeaderLabels(self.node_labels)
+        self._table_widget.setColumnCount(len(self.NODE_LABELS))
+        self._table_widget.setHeaderLabels(self.NODE_LABELS)
         self._table_widget.itemClicked.connect(self._tableItemClicked)
         self._table_widget.setSortingEnabled(True)
         self._table_widget.setAlternatingRowColors(True)
@@ -138,13 +150,13 @@ class Top(Plugin):
         self._node_info.kill_node(self._selected_node)
 
     def update_one_item(self, row, info):
-        twi = QTreeWidgetItem()
-        for col, field in enumerate(self.out_fields):
+        twi = TopWidgetItem()
+        for col, field in enumerate(self.OUT_FIELDS):
             val = info[field]
-            twi.setText(col, self.format_strs[col] % val)
+            twi.setText(col, self.FORMAT_STRS[col] % val)
         self._table_widget.insertTopLevelItem(row, twi)
 
-        for col, (key, func) in self.tooltips.iteritems():
+        for col, (key, func) in self.TOOLTIPS.iteritems():
             twi.setToolTip(col, func(info[key]))
 
         with self._selected_node_lock:
@@ -155,7 +167,7 @@ class Top(Plugin):
 
     def update_table(self):
         self._table_widget.clear()
-        infos = self._node_info.get_all_node_fields(self.node_fields)
+        infos = self._node_info.get_all_node_fields(self.NODE_FIELDS)
         for nx, info in enumerate(infos):
             self.update_one_item(nx, info)
 
