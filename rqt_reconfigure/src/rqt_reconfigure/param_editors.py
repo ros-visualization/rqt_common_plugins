@@ -176,17 +176,17 @@ class IntegerEditor(EditorWidget):
         self._paramval_lineEdit.setValidator(QIntValidator(self._min,
                                                            self._max, self))
 
+        # TODO: This should not always get set to the default it should be the
+        # current value
+        self._paramval_lineEdit.setText(str(config['default']))
+        self._slider_horizontal.setSliderPosition(int(config['default']))
+
         # Connect slots
         self._paramval_lineEdit.textChanged.connect(self._text_edited)
         self._slider_horizontal.sliderReleased.connect(self._slider_released)
         #self._slider_horizontal.sliderMoved.connect(self._update_text_gui)
         # valueChanged gets called when groove is clicked on.
         #self._slider_horizontal.valueChanged.connect(self.update_value)
-
-        # TODO: This should not always get set to the default it should be the
-        # current value
-        self._paramval_lineEdit.setText(str(config['default']))
-        self._slider_horizontal.setSliderPosition(int(config['default']))
 
     def _text_edited(self):
         self._update_paramserver(int(self._paramval_lineEdit.text()))
