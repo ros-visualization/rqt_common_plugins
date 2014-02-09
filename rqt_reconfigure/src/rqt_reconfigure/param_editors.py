@@ -38,6 +38,7 @@ import os
 from python_qt_binding import loadUi
 from python_qt_binding.QtGui import (QDoubleValidator, QIntValidator, QLabel,
                                      QWidget)
+from decimal import Decimal
 import rospkg
 import rospy
 
@@ -81,6 +82,7 @@ class EditorWidget(QWidget):
 
         self._updater = updater
         self.param_name = config['name']
+        self.param_description = config['description']
 
         self.old_value = None
 
@@ -115,6 +117,8 @@ class EditorWidget(QWidget):
 #        label_paramname.setWordWrap(True)
         self._paramname_label.setMinimumWidth(100)
         grid.addRow(self._paramname_label, self)
+        self.setToolTip(self.param_description)
+        self._paramname_label.setToolTip(self.param_description)
 
     def close(self):
         '''
@@ -128,7 +132,10 @@ class BooleanEditor(EditorWidget):
         super(BooleanEditor, self).__init__(updater, config)
         loadUi(ui_bool, self)
 
+        # Initialize to default
         self.update_value(config['default'])
+
+        # Make checkbox update param server
         self._checkbox.clicked.connect(self._update_paramserver)
         #TODO: Maybe add slot for stateChanged; it can be just:
         #      self._checkbox.stateChanged.connect(self._update_paramserver)
@@ -142,11 +149,11 @@ class StringEditor(EditorWidget):
         super(StringEditor, self).__init__(updater, config)
         loadUi(ui_str, self)
 
-        # Emit signal when cursor leaves the text field.
+        self._paramval_lineedit.setText(config['default'])
+
+        # Update param server when cursor leaves the text field
+        # or enter is pressed.
         self._paramval_lineedit.editingFinished.connect(self.edit_finished)
-        # Add textChanged to capture the change while cursor is still in
-        # the text field.
-        self._paramval_lineedit.textChanged.connect(self.edit_finished)
 
     def update_value(self, value):
         rospy.logdebug('StringEditor update_value={}'.format(value))
@@ -161,14 +168,13 @@ class StringEditor(EditorWidget):
 class IntegerEditor(EditorWidget):
     def __init__(self, updater, config):
         super(IntegerEditor, self).__init__(updater, config)
-
         loadUi(ui_int, self)
 
+        # Set ranges
         self._min = int(config['min'])
         self._max = int(config['max'])
         self._min_val_label.setText(str(self._min))
         self._max_val_label.setText(str(self._max))
-
         self._slider_horizontal.setRange(self._min, self._max)
 
         # TODO: Fix that the naming of _paramval_lineEdit instance is not
@@ -176,121 +182,138 @@ class IntegerEditor(EditorWidget):
         self._paramval_lineEdit.setValidator(QIntValidator(self._min,
                                                            self._max, self))
 
-        # Connect slots
-        self._paramval_lineEdit.textChanged.connect(self._text_edited)
-        self._slider_horizontal.sliderReleased.connect(self._slider_released)
-        #self._slider_horizontal.sliderMoved.connect(self._update_text_gui)
-        # valueChanged gets called when groove is clicked on.
-        #self._slider_horizontal.valueChanged.connect(self.update_value)
-
-        # TODO: This should not always get set to the default it should be the
-        # current value
+        # Initialize to default
         self._paramval_lineEdit.setText(str(config['default']))
-        self._slider_horizontal.setSliderPosition(int(config['default']))
+        self._slider_horizontal.setValue(int(config['default']))
 
-    def _text_edited(self):
+        # Make slider update text (locally)
+        self._slider_horizontal.sliderMoved.connect(self._slider_moved)
+
+        # Make keyboard input change slider position and update param server
+        self._paramval_lineEdit.editingFinished.connect(self._text_changed)
+
+        # Make slider update param server
+        # Turning off tracking means this isn't called during a drag
+        self._slider_horizontal.setTracking(False)
+        self._slider_horizontal.valueChanged.connect(self._slider_changed)
+
+    def _slider_moved(self):
+        # This is a "local" edit - only change the text
+        self._paramval_lineEdit.setText(str(
+                                self._slider_horizontal.sliderPosition()))
+
+    def _text_changed(self):
+        # This is a final change - update param server
+        # No need to update slider... update_value() will
         self._update_paramserver(int(self._paramval_lineEdit.text()))
 
-    def _slider_released(self):
-        '''Slot for mouse being released from slider.'''
-        _slider_val = self._slider_horizontal.value()
-        self._update_text_gui(_slider_val)
-
-    def _update_text_gui(self, value):
-        rospy.logdebug(' IntegerEditor._update_text_gui val=%s', str(value))
-        self._paramval_lineEdit.setText(str(value))
-        # Run self._update_paramserver to update the value on PServer
-        self._update_paramserver(value)
-        self.update_value(value)
+    def _slider_changed(self):
+        # This is a final change - update param server
+        # No need to update text... update_value() will
+        self._update_paramserver(self._slider_horizontal.value())
 
     def update_value(self, val):
-        # Can be redundant when the trigger is the move of slider.
-        self._slider_horizontal.setSliderPosition(val)
-
+        # Block all signals so we don't loop
+        self._slider_horizontal.blockSignals(True)
+        # Update the slider value
+        self._slider_horizontal.setValue(val)
+        # Make the text match
         self._paramval_lineEdit.setText(str(val))
+        self._slider_horizontal.blockSignals(False)
 
 
 class DoubleEditor(EditorWidget):
     def __init__(self, updater, config):
         super(DoubleEditor, self).__init__(updater, config)
-
         loadUi(ui_num, self)
 
         # Handle unbounded doubles nicely
         if config['min'] != -float('inf'):
             self._min = float(config['min'])
             self._min_val_label.setText(str(self._min))
-            self._func = lambda x: x
-            self._ifunc = self._func
         else:
             self._min = -1e10000
             self._min_val_label.setText('-inf')
-            self._func = lambda x: math.atan(x)
-            self._ifunc = lambda x: math.tan(x)
 
         if config['max'] != float('inf'):
             self._max = float(config['max'])
             self._max_val_label.setText(str(self._max))
-            self._func = lambda x: x
-            self._ifunc = self._func
         else:
             self._max = 1e10000
             self._max_val_label.setText('inf')
+
+        if config['min'] != -float('inf') and config['max'] != -float('inf'):
+            self._func = lambda x: x
+            self._ifunc = self._func
+        else:
             self._func = lambda x: math.atan(x)
             self._ifunc = lambda x: math.tan(x)
 
-        self.scale = (self._func(self._max) - self._func(self._min)) / 100
-        if self.scale == 0:
+        # If we have no range, disable the slider
+        self.scale = (self._func(self._max) - self._func(self._min))
+        if self.scale <= 0:
+            self.scale = 0
             self.setDisabled(True)
+        else:
+            self.scale = 100 / self.scale
 
-        self.offset = self._func(self._min)
-
+        # Set ranges
         self._slider_horizontal.setRange(self._get_value_slider(self._min),
                                          self._get_value_slider(self._max))
-
         self._paramval_lineEdit.setValidator(QDoubleValidator(
                                                     self._min, self._max,
                                                     8, self))
+
+        # Initialize to defaults
         self._paramval_lineEdit.setText(str(config['default']))
-        self._slider_horizontal.setSliderPosition(
+        self._slider_horizontal.setValue(
                                      self._get_value_slider(config['default']))
 
-        # Connect slots
-        self._paramval_lineEdit.textChanged.connect(self._text_edited)
-        self._slider_horizontal.sliderReleased.connect(self._slider_released)
+        # Make slider update text (locally)
+        self._slider_horizontal.sliderMoved.connect(self._slider_moved)
 
-    def _text_edited(self):
-        '''Slot for text changed event in text field.'''
+        # Make keyboard input change slider position and update param server
+        self._paramval_lineEdit.editingFinished.connect(self._text_changed)
+
+        # Make slider update param server
+        # Turning off tracking means this isn't called during a drag
+        self._slider_horizontal.setTracking(False)
+        self._slider_horizontal.valueChanged.connect(self._slider_changed)
+
+    def _slider_moved(self):
+        # This is a "local" edit - only change the text
+        self._paramval_lineEdit.setText('{0:f}'.format(Decimal(str(
+                                                self._get_value_textfield()))))
+
+    def _text_changed(self):
+        # This is a final change - update param server
+        # No need to update slider... update_value() will
         self._update_paramserver(float(self._paramval_lineEdit.text()))
+
+    def _slider_changed(self):
+        # This is a final change - update param server
+        # No need to update text... update_value() will
+        self._update_paramserver(self._get_value_textfield())
 
     def _get_value_textfield(self):
         '''@return: Current value in text field.'''
-        return self._ifunc(self._slider_horizontal.value() * self.scale)
-
-    def _slider_released(self):
-        '''Slot for mouse being released from slider.'''
-        _slider_val = self._get_value_textfield()
-        self._update_text_gui(_slider_val)
+        return self._ifunc(self._slider_horizontal.sliderPosition() /
+                                        self.scale) if self.scale else 0
 
     def _get_value_slider(self, value):
         '''
         @rtype: double
         '''
-        return int(round((self._func(value)) / self.scale)) if self.scale else 0
-
-    def _update_text_gui(self, value):
-        self._paramval_lineEdit.setText(str(value))
-        rospy.loginfo(' DblEditor._update_text_gui val=%s', str(value))
-        # Run self._update_paramserver to update the value on PServer
-        self._update_paramserver(value)
-        self.update_value(value)
+        return int(round((self._func(value)) * self.scale))
 
     def update_value(self, val):
-        # Can be redundant when the trigger is the move of slider.
-        self._slider_horizontal.setSliderPosition(
-                                            self._get_value_slider(float(val)))
-
-        self._paramval_lineEdit.setText(str(val))
+        # Block all signals so we don't loop
+        self._slider_horizontal.blockSignals(True)
+        # Update the slider value
+        self._slider_horizontal.setValue(self._get_value_slider(float(val)))
+        # Make the text match
+        self._paramval_lineEdit.setText('{0:f}'.format(Decimal(str(val))))
+        self._slider_horizontal.blockSignals(False)
 
 
 class EnumEditor(EditorWidget):
@@ -305,23 +328,28 @@ class EnumEditor(EditorWidget):
             rospy.logerr("reconfig EnumEditor) Malformed enum")
             return
 
+        # Setup the enum items
         self.names = [item['name'] for item in enum]
         self.values = [item['value'] for item in enum]
 
         items = ["%s (%s)" % (self.names[i], self.values[i])
                  for i in range(0, len(self.names))]
 
+        # Add items to the combo box
         self._combobox.addItems(items)
+
+        # Initialize to the default
+        self._combobox.setCurrentIndex(self.values.index(config['default']))
+
+        # Make selection update the param server
         self._combobox.currentIndexChanged['int'].connect(self.selected)
 
     def selected(self, index):
         self._update_paramserver(self.values[index])
 
     def update_value(self, val):
-        # apparently, when the currentIndexChanged signal is emitted, current 
-        # index internally is still the old value, why the setCurrentIndex call
-        # below triggers another selected() call ... couldn't fin a better 
-        # solution than this. 
-        self._combobox.currentIndexChanged['int'].disconnect()
+        # Block all signals so we don't loop
+        self._combobox.blockSignals(True)
         self._combobox.setCurrentIndex(self.values.index(val))
-        self._combobox.currentIndexChanged['int'].connect(self.selected)
+        self._combobox.blockSignals(False)
+
