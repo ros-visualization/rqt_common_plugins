@@ -198,8 +198,8 @@ class NodeSelectorWidget(QWidget):
             item_widget = item_child.get_dynreconf_widget()
         except ROSException as e:
             raise e
-        rospy.loginfo('item_selected={} child={} widget={}'.format(
-                       index_current, item_child, item_widget))
+        #rospy.loginfo('item_selected={} child={} widget={}'.format(
+        #               index_current, item_child, item_widget))
         self.sig_node_selected.emit(item_widget)
 
         # Show the node as selected.
