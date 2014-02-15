@@ -96,12 +96,15 @@ class EditorWidget(QWidget):
 
     def update_value(self, value):
         '''
-        To be overridden in subclass.
+        To be implemented in subclass, but still used.
 
         Update the value that's displayed on the arbitrary GUI component
         based on user's input.
+
+        This method is not called from the GUI thread, so any changes to
+        QObjects will need to be done through a signal.
         '''
-        pass
+        self.old_value = value
 
     def update_configuration(self, value):
         self._updater.update({self.param_name: value})
@@ -141,6 +144,7 @@ class BooleanEditor(EditorWidget):
         #      self._checkbox.stateChanged.connect(self._update_paramserver)
 
     def update_value(self, value):
+        super(BooleanEditor, self).update_value(value)
         self._checkbox.setChecked(value)
 
 
@@ -156,6 +160,7 @@ class StringEditor(EditorWidget):
         self._paramval_lineedit.editingFinished.connect(self.edit_finished)
 
     def update_value(self, value):
+        super(StringEditor, self).update_value(value)
         rospy.logdebug('StringEditor update_value={}'.format(value))
         self._paramval_lineedit.setText(value)
 
@@ -212,13 +217,14 @@ class IntegerEditor(EditorWidget):
         # No need to update text... update_value() will
         self._update_paramserver(self._slider_horizontal.value())
 
-    def update_value(self, val):
+    def update_value(self, value):
+        super(IntegerEditor, self).update_value(value)
         # Block all signals so we don't loop
         self._slider_horizontal.blockSignals(True)
         # Update the slider value
-        self._slider_horizontal.setValue(val)
+        self._slider_horizontal.setValue(value)
         # Make the text match
-        self._paramval_lineEdit.setText(str(val))
+        self._paramval_lineEdit.setText(str(value))
         self._slider_horizontal.blockSignals(False)
 
 
@@ -306,13 +312,14 @@ class DoubleEditor(EditorWidget):
         '''
         return int(round((self._func(value)) * self.scale))
 
-    def update_value(self, val):
+    def update_value(self, value):
+        super(DoubleEditor, self).update_value(value)
         # Block all signals so we don't loop
         self._slider_horizontal.blockSignals(True)
         # Update the slider value
-        self._slider_horizontal.setValue(self._get_value_slider(float(val)))
+        self._slider_horizontal.setValue(self._get_value_slider(float(value)))
         # Make the text match
-        self._paramval_lineEdit.setText('{0:f}'.format(Decimal(str(val))))
+        self._paramval_lineEdit.setText('{0:f}'.format(Decimal(str(value))))
         self._slider_horizontal.blockSignals(False)
 
 
@@ -347,9 +354,10 @@ class EnumEditor(EditorWidget):
     def selected(self, index):
         self._update_paramserver(self.values[index])
 
-    def update_value(self, val):
+    def update_value(self, value):
+        super(EnumEditor, self).update_value(value)
         # Block all signals so we don't loop
         self._combobox.blockSignals(True)
-        self._combobox.setCurrentIndex(self.values.index(val))
+        self._combobox.setCurrentIndex(self.values.index(value))
         self._combobox.blockSignals(False)
 
