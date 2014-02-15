@@ -36,6 +36,7 @@ import math
 import os
 
 from python_qt_binding import loadUi
+from python_qt_binding.QtCore import Signal
 from python_qt_binding.QtGui import (QDoubleValidator, QIntValidator, QLabel,
                                      QWidget)
 from decimal import Decimal
@@ -131,6 +132,8 @@ class EditorWidget(QWidget):
 
 
 class BooleanEditor(EditorWidget):
+    _update_signal = Signal(bool)
+
     def __init__(self, updater, config):
         super(BooleanEditor, self).__init__(updater, config)
         loadUi(ui_bool, self)
@@ -141,15 +144,20 @@ class BooleanEditor(EditorWidget):
         # Make checkbox update param server
         self._checkbox.stateChanged.connect(self._box_checked)
 
+        # Make param server update checkbox
+        self._update_signal.connect(self._checkbox.setChecked)
+
     def _box_checked(self, value):
         self._update_paramserver(bool(value))
 
     def update_value(self, value):
         super(BooleanEditor, self).update_value(value)
-        self._checkbox.setChecked(value)
+        self._update_signal.emit(value)
 
 
 class StringEditor(EditorWidget):
+    _update_signal = Signal(str)
+
     def __init__(self, updater, config):
         super(StringEditor, self).__init__(updater, config)
         loadUi(ui_str, self)
@@ -160,10 +168,13 @@ class StringEditor(EditorWidget):
         # or enter is pressed.
         self._paramval_lineedit.editingFinished.connect(self.edit_finished)
 
+        # Make param server update text field
+        self._update_signal.connect(self._paramval_lineedit.setText)
+
     def update_value(self, value):
         super(StringEditor, self).update_value(value)
         rospy.logdebug('StringEditor update_value={}'.format(value))
-        self._paramval_lineedit.setText(value)
+        self._update_signal.emit(value)
 
     def edit_finished(self):
         rospy.logdebug('StringEditor edit_finished val={}'.format(
@@ -172,6 +183,8 @@ class StringEditor(EditorWidget):
 
 
 class IntegerEditor(EditorWidget):
+    _update_signal = Signal(int)
+
     def __init__(self, updater, config):
         super(IntegerEditor, self).__init__(updater, config)
         loadUi(ui_int, self)
@@ -203,6 +216,9 @@ class IntegerEditor(EditorWidget):
         self._slider_horizontal.setTracking(False)
         self._slider_horizontal.valueChanged.connect(self._slider_changed)
 
+        # Make the param server update selection
+        self._update_signal.connect(self._update_gui)
+
     def _slider_moved(self):
         # This is a "local" edit - only change the text
         self._paramval_lineEdit.setText(str(
@@ -220,6 +236,9 @@ class IntegerEditor(EditorWidget):
 
     def update_value(self, value):
         super(IntegerEditor, self).update_value(value)
+        self._update_signal.emit(int(value))
+
+    def _update_gui(self, value):
         # Block all signals so we don't loop
         self._slider_horizontal.blockSignals(True)
         # Update the slider value
@@ -230,6 +249,8 @@ class IntegerEditor(EditorWidget):
 
 
 class DoubleEditor(EditorWidget):
+    _update_signal = Signal(float)
+
     def __init__(self, updater, config):
         super(DoubleEditor, self).__init__(updater, config)
         loadUi(ui_num, self)
@@ -287,6 +308,9 @@ class DoubleEditor(EditorWidget):
         self._slider_horizontal.setTracking(False)
         self._slider_horizontal.valueChanged.connect(self._slider_changed)
 
+        # Make the param server update selection
+        self._update_signal.connect(self._update_gui)
+
     def _slider_moved(self):
         # This is a "local" edit - only change the text
         self._paramval_lineEdit.setText('{0:f}'.format(Decimal(str(
@@ -315,16 +339,21 @@ class DoubleEditor(EditorWidget):
 
     def update_value(self, value):
         super(DoubleEditor, self).update_value(value)
+        self._update_signal.emit(float(value))
+
+    def _update_gui(self, value):
         # Block all signals so we don't loop
         self._slider_horizontal.blockSignals(True)
         # Update the slider value
-        self._slider_horizontal.setValue(self._get_value_slider(float(value)))
+        self._slider_horizontal.setValue(self._get_value_slider(value))
         # Make the text match
         self._paramval_lineEdit.setText('{0:f}'.format(Decimal(str(value))))
         self._slider_horizontal.blockSignals(False)
 
 
 class EnumEditor(EditorWidget):
+    _update_signal = Signal(int)
+
     def __init__(self, updater, config):
         super(EnumEditor, self).__init__(updater, config)
 
@@ -352,13 +381,19 @@ class EnumEditor(EditorWidget):
         # Make selection update the param server
         self._combobox.currentIndexChanged['int'].connect(self.selected)
 
+        # Make the param server update selection
+        self._update_signal.connect(self._update_gui)
+
     def selected(self, index):
         self._update_paramserver(self.values[index])
 
     def update_value(self, value):
         super(EnumEditor, self).update_value(value)
+        self._update_signal.emit(self.values.index(value))
+
+    def _update_gui(self, idx):
         # Block all signals so we don't loop
         self._combobox.blockSignals(True)
-        self._combobox.setCurrentIndex(self.values.index(value))
+        self._combobox.setCurrentIndex(idx)
         self._combobox.blockSignals(False)
 
