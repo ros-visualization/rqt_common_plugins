@@ -139,9 +139,10 @@ class BooleanEditor(EditorWidget):
         self.update_value(config['default'])
 
         # Make checkbox update param server
-        self._checkbox.clicked.connect(self._update_paramserver)
-        #TODO: Maybe add slot for stateChanged; it can be just:
-        #      self._checkbox.stateChanged.connect(self._update_paramserver)
+        self._checkbox.stateChanged.connect(self._box_checked)
+
+    def _box_checked(self, value):
+        self._update_paramserver(bool(value))
 
     def update_value(self, value):
         super(BooleanEditor, self).update_value(value)
