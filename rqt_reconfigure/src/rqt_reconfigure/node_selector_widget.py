@@ -198,8 +198,8 @@ class NodeSelectorWidget(QWidget):
             item_widget = item_child.get_dynreconf_widget()
         except ROSException as e:
             raise e
-        #rospy.loginfo('item_selected={} child={} widget={}'.format(
-        #               index_current, item_child, item_widget))
+        rospy.logdebug('item_selected={} child={} widget={}'.format(
+                       index_current, item_child, item_widget))
         self.sig_node_selected.emit(item_widget)
 
         # Show the node as selected.
@@ -325,7 +325,7 @@ class NodeSelectorWidget(QWidget):
 
                 # NOT a debug print - please DO NOT remove. This print works
                 # as progress notification when loading takes long time.
-                rospy.loginfo(_str_progress)
+                rospy.logdebug(_str_progress)
                 i_node_curr += 1
 
     def _add_children_treenode(self, treenodeitem_toplevel,
