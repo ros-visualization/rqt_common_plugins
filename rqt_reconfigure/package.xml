@@ -12,7 +12,7 @@
 		on dynamic_reconfigure that allows access to only those params latched 
 		to nodes.
 	</description>
-	<maintainer email="130s@alumni.smu.edu">Isaac Saito</maintainer>
+	<maintainer email="logans@cottsay.net">Scott K Logan</maintainer>
 
 	<license>BSD</license>
 
