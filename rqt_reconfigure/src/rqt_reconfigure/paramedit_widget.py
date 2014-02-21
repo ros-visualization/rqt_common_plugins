@@ -89,30 +89,14 @@ class ParameditWidget(QWidget):
         node_grn = dynreconf_widget.get_node_grn()
         rospy.logdebug('ParameditWidget.show str(node_grn)=%s', str(node_grn))
 
-        dynreconf_client = None
-
         if not node_grn in self._dynreconf_clients.keys():
-            # Add dynreconf widget if there hasn't one existed.
+            # Add dynreconf widget if there isn't already one.
 
-            #TODO think about sharing dynamic_reconfigure.client instances
-            # with NodeSelecorWidget...generating 2 instances of the same node
-            # is nothing but inefficient and bad design.
-
-            try:
-                dynreconf_client = dynamic_reconfigure.client.Client(
-                                               str(node_grn), timeout=5.0)
-            except rospy.exceptions.ROSException:
-                rospy.logerr("Could not connect to %s" % node_grn)
-                #TODO(Isaac) Needs to show err msg on GUI too.
-                return
-
-            _dynreconf_client = DynreconfClientWidget(dynreconf_client,
-                                                      node_grn)
             # Client gets renewed every time different node_grn was clicked.
 
-            self._dynreconf_clients.__setitem__(node_grn, _dynreconf_client)
-            self.vlayout.addWidget(_dynreconf_client)
-            _dynreconf_client.sig_node_disabled_selected.connect(
+            self._dynreconf_clients.__setitem__(node_grn, dynreconf_widget)
+            self.vlayout.addWidget(dynreconf_widget)
+            dynreconf_widget.sig_node_disabled_selected.connect(
                                                            self._node_disabled)
 
         else:  # If there has one already existed, remove it.
