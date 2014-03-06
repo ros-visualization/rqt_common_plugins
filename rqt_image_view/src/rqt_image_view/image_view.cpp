@@ -110,6 +110,8 @@ void ImageView::updateTopicList()
 {
   QSet<QString> message_types;
   message_types.insert("sensor_msgs/Image");
+  QSet<QString> message_sub_types;
+  message_sub_types.insert("sensor_msgs/CompressedImage");
 
   // get declared transports
   QList<QString> transports;
@@ -132,7 +134,7 @@ void ImageView::updateTopicList()
   QString selected = ui_.topics_combo_box->currentText();
 
   // fill combo box
-  QList<QString> topics = getTopicList(message_types, transports);
+  QList<QString> topics = getTopics(message_types, message_sub_types, transports).values();
   topics.append("");
   qSort(topics);
   ui_.topics_combo_box->clear();
@@ -149,6 +151,12 @@ void ImageView::updateTopicList()
 
 QList<QString> ImageView::getTopicList(const QSet<QString>& message_types, const QList<QString>& transports)
 {
+  QSet<QString> message_sub_types;
+  return getTopics(message_types, message_sub_types, transports).values();
+}
+
+QSet<QString> ImageView::getTopics(const QSet<QString>& message_types, const QSet<QString>& message_sub_types, const QList<QString>& transports)
+{
   ros::master::V_TopicInfo topic_info;
   ros::master::getTopics(topic_info);
 
@@ -158,7 +166,7 @@ QList<QString> ImageView::getTopicList(const QSet<QString>& message_types, const
     all_topics.insert(it->name.c_str());
   }
 
-  QList<QString> topics;
+  QSet<QString> topics;
   for (ros::master::V_TopicInfo::const_iterator it = topic_info.begin(); it != topic_info.end(); it++)
   {
     if (message_types.contains(it->datatype.c_str()))
@@ -166,18 +174,29 @@ QList<QString> ImageView::getTopicList(const QSet<QString>& message_types, const
       QString topic = it->name.c_str();
 
       // add raw topic
-      topics.append(topic);
-      //qDebug("ImageView::getTopicList() raw topic '%s'", topic.toStdString().c_str());
-      
+      topics.insert(topic);
+      //qDebug("ImageView::getTopics() raw topic '%s'", topic.toStdString().c_str());
+
       // add transport specific sub-topics
       for (QList<QString>::const_iterator jt = transports.begin(); jt != transports.end(); jt++)
       {
         if (all_topics.contains(topic + "/" + *jt))
         {
           QString sub = topic + " " + *jt;
-          topics.append(sub);
-          //qDebug("ImageView::getTopicList() transport specific sub-topic '%s'", sub.toStdString().c_str());
+          topics.insert(sub);
+          //qDebug("ImageView::getTopics() transport specific sub-topic '%s'", sub.toStdString().c_str());
         }
+      }
+    }
+    if (message_sub_types.contains(it->datatype.c_str()))
+    {
+      QString topic = it->name.c_str();
+      int index = topic.lastIndexOf("/");
+      if (index != -1)
+      {
+        topic.replace(index, 1, " ");
+        topics.insert(topic);
+        //qDebug("ImageView::getTopics() transport specific sub-topic '%s'", topic.toStdString().c_str());
       }
     }
   }

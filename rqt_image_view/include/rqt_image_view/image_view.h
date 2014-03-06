@@ -38,6 +38,7 @@
 #include <ui_image_view.h>
 
 #include <image_transport/image_transport.h>
+#include <ros/macros.h>
 #include <sensor_msgs/Image.h>
 
 #include <opencv2/core/core.hpp>
@@ -75,7 +76,10 @@ protected slots:
 
 protected:
 
-  virtual QList<QString> getTopicList(const QSet<QString>& message_types, const QList<QString>& transports);
+  // deprecated function for backward compatibility only, use getTopics() instead
+  ROS_DEPRECATED virtual QList<QString> getTopicList(const QSet<QString>& message_types, const QList<QString>& transports);
+
+  virtual QSet<QString> getTopics(const QSet<QString>& message_types, const QSet<QString>& message_sub_types, const QList<QString>& transports);
 
   virtual void selectTopic(const QString& topic);
 
