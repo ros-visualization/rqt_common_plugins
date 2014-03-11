@@ -112,6 +112,9 @@ class TreenodeQstdItem(ReadonlyItem):
                                                        self._dynreconf_client,
                                                        self._param_name_raw))
 
+    def clear_dynreconf_client(self):
+        self._dynreconf_client = None
+
     def get_dynreconf_widget(self):
         """
         @rtype: DynreconfClientWidget (QWidget)
@@ -146,11 +149,19 @@ class TreenodeQstdItem(ReadonlyItem):
             self._dynreconfclient_widget = DynreconfClientWidget(
                                                        self._dynreconf_client,
                                                        self._param_name_raw)
+            # Creating the DynreconfClientWidget transfers ownership of the _dynreconf_client
+            # to it. If it is destroyed from Qt, we need to clear our reference to it and
+            # stop the param server thread we had.
+            self._dynreconfclient_widget.destroyed.connect(self.clear_dynreconfclient_widget)
+            self._dynreconfclient_widget.destroyed.connect(self.disconnect_param_server)
             rospy.logdebug('In get_dynreconf_widget 5')
 
         else:
             pass
         return self._dynreconfclient_widget
+
+    def clear_dynreconfclient_widget(self):
+        self._dynreconfclient_widget = None
 
     def connect_param_server(self):
         """
@@ -171,6 +182,15 @@ class TreenodeQstdItem(ReadonlyItem):
             self._paramserver_connect_thread = ParamserverConnectThread(
                                        self, self._param_name_raw)
             self._paramserver_connect_thread.start()
+
+    def disconnect_param_server(self):
+        if self._paramserver_connect_thread:
+            # Try to stop the thread
+            if self._paramserver_connect_thread.isAlive():
+              self._paramserver_connect_thread.join(1)
+            del self._paramserver_connect_thread
+            self._paramserver_connect_thread = None
+        self.clear_dynreconf_client()
 
     def enable_param_items(self):
         """
