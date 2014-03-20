@@ -39,13 +39,13 @@ import sys
 
 from python_qt_binding.QtCore import Signal
 from python_qt_binding.QtGui import (QLabel, QHBoxLayout, QSplitter,
-                                     QVBoxLayout, QWidget)
+                                     QVBoxLayout, QWidget, QItemSelectionModel)
 
 from rqt_reconfigure.node_selector_widget import NodeSelectorWidget
 from rqt_reconfigure.paramedit_widget import ParameditWidget
 from rqt_reconfigure.text_filter import TextFilter
 from rqt_reconfigure.text_filter_widget import TextFilterWidget
-
+import rospy
 
 class ParamWidget(QWidget):
     _TITLE_PLUGIN = 'Dynamic Reconfigure'
@@ -53,6 +53,9 @@ class ParamWidget(QWidget):
     # To be connected to PluginContainerWidget
     sig_sysmsg = Signal(str)
     sig_sysprogress = Signal(str)
+
+    # To make selections from CLA
+    sig_selected = Signal(str)
 
     def __init__(self, context, node=None):
         """
@@ -124,6 +127,14 @@ class ParamWidget(QWidget):
         #Connect filter signal-slots.
         self._text_filter.filter_changed_signal.connect(
                                             self._filter_key_changed)
+
+        # Open any clients indicated from command line
+        self.sig_selected.connect(self._nodesel_widget.node_selected)
+        for rn in [rospy.resolve_name(c) for c in context.argv()]:
+            if rn in self._nodesel_widget.get_paramitems():
+                self.sig_selected.emit(rn)
+            else:
+                rospy.logwarn('Could not find a dynamic reconfigure client named \'%s\'', str(rn))
 
     def shutdown(self):
         #TODO: Needs implemented. Trigger dynamic_reconfigure to unlatch

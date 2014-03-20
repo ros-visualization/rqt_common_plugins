@@ -146,6 +146,24 @@ class NodeSelectorWidget(QWidget):
                 # Deselect the index.
                 self.selectionModel.select(index, QItemSelectionModel.Deselect)
 
+    def node_selected(self, grn):
+        """
+        Select the index that corresponds to the given GRN.
+
+        :type grn: str
+        """
+
+        # Obtain the corresponding index.
+        qindex_tobe_selected = self._item_model.get_index_from_grn(grn)
+        rospy.logdebug('NodeSelWidt node_selected qindex={} data={}'.format(
+                                qindex_tobe_selected,
+                                qindex_tobe_selected.data(Qt.DisplayRole)))
+
+
+        # Select the index.
+        if qindex_tobe_selected:
+            self.selectionModel.select(qindex_tobe_selected, QItemSelectionModel.Select)
+
     def _selection_deselected(self, index_current, rosnode_name_selected):
         """
         Intended to be called from _selection_changed_slot.

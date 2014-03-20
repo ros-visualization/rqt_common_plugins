@@ -63,3 +63,9 @@ class ParamPlugin(Plugin):
 
     def restore_settings(self, plugin_settings, instance_settings):
         self._widget.restore_settings(plugin_settings, instance_settings)
+
+    @staticmethod
+    def add_arguments(parser):
+        group = parser.add_argument_group('Options for rqt_reconfigure plugin')
+        group.add_argument('node_name', nargs='*', default=[], help='Node(s) to open automatically')
+
