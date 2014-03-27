@@ -37,6 +37,11 @@ import copy
 
 import rosgraph.impl.graph
 import roslib
+import math
+
+import rospy
+from rosgraph_msgs.msg import TopicStatistics
+import pydot
 
 # node/node connectivity
 NODE_NODE_GRAPH = 'node_node'
@@ -45,8 +50,7 @@ NODE_TOPIC_GRAPH = 'node_topic'
 # all node/topic connections, even if no actual network connection
 NODE_TOPIC_ALL_GRAPH = 'node_topic_all'
 
-QUIET_NAMES = ['/diag_agg', '/runtime_logger', '/pr2_dashboard', '/rviz', '/rosout', '/cpu_monitor', '/monitor', '/hd_monitor', '/rxloggerlevel', '/clock', '/rqt']
-
+QUIET_NAMES = ['/diag_agg', '/runtime_logger', '/pr2_dashboard', '/rviz', '/rosout', '/cpu_monitor', '/monitor', '/hd_monitor', '/rxloggerlevel', '/clock', '/rqt', '/statistics']
 
 def matches_any(name, patternlist):
     if patternlist is None or len(patternlist) == 0:
@@ -68,14 +72,139 @@ class NodeConnections:
 
 class RosGraphDotcodeGenerator:
 
+    # topic/topic -> graph.edge object
+    edges = dict([])
+
+    # ROS node name -> graph.node object
+    nodes = dict([])
+
     def __init__(self):
-        pass
+        self.stats_sub = rospy.Subscriber('/statistics', TopicStatistics, self.statistics_callback)
+
+    def statistics_callback(self,msg):
+
+        # add connections (if new)
+        if not msg.node_sub in self.edges:
+            self.edges[msg.node_sub] = dict([])
+
+        if not msg.topic in self.edges[msg.node_sub]:
+            self.edges[msg.node_sub][msg.topic] = dict([])
+
+        self.edges[msg.node_sub][msg.topic][msg.node_pub] = msg
+
+    def _get_max_traffic(self):
+        traffic = 10000 # start at 10kb
+        for sub in self.edges:
+            for topic in self.edges[sub]:
+               for pub in self.edges[sub][topic]:
+                    traffic = max(traffic, self.edges[sub][topic][pub].traffic)
+        return traffic
+
+    def _get_max_age(self):
+        age = 0.1 # start at 100ms
+        for sub in self.edges:
+            for topic in self.edges[sub]:
+               for pub in self.edges[sub][topic]:
+                    age = max(age, self.edges[sub][topic][pub].stamp_age_mean.to_sec())
+        return age
+
+    def _get_max_age_on_topic(self, sub, topic):
+        age = 0.0
+        for pub in self.edges[sub][topic]:
+            age = max(age, self.edges[sub][topic][pub].stamp_age_mean.to_sec())
+        return age
+
+    def _calc_edge_color(self, sub, topic, pub=None):
+
+        age = 0.0
+
+        if pub is None:
+            age = self._get_max_age_on_topic(sub, topic)
+        elif sub in self.edges and topic in self.edges[sub] and pub in self.edges[sub][topic]:
+            age = self.edges[sub][topic][pub].stamp_age_mean.to_sec()
+
+        if age == 0.0:
+            return [0, 0, 0]
+
+        # calc coloring using the age
+        heat = max(age, 0) / self._get_max_age()
+
+        # we assume that heat is normalized between 0.0 (green) and 1.0 (red)
+        # 0.0->green(0,255,0) to 0.5->yellow (255,255,0) to red 1.0(255,0,0)
+        if heat < 0:
+            red = 0
+            green = 0
+        elif heat <= 0.5:
+            red = int(heat * 255 * 2)
+            green = 255
+        elif heat > 0.5:
+            red = 255
+            green = 255 - int((heat - 0.5) * 255 * 2)
+        else:
+            red = 0
+            green = 0
+        return [red, green, 0]
+
+    def _calc_edge_penwidth(self, sub, topic, pub=None):
+        if pub is None and sub in self.edges and topic in self.edges[sub]:
+            traffic = 0
+            for p in self.edges[sub][topic]:
+                if pub is None or p == pub:
+                    traffic += self.edges[sub][topic][p].traffic
+
+            # calc penwidth using the traffic in kb/s
+            return int(traffic / self._get_max_traffic() * 5)
+        else:
+            return 1
+
+    def _calc_statistic_info(self, sub, topic, pub=None):
+        if pub is None and sub in self.edges and topic in self.edges[sub]:
+            conns = len(self.edges[sub][topic])
+            if conns == 1:
+                pub = next(self.edges[sub][topic].iterkeys())
+            else:
+                penwidth = self._calc_edge_penwidth(sub,topic)
+                color = self._calc_edge_color(sub,topic)
+                label = "("+str(conns) + " connections)"
+                return [label, penwidth, color]
+
+        if sub in self.edges and topic in self.edges[sub] and pub in self.edges[sub][topic]:
+            penwidth = self._calc_edge_penwidth(sub,topic,pub)
+            color = self._calc_edge_color(sub,topic,pub)
+            period = self.edges[sub][topic][pub].period_mean.to_sec()
+            if period > 0.0:
+                freq = str(round(1.0 / period, 1))
+            else:
+                freq = "?"
+            age = self.edges[sub][topic][pub].stamp_age_mean.to_sec()
+            age_string = ""
+            if age > 0.0:
+                age_string = " // " + str(round(age, 2) * 1000) + " ms"
+            label = freq + " Hz" + age_string
+            return [label, penwidth, color]
+        else:
+            return [None, None, None]
 
     def _add_edge(self, edge, dotcode_factory, dotgraph, is_topic=False):
         if is_topic:
-            dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label)
+            sub = edge.end
+            topic = edge.label
+            pub = edge.start
+            [more_label, penwidth, color] = self._calc_statistic_info(sub, topic, pub)
+            if more_label is not None:
+                edge.label = edge.label + "\\n" + more_label
+                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label, penwidth=penwidth, color=color)
+            else:
+                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label)
         else:
-            dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label)
+            sub = edge.end.strip()
+            topic = edge.start.strip()
+            [more_label, penwidth, color] = self._calc_statistic_info(sub, topic)
+            if more_label is not None:
+                edge.label = edge.label + "\\n" + more_label
+                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, penwidth=penwidth, color=color)
+            else:
+                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label)
 
     def _add_node(self, node, rosgraphinst, dotcode_factory, dotgraph, quiet):
         if node in rosgraphinst.bad_nodes:
@@ -116,7 +245,7 @@ class RosGraphDotcodeGenerator:
         return True
 
     def quiet_filter_topic_edge(self, edge):
-        for quiet_label in ['/time', '/clock', '/rosout']:
+        for quiet_label in ['/time', '/clock', '/rosout', '/statistics']:
             if quiet_label == edge.label:
                 return False
         return self._quiet_filter(edge.start) and self._quiet_filter(edge.end)
