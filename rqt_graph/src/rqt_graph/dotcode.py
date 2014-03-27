@@ -37,6 +37,11 @@ import copy
 
 import rosgraph.impl.graph
 import roslib
+import math
+
+import rospy
+from rosgraph_msgs.msg import TopicStatistics
+import pydot
 
 # node/node connectivity
 NODE_NODE_GRAPH = 'node_node'
@@ -45,8 +50,7 @@ NODE_TOPIC_GRAPH = 'node_topic'
 # all node/topic connections, even if no actual network connection
 NODE_TOPIC_ALL_GRAPH = 'node_topic_all'
 
-QUIET_NAMES = ['/diag_agg', '/runtime_logger', '/pr2_dashboard', '/rviz', '/rosout', '/cpu_monitor', '/monitor', '/hd_monitor', '/rxloggerlevel', '/clock', '/rqt']
-
+QUIET_NAMES = ['/statistics', '/diag_agg', '/runtime_logger', '/pr2_dashboard', '/rosout', '/cpu_monitor', '/monitor', '/hd_monitor', '/rxloggerlevel', '/clock', '/rqt', 'bond']
 
 def matches_any(name, patternlist):
     if patternlist is None or len(patternlist) == 0:
@@ -68,12 +72,79 @@ class NodeConnections:
 
 class RosGraphDotcodeGenerator:
 
+    # topic/topic -> graph.edge object
+    edges = dict([])
+
+    # ROS node name -> graph.node object
+    nodes = dict([])
+
     def __init__(self):
+	self.stats_sub = rospy.Subscriber('/statistics', TopicStatistics, self.callback)
         pass
+
+    def callback(self,msg):
+
+        if msg.topic in QUIET_NAMES:
+	    return
+
+        # add connections (if new)
+	if not msg.node_pub in self.edges:
+    	    self.edges[msg.node_pub] = dict([])
+
+        if not msg.node_sub in self.edges[msg.node_pub]:
+            self.edges[msg.node_pub][msg.node_sub] = dict([])
+
+        self.edges[msg.node_pub][msg.node_sub][msg.topic] = msg
+
+    def _get_max_traffic(self):
+	traffic = 10000 # start at 10kb
+	for pub in self.edges:
+	    for sub in self.edges[pub]:
+		for topic in self.edges[pub][sub]:
+		    traffic = max(traffic, self.edges[pub][sub][topic].traffic)
+	return traffic
+
+    def _get_max_delay(self):
+	delay = 0.1 # start at 100ms
+	for pub in self.edges:
+	    for sub in self.edges[pub]:
+		for topic in self.edges[pub][sub]:
+		    delay = max(delay, self.edges[pub][sub][topic].stamp_delay_mean)
+	return delay
+
+    def _calc_edge_heat(self, edge):
+	try:
+	    delay = self.edges[edge.start][edge.end][edge.label].stamp_delay_mean
+	    if math.isnan(delay):
+		return -1
+	    else:
+		# calc coloring using the delay
+		return max(delay,0)/self._get_max_delay()
+	except:
+	    return -1
+
+    def _calc_edge_penwidth(self, edge):
+	try:
+	    # calc penwidth using the traffic in kb/s
+	    traffic = self.edges[edge.start][edge.end][edge.label].traffic
+	    return int(traffic/self._get_max_traffic()*5)
+	except:
+	    return 1
 
     def _add_edge(self, edge, dotcode_factory, dotgraph, is_topic=False):
         if is_topic:
-            dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label)
+	    penwidth = self._calc_edge_penwidth(edge)
+	    heat = self._calc_edge_heat(edge)
+	    try:
+		freq = round(1.0/self.edges[edge.start][edge.end][edge.label].period_mean,1);
+		delay = self.edges[edge.start][edge.end][edge.label].stamp_delay_mean
+		delay_string = ""
+		if not math.isnan(delay):
+		    delay_string = " // " + str(round(delay,2)*1000) + " ms"
+		edge.label = edge.label + "\\n" + str(freq) + " Hz" + delay_string
+	    except:
+		pass
+	    dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label, penwidth=penwidth, heat=heat)
         else:
             dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label)
 
@@ -116,7 +187,7 @@ class RosGraphDotcodeGenerator:
         return True
 
     def quiet_filter_topic_edge(self, edge):
-        for quiet_label in ['/time', '/clock', '/rosout']:
+        for quiet_label in ['/time', '/clock', '/rosout', '/statistics']:
             if quiet_label == edge.label:
                 return False
         return self._quiet_filter(edge.start) and self._quiet_filter(edge.end)
