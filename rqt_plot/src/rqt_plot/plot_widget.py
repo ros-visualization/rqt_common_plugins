@@ -169,13 +169,17 @@ class PlotWidget(QWidget):
 
     def update_plot(self):
         if self.data_plot is not None:
+            needs_redraw = False
             for topic_name, rosdata in self._rosdata.items():
                 try:
                     data_x, data_y = rosdata.next()
-                    self.data_plot.update_values(topic_name, data_x, data_y)
+                    if data_x or data_y:
+                        self.data_plot.update_values(topic_name, data_x, data_y)
+                        needs_redraw = True
                 except RosPlotException as e:
                     qWarning('PlotWidget.update_plot(): error in rosplot: %s' % e)
-            self.data_plot.redraw()
+            if needs_redraw:
+                self.data_plot.redraw()
 
     def _subscribed_topics_changed(self):
         self._update_remove_topic_menu()
