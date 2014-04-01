@@ -5,7 +5,9 @@ find_package(catkin REQUIRED)
 catkin_package()
 catkin_python_setup()
 
-catkin_add_nosetests(test/dotcode_pack_test.py)
+if(CATKIN_ENABLE_TESTING)
+  catkin_add_nosetests(test/dotcode_pack_test.py)
+endif()
 
 install(FILES plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
