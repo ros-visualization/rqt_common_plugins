@@ -80,7 +80,6 @@ class RosGraphDotcodeGenerator:
 
     def __init__(self):
 	self.stats_sub = rospy.Subscriber('/statistics', TopicStatistics, self.callback)
-        pass
 
     def callback(self,msg):
 
