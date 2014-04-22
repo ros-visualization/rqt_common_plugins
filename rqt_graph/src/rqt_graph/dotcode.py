@@ -79,16 +79,15 @@ class RosGraphDotcodeGenerator:
     nodes = dict([])
 
     def __init__(self):
-	self.stats_sub = rospy.Subscriber('/statistics', TopicStatistics, self.callback)
+        self.stats_sub = rospy.Subscriber('/statistics', TopicStatistics, self.statistics_callback)
 
-    def callback(self,msg):
-
+    def statistics_callback(self,msg):
         if msg.topic in QUIET_NAMES:
-	    return
+            return
 
         # add connections (if new)
-	if not msg.node_pub in self.edges:
-    	    self.edges[msg.node_pub] = dict([])
+        if not msg.node_pub in self.edges:
+            self.edges[msg.node_pub] = dict([])
 
         if not msg.node_sub in self.edges[msg.node_pub]:
             self.edges[msg.node_pub][msg.node_sub] = dict([])
@@ -96,56 +95,56 @@ class RosGraphDotcodeGenerator:
         self.edges[msg.node_pub][msg.node_sub][msg.topic] = msg
 
     def _get_max_traffic(self):
-	traffic = 10000 # start at 10kb
-	for pub in self.edges:
-	    for sub in self.edges[pub]:
-		for topic in self.edges[pub][sub]:
-		    traffic = max(traffic, self.edges[pub][sub][topic].traffic)
-	return traffic
+        traffic = 10000 # start at 10kb
+        for pub in self.edges:
+            for sub in self.edges[pub]:
+                for topic in self.edges[pub][sub]:
+                    traffic = max(traffic, self.edges[pub][sub][topic].traffic)
+        return traffic
 
     def _get_max_delay(self):
-	delay = 0.1 # start at 100ms
-	for pub in self.edges:
-	    for sub in self.edges[pub]:
-		for topic in self.edges[pub][sub]:
-		    delay = max(delay, self.edges[pub][sub][topic].stamp_delay_mean)
-	return delay
+        delay = 0.1 # start at 100ms
+        for pub in self.edges:
+            for sub in self.edges[pub]:
+                for topic in self.edges[pub][sub]:
+                    delay = max(delay, self.edges[pub][sub][topic].stamp_delay_mean)
+        return delay
 
     def _calc_edge_heat(self, edge):
-	try:
-	    delay = self.edges[edge.start][edge.end][edge.label].stamp_delay_mean
-	    if math.isnan(delay):
-		return -1
-	    else:
-		# calc coloring using the delay
-		return max(delay,0)/self._get_max_delay()
-	except:
-	    return -1
+        try:
+            delay = self.edges[edge.start][edge.end][edge.label].stamp_delay_mean
+            if math.isnan(delay):
+                return -1
+            else:
+                # calc coloring using the delay
+                return max(delay, 0) / self._get_max_delay()
+        except:
+            return -1
 
     def _calc_edge_penwidth(self, edge):
-	try:
-	    # calc penwidth using the traffic in kb/s
-	    traffic = self.edges[edge.start][edge.end][edge.label].traffic
-	    return int(traffic/self._get_max_traffic()*5)
-	except:
-	    return 1
+        try:
+            # calc penwidth using the traffic in kb/s
+            traffic = self.edges[edge.start][edge.end][edge.label].traffic
+            return int(traffic / self._get_max_traffic() * 5)
+        except:
+            return 1
 
     def _add_edge(self, edge, dotcode_factory, dotgraph, is_topic=False):
         if is_topic:
-	    penwidth = self._calc_edge_penwidth(edge)
-	    heat = self._calc_edge_heat(edge)
-	    try:
-		freq = round(1.0/self.edges[edge.start][edge.end][edge.label].period_mean,1);
-		delay = self.edges[edge.start][edge.end][edge.label].stamp_delay_mean
-		delay_string = ""
-		if not math.isnan(delay):
-		    delay_string = " // " + str(round(delay,2)*1000) + " ms"
-		edge.label = edge.label + "\\n" + str(freq) + " Hz" + delay_string
-	    except:
-		pass
-	    dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label, penwidth=penwidth, heat=heat)
+            penwidth = self._calc_edge_penwidth(edge)
+            heat = self._calc_edge_heat(edge)
+            try:
+                freq = round(1.0 / self.edges[edge.start][edge.end][edge.label].period_mean, 1);
+                delay = self.edges[edge.start][edge.end][edge.label].stamp_delay_mean
+                delay_string = ""
+                if not math.isnan(delay):
+                    delay_string = " // " + str(round(delay, 2) * 1000) + " ms"
+                edge.label = edge.label + "\\n" + str(freq) + " Hz" + delay_string
+            except:
+                pass
+            dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label = edge.label, url = 'topic:%s' % edge.label, penwidth = penwidth, heat = heat)
         else:
-            dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label)
+            dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label = edge.label)
 
     def _add_node(self, node, rosgraphinst, dotcode_factory, dotgraph, quiet):
         if node in rosgraphinst.bad_nodes:
