@@ -156,7 +156,7 @@ class MatDataPlot(QWidget):
 
         if self._autoscroll and ymin is not None:
             # pad the min/max
-            delta = max(ymax - ymin, 0.1)
+            delta = ymax - ymin if ymax != ymin else 0.1
             ymin -= .05 * delta
             ymax += .05 * delta
 
