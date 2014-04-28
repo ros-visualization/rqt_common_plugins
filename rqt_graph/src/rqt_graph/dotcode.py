@@ -82,8 +82,6 @@ class RosGraphDotcodeGenerator:
         self.stats_sub = rospy.Subscriber('/statistics', TopicStatistics, self.statistics_callback)
 
     def statistics_callback(self,msg):
-        if msg.topic in QUIET_NAMES:
-            return
 
         # add connections (if new)
         if not msg.node_pub in self.edges:
@@ -113,7 +111,7 @@ class RosGraphDotcodeGenerator:
     def _calc_edge_color(self, edge):
         if edge.start in self.edges and edge.end in self.edges[edge.start] and edge.label in self.edges[edge.start][edge.end]:
             delay = self.edges[edge.start][edge.end][edge.label].stamp_delay_mean.to_sec()
-            if math.isnan(delay):
+            if delay == 0.0:
                 return [0, 0, 0]
 
             # calc coloring using the delay
@@ -150,12 +148,16 @@ class RosGraphDotcodeGenerator:
             penwidth = self._calc_edge_penwidth(edge)
             color = self._calc_edge_color(edge)
             if edge.start in self.edges and edge.end in self.edges[edge.start] and edge.label in self.edges[edge.start][edge.end]:
-                freq = round(1.0 / self.edges[edge.start][edge.end][edge.label].period_mean.to_sec(), 1);
+                period = self.edges[edge.start][edge.end][edge.label].period_mean.to_sec()
+                if period > 0.0:
+                    freq = str(round(1.0 / self.edges[edge.start][edge.end][edge.label].period_mean.to_sec(), 1))
+                else:
+                    freq = "?"
                 delay = self.edges[edge.start][edge.end][edge.label].stamp_delay_mean.to_sec()
                 delay_string = ""
-                if not math.isnan(delay):
+                if delay > 0.0:
                     delay_string = " // " + str(round(delay, 2) * 1000) + " ms"
-                edge.label = edge.label + "\\n" + str(freq) + " Hz" + delay_string
+                edge.label = edge.label + "\\n" + freq + " Hz" + delay_string
             dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label, penwidth=penwidth, color=color)
         else:
             dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label)
