@@ -111,7 +111,7 @@ class RosGraphDotcodeGenerator:
         return delay
 
     def _calc_edge_color(self, edge):
-        try:
+        if edge.start in self.edges and edge.end in self.edges[edge.start] and edge.label in self.edges[edge.start][edge.end]:
             delay = self.edges[edge.start][edge.end][edge.label].stamp_delay_mean.to_sec()
             if math.isnan(delay):
                 return [0, 0, 0]
@@ -134,30 +134,28 @@ class RosGraphDotcodeGenerator:
                 red = 0
                 green = 0
             return [red, green, 0]
-        except:
+        else:
             return [0, 0, 0]
 
     def _calc_edge_penwidth(self, edge):
-        try:
+        if edge.start in self.edges and edge.end in self.edges[edge.start] and edge.label in self.edges[edge.start][edge.end]:
             # calc penwidth using the traffic in kb/s
             traffic = self.edges[edge.start][edge.end][edge.label].traffic
             return int(traffic / self._get_max_traffic() * 5)
-        except:
+        else:
             return 1
 
     def _add_edge(self, edge, dotcode_factory, dotgraph, is_topic=False):
         if is_topic:
             penwidth = self._calc_edge_penwidth(edge)
             color = self._calc_edge_color(edge)
-            try:
+            if edge.start in self.edges and edge.end in self.edges[edge.start] and edge.label in self.edges[edge.start][edge.end]:
                 freq = round(1.0 / self.edges[edge.start][edge.end][edge.label].period_mean.to_sec(), 1);
                 delay = self.edges[edge.start][edge.end][edge.label].stamp_delay_mean.to_sec()
                 delay_string = ""
                 if not math.isnan(delay):
                     delay_string = " // " + str(round(delay, 2) * 1000) + " ms"
                 edge.label = edge.label + "\\n" + str(freq) + " Hz" + delay_string
-            except:
-                pass
             dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label, penwidth=penwidth, color=color)
         else:
             dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label)
