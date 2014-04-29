@@ -50,7 +50,7 @@ NODE_TOPIC_GRAPH = 'node_topic'
 # all node/topic connections, even if no actual network connection
 NODE_TOPIC_ALL_GRAPH = 'node_topic_all'
 
-QUIET_NAMES = ['/statistics', '/diag_agg', '/runtime_logger', '/pr2_dashboard', '/rosout', '/cpu_monitor', '/monitor', '/hd_monitor', '/rxloggerlevel', '/clock', '/rqt', 'bond']
+QUIET_NAMES = ['/diag_agg', '/runtime_logger', '/pr2_dashboard', '/rviz', '/rosout', '/cpu_monitor', '/monitor', '/hd_monitor', '/rxloggerlevel', '/clock', '/rqt', '/statistics']
 
 def matches_any(name, patternlist):
     if patternlist is None or len(patternlist) == 0:
