@@ -84,83 +84,127 @@ class RosGraphDotcodeGenerator:
     def statistics_callback(self,msg):
 
         # add connections (if new)
-        if not msg.node_pub in self.edges:
-            self.edges[msg.node_pub] = dict([])
+        if not msg.node_sub in self.edges:
+            self.edges[msg.node_sub] = dict([])
 
-        if not msg.node_sub in self.edges[msg.node_pub]:
-            self.edges[msg.node_pub][msg.node_sub] = dict([])
+        if not msg.topic in self.edges[msg.node_sub]:
+            self.edges[msg.node_sub][msg.topic] = dict([])
 
-        self.edges[msg.node_pub][msg.node_sub][msg.topic] = msg
+        self.edges[msg.node_sub][msg.topic][msg.node_pub] = msg
 
     def _get_max_traffic(self):
         traffic = 10000 # start at 10kb
-        for pub in self.edges:
-            for sub in self.edges[pub]:
-                for topic in self.edges[pub][sub]:
-                    traffic = max(traffic, self.edges[pub][sub][topic].traffic)
+        for sub in self.edges:
+            for topic in self.edges[sub]:
+               for pub in self.edges[sub][topic]:
+                    traffic = max(traffic, self.edges[sub][topic][pub].traffic)
         return traffic
 
     def _get_max_delay(self):
         delay = 0.1 # start at 100ms
-        for pub in self.edges:
-            for sub in self.edges[pub]:
-                for topic in self.edges[pub][sub]:
-                    delay = max(delay, self.edges[pub][sub][topic].stamp_delay_mean.to_sec())
+        for sub in self.edges:
+            for topic in self.edges[sub]:
+               for pub in self.edges[sub][topic]:
+                    delay = max(delay, self.edges[sub][topic][pub].stamp_delay_mean.to_sec())
         return delay
 
-    def _calc_edge_color(self, edge):
-        if edge.start in self.edges and edge.end in self.edges[edge.start] and edge.label in self.edges[edge.start][edge.end]:
-            delay = self.edges[edge.start][edge.end][edge.label].stamp_delay_mean.to_sec()
-            if delay == 0.0:
-                return [0, 0, 0]
+    def _get_max_delay_on_topic(self, sub, topic):
+        delay = 0.0
+        for pub in self.edges[sub][topic]:
+            delay = max(delay, self.edges[sub][topic][pub].stamp_delay_mean.to_sec())
+        return delay
 
-            # calc coloring using the delay
-            heat = max(delay, 0) / self._get_max_delay()
+    def _calc_edge_color(self, sub, topic, pub=None):
 
-            # we assume that heat is normalized between 0.0 (green) and 1.0 (red)
-            # 0.0->green(0,255,0) to 0.5->yellow (255,255,0) to red 1.0(255,0,0)
-            if heat < 0:
-                red = 0
-                green = 0
-            elif heat <= 0.5:
-                red = int(heat * 255 * 2)
-                green = 255
-            elif heat > 0.5:
-                red = 255
-                green = 255 - int((heat - 0.5) * 255 * 2)
-            else:
-                red = 0
-                green = 0
-            return [red, green, 0]
-        else:
+        delay = 0.0
+
+        if pub is None:
+            delay = self._get_max_delay_on_topic(sub, topic)
+        elif sub in self.edges and topic in self.edges[sub] and pub in self.edges[sub][topic]:
+            delay = self.edges[sub][topic][pub].stamp_delay_mean.to_sec()
+
+        if delay == 0.0:
             return [0, 0, 0]
 
-    def _calc_edge_penwidth(self, edge):
-        if edge.start in self.edges and edge.end in self.edges[edge.start] and edge.label in self.edges[edge.start][edge.end]:
+        # calc coloring using the delay
+        heat = max(delay, 0) / self._get_max_delay()
+
+        # we assume that heat is normalized between 0.0 (green) and 1.0 (red)
+        # 0.0->green(0,255,0) to 0.5->yellow (255,255,0) to red 1.0(255,0,0)
+        if heat < 0:
+            red = 0
+            green = 0
+        elif heat <= 0.5:
+            red = int(heat * 255 * 2)
+            green = 255
+        elif heat > 0.5:
+            red = 255
+            green = 255 - int((heat - 0.5) * 255 * 2)
+        else:
+            red = 0
+            green = 0
+        return [red, green, 0]
+
+    def _calc_edge_penwidth(self, sub, topic, pub=None):
+        if pub is None and sub in self.edges and topic in self.edges[sub]:
+            traffic = 0
+            for p in self.edges[sub][topic]:
+                if pub is None or p == pub:
+                    traffic += self.edges[sub][topic][p].traffic
+
             # calc penwidth using the traffic in kb/s
-            traffic = self.edges[edge.start][edge.end][edge.label].traffic
             return int(traffic / self._get_max_traffic() * 5)
         else:
             return 1
 
+    def _calc_statistic_info(self, sub, topic, pub=None):
+        if pub is None and sub in self.edges and topic in self.edges[sub]:
+            conns = len(self.edges[sub][topic])
+            if conns == 1:
+                pub = next(self.edges[sub][topic].iterkeys())
+            else:
+                penwidth = self._calc_edge_penwidth(sub,topic)
+                color = self._calc_edge_color(sub,topic)
+                label = "("+str(conns) + " connections)"
+                return [label, penwidth, color]
+
+        if sub in self.edges and topic in self.edges[sub] and pub in self.edges[sub][topic]:
+            penwidth = self._calc_edge_penwidth(sub,topic,pub)
+            color = self._calc_edge_color(sub,topic,pub)
+            period = self.edges[sub][topic][pub].period_mean.to_sec()
+            if period > 0.0:
+                freq = str(round(1.0 / period, 1))
+            else:
+                freq = "?"
+            delay = self.edges[sub][topic][pub].stamp_delay_mean.to_sec()
+            delay_string = ""
+            if delay > 0.0:
+                delay_string = " // " + str(round(delay, 2) * 1000) + " ms"
+            label = freq + " Hz" + delay_string
+            return [label, penwidth, color]
+        else:
+            return [None, None, None]
+
     def _add_edge(self, edge, dotcode_factory, dotgraph, is_topic=False):
         if is_topic:
-            penwidth = self._calc_edge_penwidth(edge)
-            color = self._calc_edge_color(edge)
-            if edge.start in self.edges and edge.end in self.edges[edge.start] and edge.label in self.edges[edge.start][edge.end]:
-                period = self.edges[edge.start][edge.end][edge.label].period_mean.to_sec()
-                if period > 0.0:
-                    freq = str(round(1.0 / self.edges[edge.start][edge.end][edge.label].period_mean.to_sec(), 1))
-                else:
-                    freq = "?"
-                delay = self.edges[edge.start][edge.end][edge.label].stamp_delay_mean.to_sec()
-                delay_string = ""
-                if delay > 0.0:
-                    delay_string = " // " + str(round(delay, 2) * 1000) + " ms"
-                edge.label = edge.label + "\\n" + freq + " Hz" + delay_string
-            dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label, penwidth=penwidth, color=color)
+            sub = edge.end
+            topic = edge.label
+            pub = edge.start
+            [more_label, penwidth, color] = self._calc_statistic_info(sub, topic, pub)
+            if more_label is not None:
+                edge.label = edge.label + "\\n" + more_label
+                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label, penwidth=penwidth, color=color)
+            else:
+                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label)
         else:
-            dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label)
+            sub = edge.end.strip()
+            topic = edge.start.strip()
+            [more_label, penwidth, color] = self._calc_statistic_info(sub, topic)
+            if more_label is not None:
+                edge.label = edge.label + "\\n" + more_label
+                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, penwidth=penwidth, color=color)
+            else:
+                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label)
 
     def _add_node(self, node, rosgraphinst, dotcode_factory, dotgraph, quiet):
         if node in rosgraphinst.bad_nodes:
