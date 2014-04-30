@@ -30,8 +30,8 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import Image
-import ImageQt
+from PIL import Image
+from PIL.ImageQt import ImageQt
 
 from rqt_bag import TopicMessageView
 import image_helper
