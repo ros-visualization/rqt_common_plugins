@@ -154,12 +154,12 @@ class MatDataPlot(QWidget):
                 ymin = min(range_y[0], ymin)
                 ymax = max(range_y[1], ymax)
 
+        if self._autoscroll and ymin is not None:
             # pad the min/max
-            delta = max(ymax - ymin, 0.1)
+            delta = ymax - ymin if ymax != ymin else 0.1
             ymin -= .05 * delta
             ymax += .05 * delta
 
-        if self._autoscroll and ymin is not None:
             self._canvas.axes.set_xbound(lower=xmax - 5, upper=xmax)
             self._canvas.axes.set_ybound(lower=ymin, upper=ymax)
 
