@@ -28,6 +28,7 @@
   <run_depend>rosgraph_msgs</run_depend>
   <run_depend>roslib</run_depend>
   <run_depend>rosnode</run_depend>
+  <run_depend>rospy</run_depend>
   <run_depend>rosservice</run_depend>
   <run_depend>rostopic</run_depend>
   <run_depend>rqt_gui</run_depend>
