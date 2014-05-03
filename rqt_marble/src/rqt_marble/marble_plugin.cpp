@@ -96,8 +96,8 @@ void MarblePlugin::initWidget(qt_gui_cpp::PluginContext& context)
   ui_.marble_widget->setDistance(0.05);
 
   context.addWidget(widget_);
-  ui_._combobox_theme->setModel(
-      ui_.marble_widget->model()->mapThemeManager()->mapThemeModel());
+  map_theme_manager = new Marble::MapThemeManager(widget_);
+  ui_._combobox_theme->setModel(map_theme_manager->mapThemeModel());
 
   QIcon refresh_icon; //set refresh icon
   std::string path = ros::package::getPath("rqt_marble") + "/etc/refresh.png";
@@ -169,7 +169,7 @@ void MarblePlugin::shutdownPlugin()
 void MarblePlugin::changeMarbleModelTheme(int idx)
 {
   QStandardItemModel* model =
-      ui_.marble_widget->model()->mapThemeManager()->mapThemeModel();
+      map_theme_manager->mapThemeModel();
   QModelIndex index = model->index(idx, 0);
   QString theme = model->data(index, Qt::UserRole + 1).toString();
 
