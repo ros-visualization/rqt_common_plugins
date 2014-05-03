@@ -100,7 +100,7 @@ class MessageTree(QTreeWidget):
             self.clear()
         if msg:
             # Populate the tree
-            self._add_msg_object(None, '', 'msg', msg, msg._type)
+            self._add_msg_object(None, '', '', msg, msg._type)
 
             if self._expanded_paths is None:
                 self._expanded_paths = set()
@@ -204,7 +204,7 @@ class MessageTree(QTreeWidget):
 
             label += ': ' + obj_repr
         item = QTreeWidgetItem([label])
-        if name == 'msg':
+        if name == '':
             pass
         elif path.find('.') == -1 and path.find('[') == -1:
             self.addTopLevelItem(item)
