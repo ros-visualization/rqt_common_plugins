@@ -34,6 +34,7 @@
 #include <QMutex>
 #include <marble/RouteRequest.h>
 #include <marble/RoutingManager.h>
+#include <marble/MapThemeManager.h>
 
 #include <ros/ros.h>
 #include <rqt_gui_cpp/plugin.h>
@@ -92,6 +93,7 @@ private:
   Marble::RoutingManager* routing_manager;
   Marble::RouteRequest* request;
   Marble::RoutingModel* routeModel;
+  Marble::MapThemeManager* map_theme_manager;
   rqt_marble::BridgeRosMarble* ros_navigation;
 
   void initWidget(qt_gui_cpp::PluginContext& context);
