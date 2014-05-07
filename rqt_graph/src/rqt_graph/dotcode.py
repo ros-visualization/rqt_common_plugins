@@ -100,34 +100,34 @@ class RosGraphDotcodeGenerator:
                     traffic = max(traffic, self.edges[sub][topic][pub].traffic)
         return traffic
 
-    def _get_max_delay(self):
-        delay = 0.1 # start at 100ms
+    def _get_max_age(self):
+        age = 0.1 # start at 100ms
         for sub in self.edges:
             for topic in self.edges[sub]:
                for pub in self.edges[sub][topic]:
-                    delay = max(delay, self.edges[sub][topic][pub].stamp_delay_mean.to_sec())
-        return delay
+                    age = max(age, self.edges[sub][topic][pub].stamp_age_mean.to_sec())
+        return age
 
-    def _get_max_delay_on_topic(self, sub, topic):
-        delay = 0.0
+    def _get_max_age_on_topic(self, sub, topic):
+        age = 0.0
         for pub in self.edges[sub][topic]:
-            delay = max(delay, self.edges[sub][topic][pub].stamp_delay_mean.to_sec())
-        return delay
+            age = max(age, self.edges[sub][topic][pub].stamp_age_mean.to_sec())
+        return age
 
     def _calc_edge_color(self, sub, topic, pub=None):
 
-        delay = 0.0
+        age = 0.0
 
         if pub is None:
-            delay = self._get_max_delay_on_topic(sub, topic)
+            age = self._get_max_age_on_topic(sub, topic)
         elif sub in self.edges and topic in self.edges[sub] and pub in self.edges[sub][topic]:
-            delay = self.edges[sub][topic][pub].stamp_delay_mean.to_sec()
+            age = self.edges[sub][topic][pub].stamp_age_mean.to_sec()
 
-        if delay == 0.0:
+        if age == 0.0:
             return [0, 0, 0]
 
-        # calc coloring using the delay
-        heat = max(delay, 0) / self._get_max_delay()
+        # calc coloring using the age
+        heat = max(age, 0) / self._get_max_age()
 
         # we assume that heat is normalized between 0.0 (green) and 1.0 (red)
         # 0.0->green(0,255,0) to 0.5->yellow (255,255,0) to red 1.0(255,0,0)
@@ -176,11 +176,11 @@ class RosGraphDotcodeGenerator:
                 freq = str(round(1.0 / period, 1))
             else:
                 freq = "?"
-            delay = self.edges[sub][topic][pub].stamp_delay_mean.to_sec()
-            delay_string = ""
-            if delay > 0.0:
-                delay_string = " // " + str(round(delay, 2) * 1000) + " ms"
-            label = freq + " Hz" + delay_string
+            age = self.edges[sub][topic][pub].stamp_age_mean.to_sec()
+            age_string = ""
+            if age > 0.0:
+                age_string = " // " + str(round(age, 2) * 1000) + " ms"
+            label = freq + " Hz" + age_string
             return [label, penwidth, color]
         else:
             return [None, None, None]
