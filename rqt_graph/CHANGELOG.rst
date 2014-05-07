@@ -2,6 +2,11 @@
 Changelog for package rqt_graph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add displaying of topic/connection statistics along edges (`#214 <https://github.com/ros-visualization/rqt_common_plugins/pull/214>`_)
+* using CATKIN_ENABLE_TESTING to optionally configure tests (`#220 <https://github.com/ros-visualization/rqt_common_plugins/pull/220>`_)
+
 0.3.4 (2014-01-28)
 ------------------
 

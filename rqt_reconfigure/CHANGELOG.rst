@@ -2,6 +2,11 @@
 Changelog for package rqt_reconfigure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* numerous improvements and bug fixes (`#209 <https://github.com/ros-visualization/rqt_common_plugins/pull/209>`_, `#210 <https://github.com/ros-visualization/rqt_common_plugins/pull/210>`_)
+* add option to open list of names from command line (`#214 <https://github.com/ros-visualization/rqt_common_plugins/pull/214>`_)
+
 0.3.4 (2014-01-28)
 ------------------
 

@@ -2,6 +2,9 @@
 Changelog for package rqt_top
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.3.4 (2014-01-28)
 ------------------
 * fix sort order for numerical fields (`#205 <https://github.com/ros-visualization/rqt_common_plugins/issues/205>`_)

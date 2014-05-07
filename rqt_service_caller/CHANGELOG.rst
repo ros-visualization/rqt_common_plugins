@@ -2,6 +2,9 @@
 Changelog for package rqt_service_caller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.3.4 (2014-01-28)
 ------------------
 

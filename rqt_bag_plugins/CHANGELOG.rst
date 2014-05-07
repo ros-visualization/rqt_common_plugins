@@ -2,6 +2,10 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix PIL/Pillow error (`#224 <https://github.com/ros-visualization/rqt_common_plugins/issues/224>`_)
+
 0.3.4 (2014-01-28)
 ------------------
 
