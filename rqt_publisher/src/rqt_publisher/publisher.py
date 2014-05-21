@@ -100,7 +100,7 @@ class Publisher(Plugin):
             return
 
         # create publisher and timer
-        publisher_info['publisher'] = rospy.Publisher(publisher_info['topic_name'], type(publisher_info['message_instance']))
+        publisher_info['publisher'] = rospy.Publisher(publisher_info['topic_name'], type(publisher_info['message_instance']), queue_size=100)
         publisher_info['timer'] = QTimer(self)
 
         # add publisher info to _publishers dict and create signal mapping
