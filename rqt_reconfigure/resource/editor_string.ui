@@ -13,13 +13,16 @@
   <property name="minimumSize">
    <size>
     <width>300</width>
-    <height>30</height>
+    <height>20</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>Param string</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
+    <number>0</number>
+   </property>
    <item>
     <layout class="QHBoxLayout" name="_layout_h" stretch="0,0">
      <item>

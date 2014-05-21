@@ -34,7 +34,7 @@
 
 import time
 
-from python_qt_binding.QtCore import QSize, Qt, Signal
+from python_qt_binding.QtCore import QSize, Qt, Signal, QMargins
 from python_qt_binding.QtGui import (QFont, QFormLayout, QHBoxLayout, QIcon,
                                      QGroupBox, QLabel, QPushButton,
                                      QTabWidget, QVBoxLayout, QWidget)
@@ -112,9 +112,11 @@ class GroupWidget(QWidget):
 #        loadUi(ui_file, self)
 
         verticalLayout = QVBoxLayout(self)
+        verticalLayout.setContentsMargins(QMargins(0, 0, 0, 0))
 
         _widget_nodeheader = QWidget()
         _h_layout_nodeheader = QHBoxLayout(_widget_nodeheader)
+        _h_layout_nodeheader.setContentsMargins(QMargins(0, 0, 0, 0))
 
         self.nodename_qlabel = QLabel(self)
         font = QFont('Trebuchet MS, Bold')

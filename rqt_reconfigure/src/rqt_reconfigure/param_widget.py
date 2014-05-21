@@ -37,7 +37,7 @@ from __future__ import division
 import rospkg
 import sys
 
-from python_qt_binding.QtCore import Signal
+from python_qt_binding.QtCore import Signal, QMargins
 from python_qt_binding.QtGui import (QLabel, QHBoxLayout, QSplitter,
                                      QVBoxLayout, QWidget, QItemSelectionModel)
 
@@ -82,6 +82,7 @@ class ParamWidget(QWidget):
         #            I decided not use .ui in this class.
         #            If someone can tackle this I'd appreciate.
         _hlayout_top = QHBoxLayout(self)
+        _hlayout_top.setContentsMargins(QMargins(0, 0, 0, 0))
         self._splitter = QSplitter(self)
         _hlayout_top.addWidget(self._splitter)
 
