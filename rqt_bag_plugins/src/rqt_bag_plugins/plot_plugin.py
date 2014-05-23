@@ -32,7 +32,6 @@
 
 from rqt_bag.plugins.plugin import Plugin
 
-from .plot_timeline_renderer import PlotTimelineRenderer
 from .plot_view import PlotView
 
 
