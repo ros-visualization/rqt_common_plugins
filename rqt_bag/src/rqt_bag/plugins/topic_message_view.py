@@ -45,7 +45,6 @@ class TopicMessageView(MessageView):
         self._topic = None
         self._stamp = None
         self._name = parent.objectName()
-        self.parent.destroyed.connect(self._on_close)
 
         self.toolbar = QToolBar()
         self._first_action = QAction(QIcon.fromTheme('go-first'), '', self.toolbar)
@@ -80,12 +79,6 @@ class TopicMessageView(MessageView):
         self._topic, _, self._stamp = msg_details[:3]
 
     # Events
-    def _on_close(self):
-        # TODO: needs to handle closing when a message hasn't been viewed yet
-        if self._topic:
-            self.timeline.popups.remove(self._name)
-            self.timeline.remove_view(self._topic, self)
-
     def navigate_first(self):
         if not self.topic:
             return

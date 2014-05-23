@@ -30,8 +30,15 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from python_qt_binding.QtGui import QVBoxLayout, QMenu, QWidget
+from python_qt_binding.QtGui import QVBoxLayout, QMenu, QWidget, QDockWidget
 
+class TopicPopupWidget(QWidget):
+    def __init__(self, popup_name):
+        super(TopicPopupWidget, self).__init__()
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        self.resize(640, 480)
+        self.setObjectName(popup_name)
 
 class TimelinePopupMenu(QMenu):
     """
@@ -142,19 +149,34 @@ class TimelinePopupMenu(QMenu):
             else:
                 self.timeline._timeline_frame.set_renderer_active(action.text(), True)
         elif action in self._topic_actions + self._type_actions:
-            popup_name = action.parentWidget().title() + '__' + action.text()
+            topic = action.parentWidget().title()
+            popup_name = topic + '__' + action.text()
             if popup_name not in self.timeline.popups:
-                frame = QWidget()
-                layout = QVBoxLayout()
-                frame.setLayout(layout)
-                frame.resize(640, 480)
+                frame = TopicPopupWidget(popup_name)
+
                 viewer_type = action.data()
-                frame.setObjectName(popup_name)
+
                 view = viewer_type(self.timeline, frame)
-                self.timeline.popups.add(popup_name)
+
+                self.timeline.popups[popup_name] = frame
                 self.timeline.get_context().add_widget(frame)
-                self.timeline.add_view(action.parentWidget().title(), view, frame)
+                self.timeline.add_view(topic, view, frame)
+
+                # make the dock widget closable, even if it normally isn't
+                dock_features = frame.parent().features()
+                dock_features |= QDockWidget.DockWidgetClosable
+                frame.parent().setFeatures(dock_features)
+
                 frame.show()
+            else:
+                # make sure existing popup is visible
+                frame = self.timeline.popups[popup_name]
+                if not frame.parent():
+                    self.timeline.get_context().add_widget(frame)
+                    # make the dock widget closable, even if it normally isn't
+                    dock_features = frame.parent().features()
+                    dock_features |= QDockWidget.DockWidgetClosable
+                    frame.parent().setFeatures(dock_features)
         elif action in self._publish_actions:
             if self.timeline.is_publishing(action.text()):
                 self.timeline.stop_publishing(action.text())
