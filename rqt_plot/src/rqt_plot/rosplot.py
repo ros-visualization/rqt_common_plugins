@@ -58,7 +58,7 @@ def _get_topic_type(topic):
     """
     try:
         master = rosgraph.Master('/rosplot')
-        val = master.getPublishedTopics('/')
+        val = master.getTopicTypes()
     except:
         raise RosPlotException("unable to get list of topics from master")
     matches = [(t, t_type) for t, t_type in val if t == topic or topic.startswith(t + '/')]
