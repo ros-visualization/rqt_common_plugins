@@ -55,6 +55,19 @@ except ImportError:
 
 
 class DataPlot(QWidget):
+    """A widget for displaying a plot of data
+
+    The DataPlot widget displays a plot, on one of several plotting backends,
+    depending on which backend(s) are available at runtime. It currently 
+    supports PyQtGraph, MatPlot and QwtPlot backends.
+
+    The DataPlot widget manages the plot backend internally, and can save
+    and restore the internal state using `save_settings` and `restore_settings`
+    functions.
+
+    Currently, the user MUST call `restore_settings` before using the widget,
+    to cause the creation of the enclosed plotting widget.
+    """
     # plot types in order of priority
     plot_types = [
         {
@@ -78,6 +91,11 @@ class DataPlot(QWidget):
     ]
 
     def __init__(self, parent=None):
+        """Create a new, empty DataPlot
+
+        This will raise a RuntimeError if none of the supported plotting
+        backends can be found
+        """
         super(DataPlot, self).__init__(parent)
         self._plot_index = 0
         self._autoscroll = True
@@ -97,6 +115,7 @@ class DataPlot(QWidget):
         self.show()
 
     def _switch_data_plot_widget(self, plot_index):
+        """Internal method for activating a plotting backend by index"""
         # check if selected plot type is available
         if not self.plot_types[plot_index]['enabled']:
             # find other available plot type
@@ -129,15 +148,29 @@ class DataPlot(QWidget):
     # interface out to the managing GUI component: get title, save, restore, 
     # etc
     def getTitle(self):
+        """get the title of the current plotting backend"""
         return self.plot_types[self._plot_index]['title']
 
     def save_settings(self, plugin_settings, instance_settings):
+        """Save the settings associated with this widget
+
+        Currently, this is just the plot type, but may include more useful
+        data in the future"""
         instance_settings.set_value('plot_type', self._plot_index)
 
     def restore_settings(self, plugin_settings, instance_settings):
+        """Restore the settings for this widget
+
+        Currently, this just restores the plot type."""
         self._switch_data_plot_widget(int(instance_settings.value('plot_type', 0)))
 
     def doSettingsDialog(self):
+        """Present the user with a dialog for choosing the plot backend
+
+        This displays a SimpleSettingsDialog asking the user to choose a
+        plot type, gets the result, and updates the plot type as necessary
+        
+        This method is blocking"""
         dialog = SimpleSettingsDialog(title='Plot Options')
         dialog.add_exclusive_option_group(title='Plot Type', options=self.plot_types, selected_index=self._plot_index)
         plot_type = dialog.get_settings()[0]
@@ -147,29 +180,64 @@ class DataPlot(QWidget):
     # interface out to the managing DATA component: load data, update data,
     # etc
     def autoscroll(self, enabled=True):
+        """Enable or disable autoscrolling of the plot"""
         self._autoscroll = enabled
         if self._data_plot_widget:
             self._data_plot_widget.autoscroll(enabled)
 
     def redraw(self):
+        """Redraw the underlying plot
+
+        This causes the underlying plot to be redrawn. This is usually used
+        after adding or updating the plot data"""
         if self._data_plot_widget:
             self._data_plot_widget.redraw()
 
     def add_curve(self, curve_id, curve_name, data_x, data_y):
+        """Add a new, named curve to this plot
+
+        Add a curve named `curve_name` to the plot, with initial data series
+        `data_x` and `data_y`.
+        
+        Future references to this curve should use the provided `curve_id`
+
+        Note that the plot is not redraw automatically; call `redraw()` to make
+        any changes visible to the user.
+        """
         self._curves[curve_id] = { 'x': data_x, 'y': data_y, 'name': curve_name }
         if self._data_plot_widget:
             self._data_plot_widget.add_curve(curve_id, curve_name, data_x, data_y)
 
     def remove_curve(self, curve_id):
+        """Remove the specified curve from this plot"""
         if curve_id in self._curves:
             del self._curves[curve_id]
         if self._data_plot_widget:
             self._data_plot_widget.remove_curve(curve_id)
 
     def update_values(self, curve_id, values_x, values_y):
+        """Append new data to an existing curve
+        
+        `values_x` and `values_y` will be appended to the existing data for
+        `curve_id`
+
+        Note that the plot is not redraw automatically; call `redraw()` to make
+        any changes visible to the user.
+        """
         curve = self._curves[curve_id]
         if curve:
             curve['x'].extend(values_x)
             curve['y'].extend(values_y)
         if self._data_plot_widget:
             self._data_plot_widget.update_values(curve_id, values_x, values_y)
+
+    def clear_values(self, curve_id=None):
+        """Clear the values for the specified curve, or all curves
+
+        This will erase the data series associaed with `curve_id`, or all
+        curves if `curve_id` is not present or is None
+
+        Note that the plot is not redraw automatically; call `redraw()` to make
+        any changes visible to the user.
+        """
+        pass
