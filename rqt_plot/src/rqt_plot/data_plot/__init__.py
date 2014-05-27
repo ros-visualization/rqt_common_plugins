@@ -124,6 +124,7 @@ class DataPlot(QWidget):
             curve = self._curves[curve_id]
             self._data_plot_widget.add_curve(curve_id, curve['name'],
                     curve['x'], curve['y'])
+        self._data_plot_widget.redraw()
 
     # interface out to the managing GUI component: get title, save, restore, 
     # etc
