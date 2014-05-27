@@ -41,9 +41,10 @@ class MessageView(QObject):
     """
     name = 'Untitled'
 
-    def __init__(self, timeline):
+    def __init__(self, timeline, topic):
         super(MessageView, self).__init__()
         self.timeline = timeline
+        self.topic = topic
 
     def message_viewed(self, bag, msg_details):
         """

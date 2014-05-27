@@ -38,11 +38,10 @@ class TopicMessageView(MessageView):
     """
     A message view with a toolbar for navigating messages in a single topic.
     """
-    def __init__(self, timeline, parent):
-        MessageView.__init__(self, timeline)
+    def __init__(self, timeline, parent, topic):
+        MessageView.__init__(self, timeline, topic)
 
         self._parent = parent
-        self._topic = None
         self._stamp = None
         self._name = parent.objectName()
 
@@ -66,33 +65,23 @@ class TopicMessageView(MessageView):
         return self._parent
 
     @property
-    def topic(self):
-        return self._topic
-
-    @property
     def stamp(self):
         return self._stamp
 
     # MessageView implementation
 
     def message_viewed(self, bag, msg_details):
-        self._topic, _, self._stamp = msg_details[:3]
+        _, _, self._stamp = msg_details[:3]
 
     # Events
     def navigate_first(self):
-        if not self.topic:
-            return
-
-        for entry in self.timeline.get_entries(self._topic, *self.timeline._timeline_frame.play_region):
+        for entry in self.timeline.get_entries([self.topic], *self.timeline._timeline_frame.play_region):
             self.timeline._timeline_frame.playhead = entry.time
             break
 
     def navigate_previous(self):
-        if not self.topic:
-            return
-
         last_entry = None
-        for entry in self.timeline.get_entries(self._topic, self.timeline._timeline_frame.start_stamp, self.timeline._timeline_frame.playhead):
+        for entry in self.timeline.get_entries([self.topic], self.timeline._timeline_frame.start_stamp, self.timeline._timeline_frame.playhead):
             if entry.time < self.timeline._timeline_frame.playhead:
                 last_entry = entry
 
@@ -100,20 +89,14 @@ class TopicMessageView(MessageView):
             self.timeline._timeline_frame.playhead = last_entry.time
 
     def navigate_next(self):
-        if not self.topic:
-            return
-
-        for entry in self.timeline.get_entries(self._topic, self.timeline._timeline_frame.playhead, self.timeline._timeline_frame.end_stamp):
+        for entry in self.timeline.get_entries([self.topic], self.timeline._timeline_frame.playhead, self.timeline._timeline_frame.end_stamp):
             if entry.time > self.timeline._timeline_frame.playhead:
                 self.timeline._timeline_frame.playhead = entry.time
                 break
 
     def navigate_last(self):
-        if not self.topic:
-            return
-
         last_entry = None
-        for entry in self.timeline.get_entries(self._topic, *self.timeline._timeline_frame.play_region):
+        for entry in self.timeline.get_entries([self.topic], *self.timeline._timeline_frame.play_region):
             last_entry = entry
 
         if last_entry:
