@@ -84,6 +84,11 @@ class PyQtGraphDataPlot(QWidget):
         curve['x'] = numpy.append(curve['x'], x)
         curve['y'] = numpy.append(curve['y'], y)
 
+    def clear_values(self, curve_id):
+        curve = self._curves[curve_id]
+        curve['x'] = numpy.array([])
+        curve['y'] = numpy.array([])
+
     def autoscroll(self, enabled=True):
         self._autoscroll = enabled
 
