@@ -39,6 +39,7 @@ class TopicPopupWidget(QWidget):
         self.setLayout(layout)
         self.resize(640, 480)
         self.setObjectName(popup_name)
+        self.setWindowTitle(popup_name)
 
 class TimelinePopupMenu(QMenu):
     """

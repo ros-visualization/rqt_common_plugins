@@ -34,7 +34,6 @@ import argparse
 
 from python_qt_binding import QT_BINDING
 from python_qt_binding.QtCore import qDebug
-from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
 from rqt_gui_py.plugin import Plugin
 
 from rqt_py_common.ini_helper import pack, unpack
@@ -55,6 +54,7 @@ class Plot(Plugin):
         self._args = self._parse_args(context.argv())
         self._widget = PlotWidget(initial_topics=self._args.topics, start_paused=self._args.start_paused)
         self._data_plot = DataPlot(self._widget)
+        self._widget.switch_data_plot_widget(self._data_plot)
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
         context.add_widget(self._widget)

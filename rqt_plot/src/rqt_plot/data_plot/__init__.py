@@ -32,6 +32,9 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
+from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
+from python_qt_binding.QtGui import QWidget, QHBoxLayout
+
 try:
     from pyqtgraph_data_plot import PyQtGraphDataPlot
 except ImportError:
@@ -51,7 +54,7 @@ except ImportError:
     QwtDataPlot = None
 
 
-class DataPlot(object):
+class DataPlot(QWidget):
     # plot types in order of priority
     plot_types = [
         {
@@ -74,14 +77,24 @@ class DataPlot(object):
         },
     ]
 
-    def __init__(self, parent):
-        self._parent = parent
+    def __init__(self, parent=None):
+        super(DataPlot, self).__init__(parent)
         self._plot_index = 0
+        self._autoscroll = True
+
+        # the backend widget that we're trying to hide/abstract
+        self._data_plot_widget = None
+        self._curves = {}
+
+        self._layout = QHBoxLayout()
+        self.setLayout(self._layout)
 
         enabled_plot_types = [pt for pt in self.plot_types if pt['enabled']]
         if not enabled_plot_types:
             version_info = ' and PySide > 1.1.0' if QT_BINDING == 'pyside' else ''
             raise RuntimeError('No usable plot type found. Install at least one of: PyQtGraph, MatPlotLib (at least 1.1.0%s) or Python-Qwt5.' % version_info)
+
+        self.show()
 
     def _switch_data_plot_widget(self, plot_index):
         # check if selected plot type is available
@@ -95,13 +108,27 @@ class DataPlot(object):
         self._plot_index = plot_index
         selected_plot = self.plot_types[plot_index]
 
-        # TODO: something else here ?
-        self._parent.switch_data_plot_widget(selected_plot['widget_class'](self._parent))
+        print "Creating new plot widget: %s" % ( self.getTitle() )
+
+        if self._data_plot_widget:
+            self._layout.removeWidget(self._data_plot_widget)
+            self._data_plot_widget.close()
+            self._data_plot_widget = None
+
+        self._data_plot_widget = selected_plot['widget_class'](self)
+        self._data_plot_widget.autoscroll(self._autoscroll)
+        self._layout.addWidget(self._data_plot_widget)
+
+        # restore old data
+        for curve_id in self._curves:
+            curve = self._curves[curve_id]
+            self._data_plot_widget.add_curve(curve_id, curve['name'],
+                    curve['x'], curve['y'])
 
     # interface out to the managing GUI component: get title, save, restore, 
     # etc
     def getTitle(self):
-        return plot_types[self._plot_index]['title']
+        return self.plot_types[self._plot_index]['title']
 
     def save_settings(self, plugin_settings, instance_settings):
         instance_settings.set_value('plot_type', self._plot_index)
@@ -118,3 +145,30 @@ class DataPlot(object):
 
     # interface out to the managing DATA component: load data, update data,
     # etc
+    def autoscroll(self, enabled=True):
+        self._autoscroll = enabled
+        if self._data_plot_widget:
+            self._data_plot_widget.autoscroll(enabled)
+
+    def redraw(self):
+        if self._data_plot_widget:
+            self._data_plot_widget.redraw()
+
+    def add_curve(self, curve_id, curve_name, data_x, data_y):
+        self._curves[curve_id] = { 'x': data_x, 'y': data_y, 'name': curve_name }
+        if self._data_plot_widget:
+            self._data_plot_widget.add_curve(curve_id, curve_name, data_x, data_y)
+
+    def remove_curve(self, curve_id):
+        if curve_id in self._curves:
+            del self._curves[curve_id]
+        if self._data_plot_widget:
+            self._data_plot_widget.remove_curve(curve_id)
+
+    def update_values(self, curve_id, values_x, values_y):
+        curve = self._curves[curve_id]
+        if curve:
+            curve['x'].extend(values_x)
+            curve['y'].extend(values_y)
+        if self._data_plot_widget:
+            self._data_plot_widget.update_values(curve_id, values_x, values_y)
