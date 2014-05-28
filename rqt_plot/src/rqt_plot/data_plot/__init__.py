@@ -33,6 +33,7 @@
 
 
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
+from python_qt_binding.QtCore import qWarning
 from python_qt_binding.QtGui import QWidget, QHBoxLayout
 
 try:
@@ -104,6 +105,9 @@ class DataPlot(QWidget):
         super(DataPlot, self).__init__(parent)
         self._plot_index = 0
         self._autoscroll = True
+
+        self._autoscale_x = True
+        self._autoscale_y = True
 
         # the backend widget that we're trying to hide/abstract
         self._data_plot_widget = None
@@ -266,3 +270,39 @@ class DataPlot(QWidget):
                 self._curves[curve_id]['y'] = []
                 if self._data_plot_widget:
                     self._data_plot_widget.clear_values(curve_id)
+
+
+    def vline(self, x, color=None):
+        """Draw a vertical line on the plot
+
+        Draw a line a position X, with the given color"""
+        # TODO: figure out what the API for the color argument should be
+        #       MatPlot uses single letters, ie 'r' or 'b' for red or blue
+
+        # TODO: draw a vertical line on the plot
+        qWarning("DataPlot.vline is not implemented yet")
+        pass
+
+    # autoscaling methods
+    def setAutoscale(self, x=None, y=None):
+        """Enable or disable autoscaling of plot axes
+
+        if a parameter is not passed, the autoscaling setting for that axis is
+        not changed
+
+        @param x: enable or disable autoscaling for X
+        @param y: enable or disable autoscaling for Y
+        """
+        pass
+
+    # get x limit
+    def get_xlim(self):
+        qWarning("DataPlot.get_xlim is not implemented yet")
+        pass
+
+    # set x limit
+    def set_xlim(self, limits):
+        qWarning("DataPlot.set_xlim is not impelemented yet")
+        pass
+
+    # signal on y limit changed?

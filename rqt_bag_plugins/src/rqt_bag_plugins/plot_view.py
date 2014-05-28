@@ -71,7 +71,7 @@ import os
 import codecs
 import rospkg
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt
+from python_qt_binding.QtCore import Qt, qWarning
 from python_qt_binding.QtGui import QTreeWidget, QTreeWidgetItem, QSizePolicy, QDoubleValidator
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
@@ -90,32 +90,29 @@ class PlotView(MessageView):
 
     def __init__(self, timeline, parent, topic):
         super(PlotView, self).__init__(timeline, topic)
-        self._topic_type = self.timeline.get_datatype(topic)
-        print "%s (%s)" % ( self._topic_type, type(self._topic_type))
 
-        self._splitter = QSplitter()
-        config_widget = QWidget()
-        config_layout = QVBoxLayout()
-        config_widget.setLayout(config_layout)
-        plot_config_button = QPushButton("Configure Plot")
-        config_layout.addWidget(plot_config_button)
-        self._splitter.addWidget(config_widget)
+        self.plot_widget = PlotWidget(timeline, parent, topic)
 
-        #self._plot_widget = DataPlot(parent)
-        self._plot_widget = PlotWidget(parent, self._topic_type)
-        self.plot_widget = self._plot_widget
-        self.plot_widget.bag = None
-        self._splitter.addWidget(self._plot_widget)
-        #plot_config_button.clicked.connect(self._plot_widget.doSettingsDialog)
-
-        parent.layout().addWidget(self._splitter)
+        parent.layout().addWidget(self.plot_widget)
         self._fields = set()
+
+        #TODO: set start and end timestamps from area of interest
+        #      we should probably implement this by having the timeline widget
+        #      emit a signal whenever the region of interest changes, and then
+        #      have the plugin creation code connect that signal to our
+        #      plugin
+        #
+        #      or we model the interaction explicitly, where the timeline has
+        #      a list of listeners, and calls a callback on each of them
+        #      explicitly
+        #
+        # in general, this suggests that more of the interaction
 
     def message_viewed(self, bag, msg_details):
         """
         refreshes the plot
         """
-        topic, msg, t = msg_details[:3]
+        _, msg, t = msg_details[:3]
 
         if not msg:
             #self.set_plot(None, topic, 'no message')
@@ -124,38 +121,40 @@ class PlotView(MessageView):
             #self.set_plot(msg, topic, msg.header.stamp)
             pass
 
+        # TODO: initialize this on startup
         if self.plot_widget.bag == None:
             self.plot_widget.bag = bag
-            self.plot_widget.msgtopic = topic
-            self.plot_widget.start_stamp = self.timeline._get_start_stamp()
-            self.plot_widget.end_stamp = self.timeline._get_end_stamp()
-            self.plot_widget.ax.set_xlim([0,(self.plot_widget.end_stamp-self.plot_widget.start_stamp).to_sec()])
-            self.plot_widget.start_time.setText('0.0')
-            self.plot_widget.end_time.setText(str(round((self.plot_widget.end_stamp-self.plot_widget.start_stamp).to_sec(),2)))
-            self.plot_widget.resolution.setText(str(round((self.plot_widget.end_stamp-self.plot_widget.start_stamp).to_sec()/200.0,5)))
 
         if t is None:
             self.message_cleared()
         else:
             self.plot_widget.message_tree.set_message(msg)
-            self.plot_widget.ax.lines[0] = plt.axvline(x=(t-self.plot_widget.start_stamp).to_sec(),color='r')
-            del self.plot_widget.ax.lines[-1]
-            self.plot_widget.canvas.draw()
+            self.plot_widget.set_cursor((t-self.plot_widget.start_stamp).to_sec())
+            self.plot_widget.plot.redraw()
 
     def message_cleared(self):
         pass
 
 class PlotWidget(QWidget):
-    def __init__(self, parent, msg_type):
+    def __init__(self, timeline, parent, topic):
         super(PlotWidget, self).__init__(parent)
         self.setObjectName('PlotWidget')
+
+        self.timeline = timeline
+        msg_type = self.timeline.get_datatype(topic)
+        self.msgtopic = topic
+        self.start_stamp = self.timeline._get_start_stamp()
+        self.end_stamp = self.timeline._get_end_stamp()
+        self.limits = [0,(self.end_stamp-self.start_stamp).to_sec()]
 
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_bag_plugins'), 'resource', 'plot.ui')
         loadUi(ui_file, self)
         self.message_tree = MessageTree(msg_type, self)
         self.data_tree_layout.addWidget(self.message_tree)
-        self.auto_res.stateChanged.connect(self.autoChanged)
+        self.auto_res.stateChanged.connect(self.autoChanged) # TODO: make this a dropdown with choices for "Auto", "Full" and "Custom"
+
+        # TODO: pull or listen to start and end time from timeline region
         self.start_time.editingFinished.connect(self.settingsChanged)
         self.end_time.editingFinished.connect(self.settingsChanged)
         self.resolution.editingFinished.connect(self.settingsChanged)
@@ -163,25 +162,31 @@ class PlotWidget(QWidget):
         self.end_time.setValidator(QDoubleValidator(0.0,1000.0,2,self.end_time))
         self.resolution.setValidator(QDoubleValidator(0.0,1000.0,6,self.resolution))
 
-        self.figure = plt.figure()
-        self.canvas = FigureCanvas(self.figure)
-        self.canvas.mpl_connect('button_release_event', self.on_motion)
+        # set start and end time from limits
+        self.start_time.setText('0.0')
+        self.end_time.setText(str(round((self.end_stamp-self.start_stamp).to_sec(),2)))
+        self.resolution.setText(str(round((self.end_stamp-self.start_stamp).to_sec()/200.0,5)))
 
-        NavigationToolbar.home = self.home
-        self.toolbar = NavigationToolbar(self.canvas, self)
+        self.plot = DataPlot(self)
+        self.data_plot_layout.addWidget(self.plot)
 
-        self.plot_toolbar_layout.addWidget(self.toolbar)
-        self.data_plot_layout.addWidget(self.canvas)
-        self.ax = self.figure.add_subplot(111)
-        self.ax.hold(True)
-        plt.axvline(x=0,color='r')
+        self._config_button = QPushButton("Configure Plot")
+        self.plot_toolbar_layout.addWidget(self._config_button)
+        self._config_button.clicked.connect(self.plot.doSettingsDialog)
 
-        self.canvas.draw()
+        self.set_cursor(0)
+        self.plot.redraw()
+
         self.paths_on = []
         self._lines = None
+        self.bag = None
+
+    def set_cursor(self, position):
+        self.plot.vline(0, color='r')
 
     def add_plot(self, path):
-        limits = self.ax.get_xlim()
+        limits = self.plot.get_xlim()
+        limits = self.limits # TODO: remove when get_xlim works
         _limits = limits
         if self.auto_res.isChecked():
             timestep = round((limits[1]-limits[0])/200.0,5)
@@ -202,18 +207,25 @@ class PlotWidget(QWidget):
                 y.append(eval('entry[1].' + path))
                 x.append((entry[2]-self.start_stamp).to_sec())
 
-        self.ax.plot(x,y, 'o-',markersize=3,label=path)
-        self.paths_on.append(path)
+        self.plot.add_curve(path, path, x, y)
 
-        self._lines = self.ax.lines[0]
-        del self.ax.lines[0]
-        self.ax.legend()
-        self.ax.relim()
-        self.ax.set_autoscale_on(True)
-        self.ax.autoscale_view(False,False,True)
-        self.ax.set_xlim(_limits)
-        self.ax.lines.insert(0,self._lines)
-        self.canvas.draw()
+        # autoscale Y
+        #self.plot.autoscale_x
+        # set X scale
+        #self.plot.set_xlim(_limits)
+        self.plot.redraw()
+        #self.ax.plot(x,y, 'o-',markersize=3,label=path)
+        #self.paths_on.append(path)
+
+        #self._lines = self.ax.lines[0]
+        #del self.ax.lines[0]
+        #self.ax.legend()
+        #self.ax.relim()
+        #self.ax.set_autoscale_on(True)
+        #self.ax.autoscale_view(False,False,True)
+        #self.ax.set_xlim(_limits)
+        #self.ax.lines.insert(0,self._lines)
+        #self.canvas.draw()
 
     def update_plot(self, limits, timestep):
         self.resolution.setText(str(timestep))
@@ -247,25 +259,28 @@ class PlotWidget(QWidget):
             self.canvas.draw()
 
     def remove_plot(self, path):
-        del self.ax.lines[self.paths_on.index(path)+1]
-        del self.paths_on[self.paths_on.index(path)]
+        self.plot.remove_curve(path)
+        self.plot.redraw()
+        #del self.ax.lines[self.paths_on.index(path)+1]
+        #del self.paths_on[self.paths_on.index(path)]
 
-        self._lines = self.ax.lines[0]
-        del self.ax.lines[0]
-        self.ax.relim()
-        self.ax.set_autoscale_on(True)
-        self.ax.autoscale_view(False,False,True)
-        if self.paths_on == []:
-            self.ax.legend_ = None
-        else:        
-            self.ax.legend()
-        self.ax.lines.insert(0,self._lines)
-        self.canvas.draw()
+        #self._lines = self.ax.lines[0]
+        #del self.ax.lines[0]
+        #self.ax.relim()
+        #self.ax.set_autoscale_on(True)
+        #self.ax.autoscale_view(False,False,True)
+        #if self.paths_on == []:
+        #    self.ax.legend_ = None
+        #else:        
+        #    self.ax.legend()
+        #self.ax.lines.insert(0,self._lines)
+        #self.canvas.draw()
 
     def load_data(self,startoffset,endoffset):
         self.msgdata=self.bag.read_messages(self.msgtopic,self.start_stamp+startoffset,self.end_stamp-endoffset)
 
     def on_motion(self, event):
+        qWarning("PlotWidget.on_motion")
         limits = self.ax.get_xlim()
         if self.auto_res.isChecked():
             timestep = round((limits[1]-limits[0])/200.0,5)
