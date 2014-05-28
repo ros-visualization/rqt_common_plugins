@@ -117,6 +117,8 @@ class DataPlot(QWidget):
             version_info = ' and PySide > 1.1.0' if QT_BINDING == 'pyside' else ''
             raise RuntimeError('No usable plot type found. Install at least one of: PyQtGraph, MatPlotLib (at least 1.1.0%s) or Python-Qwt5.' % version_info)
 
+        self._switch_data_plot_widget(self._plot_index)
+
         self.show()
 
     def _switch_data_plot_widget(self, plot_index):
