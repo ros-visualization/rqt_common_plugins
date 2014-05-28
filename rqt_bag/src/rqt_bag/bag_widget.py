@@ -37,7 +37,7 @@ import rospy
 import rospkg
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt
+from python_qt_binding.QtCore import Qt, qWarning
 from python_qt_binding.QtGui import QFileDialog, QGraphicsView, QIcon, QWidget
 
 import rosbag
@@ -236,6 +236,9 @@ class BagWidget(QWidget):
             self.load_bag(filename[0])
 
     def load_bag(self, filename):
+        # self set loading filename
+        qWarning("Loading %s" % filename)
+        self.status_label.setText("Loading %s" % filename)
         bag = rosbag.Bag(filename)
         self.play_button.setEnabled(True)
         self.thumbs_button.setEnabled(True)
@@ -249,6 +252,9 @@ class BagWidget(QWidget):
         self.save_button.setEnabled(True)
         self.record_button.setEnabled(False)
         self._timeline.add_bag(bag)
+        qWarning("Done loading %s" % filename )
+        self.status_label.setText("Done loading %s" % filename )
+        # self clear loading filename
 
     def _handle_save_clicked(self):
         filename = QFileDialog.getSaveFileName(self, self.tr('Save selected region to file...'), '.', self.tr('Bag files {.bag} (*.bag)'))

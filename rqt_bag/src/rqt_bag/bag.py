@@ -31,6 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import argparse
+import threading
 
 from qt_gui.plugin import Plugin
 
@@ -55,8 +56,12 @@ class Bag(Plugin):
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
         context.add_widget(self._widget)
 
-        for bagfile in args.bagfiles:
-            self._widget.load_bag(bagfile)
+        def load_bags():
+            for bagfile in args.bagfiles:
+                self._widget.load_bag(bagfile)
+        
+        load_thread = threading.Thread(target=load_bags)
+        load_thread.start()
 
     def _parse_args(self, argv):
         parser = argparse.ArgumentParser(prog='rqt_bag', add_help=False)
