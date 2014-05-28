@@ -1,6 +1,6 @@
 # Software License Agreement (BSD License)
 #
-# Copyright (c) 2012, Willow Garage, Inc.
+# Copyright (c) 2014, Austin Hendrix, Stanford University
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,23 @@
 
 from rqt_bag import MessageView
 
-from python_qt_binding.QtGui import QWidget
+from python_qt_binding.QtGui import QWidget, QSplitter, QVBoxLayout, QPushButton
+
+# imports for adwilson's implementation
+import os
+import codecs
+import rospkg
+from python_qt_binding import loadUi
+from python_qt_binding.QtCore import Qt
+from python_qt_binding.QtGui import QTreeWidget, QTreeWidgetItem, QSizePolicy, QDoubleValidator
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+import matplotlib.pyplot as plt
+
+
+from rqt_py_common.data_plot import DataPlot
+
+import rospy
 
 class PlotView(MessageView):
     """
@@ -72,18 +88,35 @@ class PlotView(MessageView):
     """
     name = 'Plot'
 
-    def __init__(self, timeline, parent):
-        super(PlotView, self).__init__(timeline, parent)
+    def __init__(self, timeline, parent, topic):
+        super(PlotView, self).__init__(timeline, topic)
+        self._topic_type = self.timeline.get_datatype(topic)
+        print "%s (%s)" % ( self._topic_type, type(self._topic_type))
 
-        self._plot_widget = QWidget(parent) # use rqt plot widget... ?
-        parent.layout().addWidget(self._plot_widget)
+        self._splitter = QSplitter()
+        config_widget = QWidget()
+        config_layout = QVBoxLayout()
+        config_widget.setLayout(config_layout)
+        plot_config_button = QPushButton("Configure Plot")
+        config_layout.addWidget(plot_config_button)
+        self._splitter.addWidget(config_widget)
+
+        #self._plot_widget = DataPlot(parent)
+        self._plot_widget = PlotWidget(parent, self._topic_type)
+        self.plot_widget = self._plot_widget
+        self.plot_widget.bag = None
+        self._splitter.addWidget(self._plot_widget)
+        #plot_config_button.clicked.connect(self._plot_widget.doSettingsDialog)
+
+        parent.layout().addWidget(self._splitter)
+        self._fields = set()
 
     def message_viewed(self, bag, msg_details):
         """
         refreshes the plot
         """
-        TopicMessageView.message_viewed(self, bag, msg_details)
         topic, msg, t = msg_details[:3]
+
         if not msg:
             #self.set_plot(None, topic, 'no message')
             pass
@@ -91,6 +124,335 @@ class PlotView(MessageView):
             #self.set_plot(msg, topic, msg.header.stamp)
             pass
 
-    def message_cleared(self):
-        TopicMessageView.message_cleared(self)
+        if self.plot_widget.bag == None:
+            self.plot_widget.bag = bag
+            self.plot_widget.msgtopic = topic
+            self.plot_widget.start_stamp = self.timeline._get_start_stamp()
+            self.plot_widget.end_stamp = self.timeline._get_end_stamp()
+            self.plot_widget.ax.set_xlim([0,(self.plot_widget.end_stamp-self.plot_widget.start_stamp).to_sec()])
+            self.plot_widget.start_time.setText('0.0')
+            self.plot_widget.end_time.setText(str(round((self.plot_widget.end_stamp-self.plot_widget.start_stamp).to_sec(),2)))
+            self.plot_widget.resolution.setText(str(round((self.plot_widget.end_stamp-self.plot_widget.start_stamp).to_sec()/200.0,5)))
 
+        if t is None:
+            self.message_cleared()
+        else:
+            self.plot_widget.message_tree.set_message(msg)
+            self.plot_widget.ax.lines[0] = plt.axvline(x=(t-self.plot_widget.start_stamp).to_sec(),color='r')
+            del self.plot_widget.ax.lines[-1]
+            self.plot_widget.canvas.draw()
+
+    def message_cleared(self):
+        pass
+
+class PlotWidget(QWidget):
+    def __init__(self, parent, msg_type):
+        super(PlotWidget, self).__init__(parent)
+        self.setObjectName('PlotWidget')
+
+        rp = rospkg.RosPack()
+        ui_file = os.path.join(rp.get_path('rqt_bag_plugins'), 'resource', 'plot.ui')
+        loadUi(ui_file, self)
+        self.message_tree = MessageTree(msg_type, self)
+        self.data_tree_layout.addWidget(self.message_tree)
+        self.auto_res.stateChanged.connect(self.autoChanged)
+        self.start_time.editingFinished.connect(self.settingsChanged)
+        self.end_time.editingFinished.connect(self.settingsChanged)
+        self.resolution.editingFinished.connect(self.settingsChanged)
+        self.start_time.setValidator(QDoubleValidator(0.0,1000.0,2,self.start_time))
+        self.end_time.setValidator(QDoubleValidator(0.0,1000.0,2,self.end_time))
+        self.resolution.setValidator(QDoubleValidator(0.0,1000.0,6,self.resolution))
+
+        self.figure = plt.figure()
+        self.canvas = FigureCanvas(self.figure)
+        self.canvas.mpl_connect('button_release_event', self.on_motion)
+
+        NavigationToolbar.home = self.home
+        self.toolbar = NavigationToolbar(self.canvas, self)
+
+        self.plot_toolbar_layout.addWidget(self.toolbar)
+        self.data_plot_layout.addWidget(self.canvas)
+        self.ax = self.figure.add_subplot(111)
+        self.ax.hold(True)
+        plt.axvline(x=0,color='r')
+
+        self.canvas.draw()
+        self.paths_on = []
+        self._lines = None
+
+    def add_plot(self, path):
+        limits = self.ax.get_xlim()
+        _limits = limits
+        if self.auto_res.isChecked():
+            timestep = round((limits[1]-limits[0])/200.0,5)
+        else:
+            timestep = float(self.resolution.text()) 
+        self.resolution.setText(str(timestep))
+
+        if limits[0]<0:
+            limits = [0.0,limits[1]]
+        if limits[1]>(self.end_stamp-self.start_stamp).to_sec():
+            limits = [limits[0],(self.end_stamp-self.start_stamp).to_sec()]
+
+        self.load_data(rospy.Duration.from_sec(limits[0]),rospy.Duration.from_sec((self.end_stamp-self.start_stamp).to_sec()-limits[1]))
+        y = []
+        x = []
+        for entry in self.msgdata:
+            if x==[] or (entry[2]-self.start_stamp).to_sec()-x[-1] >= timestep:
+                y.append(eval('entry[1].' + path))
+                x.append((entry[2]-self.start_stamp).to_sec())
+
+        self.ax.plot(x,y, 'o-',markersize=3,label=path)
+        self.paths_on.append(path)
+
+        self._lines = self.ax.lines[0]
+        del self.ax.lines[0]
+        self.ax.legend()
+        self.ax.relim()
+        self.ax.set_autoscale_on(True)
+        self.ax.autoscale_view(False,False,True)
+        self.ax.set_xlim(_limits)
+        self.ax.lines.insert(0,self._lines)
+        self.canvas.draw()
+
+    def update_plot(self, limits, timestep):
+        self.resolution.setText(str(timestep))
+        self.start_time.setText(str(round(limits[0],2)))
+        self.end_time.setText(str(round(limits[1],2)))
+        self.ax.set_xlim(limits)
+
+        if limits[0]<0:
+            limits = [0.0,limits[1]]
+        if limits[1]>(self.end_stamp-self.start_stamp).to_sec():
+            limits = [limits[0],(self.end_stamp-self.start_stamp).to_sec()]
+
+
+        if hasattr(self, 'paths_on') and len(self.paths_on)>0:
+            self.load_data(rospy.Duration.from_sec(limits[0]),rospy.Duration.from_sec((self.end_stamp-self.start_stamp).to_sec()-limits[1]))
+         
+            y = [[] for i in range(len(self.paths_on))]
+            x = [[] for i in range(len(self.paths_on))]
+
+            for entry in self.msgdata:
+                path_index = 0
+                for path in self.paths_on:
+                    if x[path_index]==[] or (entry[2]-self.start_stamp).to_sec()-x[path_index][-1] >= timestep:
+                        y[path_index].append(eval('entry[1].' + path))
+                        x[path_index].append((entry[2]-self.start_stamp).to_sec())
+                    path_index +=  1
+            path_index = 0
+            for path in self.paths_on:
+                self.ax.lines[path_index+1].set_data(x[path_index],y[path_index])
+                path_index += 1
+            self.canvas.draw()
+
+    def remove_plot(self, path):
+        del self.ax.lines[self.paths_on.index(path)+1]
+        del self.paths_on[self.paths_on.index(path)]
+
+        self._lines = self.ax.lines[0]
+        del self.ax.lines[0]
+        self.ax.relim()
+        self.ax.set_autoscale_on(True)
+        self.ax.autoscale_view(False,False,True)
+        if self.paths_on == []:
+            self.ax.legend_ = None
+        else:        
+            self.ax.legend()
+        self.ax.lines.insert(0,self._lines)
+        self.canvas.draw()
+
+    def load_data(self,startoffset,endoffset):
+        self.msgdata=self.bag.read_messages(self.msgtopic,self.start_stamp+startoffset,self.end_stamp-endoffset)
+
+    def on_motion(self, event):
+        limits = self.ax.get_xlim()
+        if self.auto_res.isChecked():
+            timestep = round((limits[1]-limits[0])/200.0,5)
+        else:
+            timestep = float(self.resolution.text())
+        self.update_plot(limits, timestep)
+
+    def settingsChanged(self):
+        limits = [float(self.start_time.text()),float(self.end_time.text())]
+        if self.auto_res.isChecked():
+            timestep = round((limits[1]-limits[0])/200.0,5)
+        else:
+            timestep = float(self.resolution.text())
+        self.update_plot(limits, timestep)
+
+    def autoChanged(self, state):
+        if state==2:
+            self.resolution.setDisabled(True) 
+            limits = self.ax.get_xlim()
+            timestep = round((limits[1]-limits[0])/200.0,5)
+            self.update_plot(limits, timestep)   
+        else:
+            self.resolution.setDisabled(False)
+
+    def home(self):
+        limits = [0,(self.end_stamp-self.start_stamp).to_sec()]
+        self.ax.relim()
+        self.ax.set_autoscale_on(True)
+        self.ax.autoscale_view(False,False,True)
+        if self.auto_res.isChecked():
+            timestep = round((limits[1]-limits[0])/200.0,5)
+        else:
+            timestep = float(self.resolution.text())
+        self.update_plot(limits, timestep)
+
+
+
+class MessageTree(QTreeWidget):
+    def __init__(self, msg_type, parent):
+        super(MessageTree, self).__init__(parent)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setHeaderHidden(True)
+        self.itemChanged.connect(self.handleChanged)
+        self._msg_type = msg_type
+        self._msg = None
+
+        self._expanded_paths = None
+        self._checked_states = set()
+        self.plot_list = set()
+
+        # populate the tree from the message type
+
+
+    @property
+    def msg(self):
+        return self._msg
+
+    def set_message(self, msg):
+        # Remember whether items were expanded or not before deleting
+        if self._msg:
+            for item in self.get_all_items():
+                path = self.get_item_path(item)
+                if item.isExpanded():
+                    self._expanded_paths.add(path)
+                elif path in self._expanded_paths:
+                    self._expanded_paths.remove(path)
+                if item.checkState(0)==Qt.Checked:
+                    self._checked_states.add(path)
+                elif path in self._checked_states:
+                    self._checked_states.remove(path)
+            self.clear()
+        if msg:
+            # Populate the tree
+            self._add_msg_object(None, '', '', msg, msg._type)
+
+            if self._expanded_paths is None:
+                self._expanded_paths = set()
+            else:
+                # Expand those that were previously expanded, and collapse any paths that we've seen for the first time
+                for item in self.get_all_items():
+                    path = self.get_item_path(item)
+                    if path in self._expanded_paths:
+                        item.setExpanded(True)
+                    else:
+                        item.setExpanded(False)
+        self._msg = msg
+        self.update()
+
+    def get_item_path(self, item):
+        return item.data(0, Qt.UserRole)[0].replace(' ', '')  # remove spaces that may get introduced in indexing, e.g. [  3] is [3]
+
+    def get_all_items(self):
+        items = []
+        try:
+            root = self.invisibleRootItem()
+            self.traverse(root, items.append)
+        except Exception:
+            # TODO: very large messages can cause a stack overflow due to recursion
+            pass
+        return items
+
+    def traverse(self, root, function):
+        for i in range(root.childCount()):
+            child = root.child(i)
+            function(child)
+            self.traverse(child, function)
+
+    def _add_msg_object(self, parent, path, name, obj, obj_type):
+        label = name
+
+        if hasattr(obj, '__slots__'):
+            subobjs = [(slot, getattr(obj, slot)) for slot in obj.__slots__]
+        elif type(obj) in [list, tuple]:
+            len_obj = len(obj)
+            if len_obj == 0:
+                subobjs = []
+            else:
+                w = int(math.ceil(math.log10(len_obj)))
+                subobjs = [('[%*d]' % (w, i), subobj) for (i, subobj) in enumerate(obj)]
+        else:
+            subobjs = []
+
+        plotitem=False
+        if type(obj) in [int, long, float]:
+            plotitem=True
+            if type(obj) == float:
+                obj_repr = '%.6f' % obj
+            else:
+                obj_repr = str(obj)
+
+            if obj_repr[0] == '-':
+                label += ': %s' % obj_repr
+            else:
+                label += ':  %s' % obj_repr
+
+        elif type(obj) in [str, bool, int, long, float, complex, rospy.Time]:
+            # Ignore any binary data
+            obj_repr = codecs.utf_8_decode(str(obj), 'ignore')[0]
+
+            # Truncate long representations
+            if len(obj_repr) >= 50:
+                obj_repr = obj_repr[:50] + '...'
+
+            label += ': ' + obj_repr
+        item = QTreeWidgetItem([label])
+        if name == '':
+            pass
+        elif path.find('.') == -1 and path.find('[') == -1:
+            self.addTopLevelItem(item)
+        else:
+            parent.addChild(item)
+        if plotitem == True:
+            if path.replace(' ', '') in self._checked_states:
+                item.setCheckState (0, Qt.Checked)
+            else:
+                item.setCheckState (0, Qt.Unchecked)
+        item.setData(0, Qt.UserRole, (path, obj_type))
+
+
+        for subobj_name, subobj in subobjs:
+            if subobj is None:
+                continue
+
+            if path == '':
+                subpath = subobj_name  # root field
+            elif subobj_name.startswith('['):
+                subpath = '%s%s' % (path, subobj_name)  # list, dict, or tuple
+            else:
+                subpath = '%s.%s' % (path, subobj_name)  # attribute (prefix with '.')
+
+            if hasattr(subobj, '_type'):
+                subobj_type = subobj._type
+            else:
+                subobj_type = type(subobj).__name__
+
+            self._add_msg_object(item, subpath, subobj_name, subobj, subobj_type)
+
+    def handleChanged(self, item, column):
+        if item.data(0, Qt.UserRole)==None:
+            pass
+        else:
+            path = self.get_item_path(item)
+            if item.checkState(column) == Qt.Checked:
+                if path not in self.plot_list:
+                    self.plot_list.add(path)
+                    self.parent().parent().parent().add_plot(path)
+            if item.checkState(column) == Qt.Unchecked:
+                if path in self.plot_list:
+                    self.plot_list.remove(path)
+                    self.parent().parent().parent().remove_plot(path)
