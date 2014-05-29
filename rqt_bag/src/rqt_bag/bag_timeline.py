@@ -93,7 +93,7 @@ class BagTimeline(QGraphicsScene):
 
         # Plugin popup management
         self._context = context
-        self.popups = set()
+        self.popups = {}
         self._views = []
         self._listeners = {}
 
@@ -133,7 +133,8 @@ class BagTimeline(QGraphicsScene):
         for bag in self._bags:
             bag.close()
         for _, frame in self._views:
-            self._context.remove_widget(frame)
+            if frame.parent():
+                self._context.remove_widget(frame)
 
     # Bag Management and access
     def add_bag(self, bag):
@@ -684,13 +685,6 @@ class BagTimeline(QGraphicsScene):
     def add_view(self, topic, view, frame):
         self._views.append((view, frame))
         self.add_listener(topic, view)
-
-    def remove_view(self, topic, view):
-        self.remove_listener(topic, view)
-        for entry in self._views:
-            if entry[0] == view:
-                self._views.remove(entry)
-        self.update()
 
     def has_listeners(self, topic):
         return topic in self._listeners
