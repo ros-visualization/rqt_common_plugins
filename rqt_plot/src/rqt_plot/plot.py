@@ -34,69 +34,27 @@ import argparse
 
 from python_qt_binding import QT_BINDING
 from python_qt_binding.QtCore import qDebug
-from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
 from rqt_gui_py.plugin import Plugin
 
 from rqt_py_common.ini_helper import pack, unpack
 
 from .plot_widget import PlotWidget
 
-try:
-    from pyqtgraph_data_plot import PyQtGraphDataPlot
-except ImportError:
-    qDebug('[DEBUG] rqt_plot.plot: import of PyQtGraphDataPlot failed (trying other backends)')
-    PyQtGraphDataPlot = None
-
-try:
-    from mat_data_plot import MatDataPlot
-except ImportError:
-    qDebug('[DEBUG] rqt_plot.plot: import of MatDataPlot failed (trying other backends)')
-    MatDataPlot = None
-
-try:
-    from qwt_data_plot import QwtDataPlot
-except ImportError:
-    qDebug('[DEBUG] rqt_plot.plot: import of QwtDataPlot failed (trying other backends)')
-    QwtDataPlot = None
-
+# TODO: move into rqt_py_common
+from .data_plot import DataPlot
 
 class Plot(Plugin):
-    # plot types in order of priority
-    plot_types = [
-        {
-            'title': 'PyQtGraph',
-            'widget_class': PyQtGraphDataPlot,
-            'description': 'Based on PyQtGraph\n- installer: http://luke.campagnola.me/code/pyqtgraph',
-            'enabled': PyQtGraphDataPlot is not None,
-        },
-        {
-            'title': 'MatPlot',
-            'widget_class': MatDataPlot,
-            'description': 'Based on MatPlotLib\n- needs most CPU\n- needs matplotlib >= 1.1.0\n- if using PySide: PySide > 1.1.0',
-            'enabled': MatDataPlot is not None,
-        },
-        {
-            'title': 'QwtPlot',
-            'widget_class': QwtDataPlot,
-            'description': 'Based on QwtPlot\n- does not use timestamps\n- uses least CPU\n- needs Python Qwt bindings',
-            'enabled': QwtDataPlot is not None,
-        },
-    ]
 
     def __init__(self, context):
         super(Plot, self).__init__(context)
         self.setObjectName('Plot')
 
-        enabled_plot_types = [pt for pt in self.plot_types if pt['enabled']]
-        if not enabled_plot_types:
-            version_info = ' and PySide > 1.1.0' if QT_BINDING == 'pyside' else ''
-            raise RuntimeError('No usable plot type found. Install at least one of: PyQtGraph, MatPlotLib (at least 1.1.0%s) or Python-Qwt5.' % version_info)
-
-        self._plot_type_index = 0
         self._context = context
 
         self._args = self._parse_args(context.argv())
         self._widget = PlotWidget(initial_topics=self._args.topics, start_paused=self._args.start_paused)
+        self._data_plot = DataPlot(self._widget)
+        self._widget.switch_data_plot_widget(self._data_plot)
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
         context.add_widget(self._widget)
@@ -147,31 +105,21 @@ class Plot(Plugin):
             help='Start without restoring previous topics')
         group.add_argument('topics', nargs='*', default=[], help='Topics to plot')
 
-    def _switch_data_plot_widget(self, plot_type_index):
-        # check if selected plot type is available
-        if not self.plot_types[plot_type_index]['enabled']:
-            # find other available plot type
-            for index, plot_type in enumerate(self.plot_types):
-                if plot_type['enabled']:
-                    plot_type_index = index
-                    break
-
-        self._plot_type_index = plot_type_index
-        selected_plot = self.plot_types[plot_type_index]
-
-        self._widget.switch_data_plot_widget(selected_plot['widget_class'](self._widget))
-        self._widget.setWindowTitle(selected_plot['title'])
+    def _update_title(self):
+        self._widget.setWindowTitle(self._data_plot.getTitle())
         if self._context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % self._context.serial_number()))
 
     def save_settings(self, plugin_settings, instance_settings):
-        instance_settings.set_value('plot_type', self._plot_type_index)
+        self._data_plot.save_settings(plugin_settings, instance_settings)
         instance_settings.set_value('autoscroll', self._widget.autoscroll_checkbox.isChecked())
         instance_settings.set_value('topics', pack(self._widget._rosdata.keys()))
 
     def restore_settings(self, plugin_settings, instance_settings):
         self._widget.autoscroll_checkbox.setChecked(instance_settings.value('autoscroll', True) in [True, 'true'])
-        self._switch_data_plot_widget(int(instance_settings.value('plot_type', 0)))
+
+        self._data_plot.restore_settings(plugin_settings, instance_settings)
+        self._update_title()
 
         if len(self._widget._rosdata.keys()) == 0 and not self._args.start_empty:
             topics = unpack(instance_settings.value('topics', []))
@@ -180,11 +128,8 @@ class Plot(Plugin):
                     self._widget.add_topic(topic)
 
     def trigger_configuration(self):
-        dialog = SimpleSettingsDialog(title='Plot Options')
-        dialog.add_exclusive_option_group(title='Plot Type', options=self.plot_types, selected_index=self._plot_type_index)
-        plot_type = dialog.get_settings()[0]
-        if plot_type is not None and plot_type['selected_index'] is not None and self._plot_type_index != plot_type['selected_index']:
-            self._switch_data_plot_widget(plot_type['selected_index'])
+        self._data_plot.doSettingsDialog()
+        self._update_title()
 
     def shutdown_plugin(self):
         self._widget.clean_up_subscribers()
