@@ -53,6 +53,7 @@ class PyQtGraphDataPlot(QWidget):
         self._autoscroll = False
         self._color_index = 0
         self._curves = {}
+        self._current_vline = None
 
     def add_curve(self, curve_id, curve_name, data_x, data_y):
         color = QColor(self._colors[self._color_index % len(self._colors)])
@@ -109,3 +110,13 @@ class PyQtGraphDataPlot(QWidget):
 
             self._plot_widget.setXRange(x_max - x_delta, x_max, padding=0)
 
+    def vline(self, x, color):
+        if self._current_vline:
+            self._plot_widget.removeItem(self._current_vline)
+        self._current_vline = self._plot_widget.addLine(x=x, pen=color)
+
+    def set_xlim(self, limits):
+        self._plot_widget.setXRange(limits[0], limits[1])
+
+    def set_ylim(self, limits):
+        self._plot_widget.setYRange(limits[0], limits[1])

@@ -35,7 +35,7 @@ from __future__ import division
 import math
 import sys
 
-from python_qt_binding.QtCore import QEvent, QPointF, Qt, SIGNAL, Signal, Slot
+from python_qt_binding.QtCore import QEvent, QPointF, Qt, SIGNAL, Signal, Slot, qWarning
 from python_qt_binding.QtGui import QPen, QVector2D
 import Qwt
 
@@ -55,6 +55,11 @@ class QwtDataPlot(Qwt.QwtPlot):
         self.insertLegend(Qwt.QwtLegend(), Qwt.QwtPlot.BottomLegend)
 
         self._curves = {}
+
+        # TODO: rejigger these internal data structures so that they're easier
+        # to work with, and easier to use with set_xlim and set_ylim
+        #  this may also entail rejiggering the _time_axis so that it's
+        #  actually time axis data, or just isn't required any more
         self._data_offset_x = 0
         self._canvas_offset_x = 0
         self._canvas_offset_y = 0
@@ -227,6 +232,15 @@ class QwtDataPlot(Qwt.QwtPlot):
         delta_y = (self.canvas().height() / 2.0) - canvas_y
         self.move_canvas(0, zoom_factor * delta_y * 1.0225)
         self.scale_axis_y(max(0.0005, self._canvas_display_height - zoom_factor * self._canvas_display_height))
+
+    def vline(self, x, color):
+        qWarning("QwtDataPlot.vline is not implemented yet")
+
+    def set_xlim(self, limits):
+        qWarning("QwtDataPlot.set_xlim is not implemented yet")
+
+    def set_ylim(self, limits):
+        qWarning("QwtDataPlot.set_ylim is not implemented yet")
 
 
 if __name__ == '__main__':

@@ -93,6 +93,7 @@ class MatDataPlot(QWidget):
         self._color_index = 0
         self._curves = {}
         self._autoscroll = False
+        self._current_vline = None
 
     def autoscroll(self, enabled=True):
         self._autoscroll = enabled
@@ -171,3 +172,16 @@ class MatDataPlot(QWidget):
             self._canvas.axes.set_ybound(lower=ymin, upper=ymax)
 
         self._canvas.draw()
+
+    def vline(self, x, color):
+        # convert color range from (0,255) to (0,1.0) 
+        matcolor=(color[0]/255.0, color[1]/255.0, color[2]/255.0)
+        if self._current_vline:
+            self._current_vline.remove()
+        self._current_vline = self._canvas.axes.axvline(x=x, color=matcolor)
+
+    def set_xlim(self, limits):
+        self._canvas.axes.set_xbound(lower=limits[0], upper=limits[1])
+
+    def set_ylim(self, limits):
+        self._canvas.axes.set_ybound(lower=limits[0], upper=limits[1])

@@ -96,6 +96,11 @@ class DataPlot(QWidget):
         },
     ]
 
+    # pre-defined colors:
+    RED=(255, 0, 0)
+    GREEN=(0, 255, 0)
+    BLUE=(0, 0, 255)
+
     def __init__(self, parent=None):
         """Create a new, empty DataPlot
 
@@ -272,16 +277,17 @@ class DataPlot(QWidget):
                     self._data_plot_widget.clear_values(curve_id)
 
 
-    def vline(self, x, color=None):
+    def vline(self, x, color=RED):
         """Draw a vertical line on the plot
 
-        Draw a line a position X, with the given color"""
-        # TODO: figure out what the API for the color argument should be
-        #       MatPlot uses single letters, ie 'r' or 'b' for red or blue
-
-        # TODO: draw a vertical line on the plot
-        qWarning("DataPlot.vline is not implemented yet")
-        pass
+        Draw a line a position X, with the given color
+        
+        @param x: position of the vertical line to draw
+        @param color: optional parameter specifying the color, as tuple of
+                      RGB values from 0 to 255
+        """
+        if self._data_plot_widget:
+            self._data_plot_widget.vline(x, color)
 
     # autoscaling methods
     def setAutoscale(self, x=None, y=None):
@@ -293,7 +299,11 @@ class DataPlot(QWidget):
         @param x: enable or disable autoscaling for X
         @param y: enable or disable autoscaling for Y
         """
-        pass
+        # TODO: if autoscale was turned on, recompute bounds?
+        if x is not None:
+            self.autoscale_x = x
+        if y is not None:
+            self.autoscale_y = y
 
     # get x limit
     def get_xlim(self):
