@@ -73,10 +73,6 @@ import rospkg
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, qWarning
 from python_qt_binding.QtGui import QTreeWidget, QTreeWidgetItem, QSizePolicy, QDoubleValidator
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
-import matplotlib.pyplot as plt
-
 
 from rqt_py_common.data_plot import DataPlot
 
@@ -182,7 +178,7 @@ class PlotWidget(QWidget):
         self.bag = None
 
     def set_cursor(self, position):
-        self.plot.vline(0, color='r')
+        self.plot.vline(position, color=DataPlot.RED)
 
     def add_plot(self, path):
         limits = self.plot.get_xlim()
