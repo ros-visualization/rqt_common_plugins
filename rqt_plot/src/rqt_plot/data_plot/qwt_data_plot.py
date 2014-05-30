@@ -242,6 +242,14 @@ class QwtDataPlot(Qwt.QwtPlot):
     def set_ylim(self, limits):
         qWarning("QwtDataPlot.set_ylim is not implemented yet")
 
+    def get_xlim(self):
+        qWarning("QwtDataPlot.get_xlim is not implemented yet")
+        return [0.0, 1.0]
+
+    def get_ylim(self):
+        qWarning("QwtDataPlot.get_ylim is not implemented yet")
+        return [0.0, 1.0]
+
 
 if __name__ == '__main__':
     from python_qt_binding.QtGui import QApplication

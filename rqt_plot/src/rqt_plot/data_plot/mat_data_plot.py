@@ -42,7 +42,7 @@ if QT_BINDING == 'pyside':
     if parse_version(QT_BINDING_VERSION) <= parse_version('1.1.2'):
         raise ImportError('A PySide version newer than 1.1.0 is required.')
 
-from python_qt_binding.QtCore import Slot, Qt
+from python_qt_binding.QtCore import Slot, Qt, qWarning
 from python_qt_binding.QtGui import QWidget, QVBoxLayout, QSizePolicy, QColor
 
 import operator
@@ -148,10 +148,10 @@ class MatDataPlot(QWidget):
         self._canvas.axes.set_xbound(lower=limits[0], upper=limits[1])
 
     def set_ylim(self, limits):
-        # pad the min/max
-        ymin = limits[0]
-        ymax = limits[1]
-        delta = ymax - ymin if ymax != ymin else 0.1
-        ymin -= .05 * delta
-        ymax += .05 * delta
-        self._canvas.axes.set_ybound(lower=ymin, upper=ymax)
+        self._canvas.axes.set_ybound(lower=limits[0], upper=limits[1])
+
+    def get_xlim(self):
+        return list(self._canvas.axes.get_xbound())
+
+    def get_ylim(self):
+        return list(self._canvas.axes.get_ybound())

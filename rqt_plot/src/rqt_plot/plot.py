@@ -53,6 +53,12 @@ class Plot(Plugin):
         self._args = self._parse_args(context.argv())
         self._widget = PlotWidget(initial_topics=self._args.topics, start_paused=self._args.start_paused)
         self._data_plot = DataPlot(self._widget)
+
+        # disable autoscaling of X, and set a sane default range
+        self._data_plot.set_autoscale(x=False)
+        self._data_plot.set_autoscale(y=DataPlot.SCALE_EXTEND|DataPlot.SCALE_VISIBLE)
+        self._data_plot.set_xlim([0, 10.0])
+
         self._widget.switch_data_plot_widget(self._data_plot)
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))

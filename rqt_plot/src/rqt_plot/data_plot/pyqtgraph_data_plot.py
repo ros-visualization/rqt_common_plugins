@@ -30,7 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from python_qt_binding.QtCore import Slot, Qt
+from python_qt_binding.QtCore import Slot, Qt, qWarning
 from python_qt_binding.QtGui import QColor, QVBoxLayout, QWidget
 
 from pyqtgraph import PlotWidget, mkPen
@@ -105,7 +105,17 @@ class PyQtGraphDataPlot(QWidget):
         self._current_vline = self._plot_widget.addLine(x=x, pen=color)
 
     def set_xlim(self, limits):
-        self._plot_widget.setXRange(limits[0], limits[1])
+        self._plot_widget.setXRange(limits[0], limits[1], padding=0)
 
     def set_ylim(self, limits):
-        self._plot_widget.setYRange(limits[0], limits[1])
+        self._plot_widget.setYRange(limits[0], limits[1], padding=0)
+
+    def get_xlim(self):
+        rect = self._plot_widget.getPlotItem().getViewBox().targetRect()
+        x_range = [rect.left(), rect.right()] 
+        return x_range
+
+    def get_ylim(self):
+        rect = self._plot_widget.getPlotItem().getViewBox().targetRect()
+        y_range = [rect.bottom(), rect.top()] 
+        return y_range

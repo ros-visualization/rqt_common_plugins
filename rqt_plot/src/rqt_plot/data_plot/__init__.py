@@ -104,7 +104,7 @@ class DataPlot(QWidget):
 
     SCALE_ALL=1
     SCALE_VISIBLE=2
-    SCALE_EXTEND=3
+    SCALE_EXTEND=4
 
     def __init__(self, parent=None):
         """Create a new, empty DataPlot
@@ -340,6 +340,9 @@ class DataPlot(QWidget):
     #  * scale Y to fit the entire dataset
     #  * scale Y to fit the current view
     #  * increase the Y scale to fit the current view
+    #
+    # TODO: incrmenetal autoscaling: only update the autoscaling bounds
+    #       when new data is added
     def _merged_autoscale(self):
         x_limit = [numpy.inf, -numpy.inf]
         if self._autoscale_x:
@@ -376,7 +379,7 @@ class DataPlot(QWidget):
         if self._autoscale_y:
             # if we're extending the y limits, initialize them with the
             # current limits
-            if self._autoscale_y == DataPlot.SCALE_EXTEND:
+            if self._autoscale_y & DataPlot.SCALE_EXTEND:
                 y_limit = self.get_ylim()
             for curve_id in self._curves:
                 curve = self._curves[curve_id]
@@ -385,7 +388,7 @@ class DataPlot(QWidget):
 
                 # if we're scaling based on the visible window, find the
                 # start and end indicies of our window
-                if self._autoscale_y == DataPlot.SCALE_VISIBLE:
+                if self._autoscale_y & DataPlot.SCALE_VISIBLE:
                     # indexof x_limit[0] in curves['x']
                     start_index = curve['x'].searchsorted(x_limit[0])
                     # indexof x_limit[1] in curves['x']
@@ -396,6 +399,19 @@ class DataPlot(QWidget):
                 region = curve['y'][start_index:end_index]
                 y_limit[0] = min(y_limit[0], region.min())
                 y_limit[1] = max(y_limit[1], region.max())
+
+                # TODO: compute padding around new min and max values
+                #       ONLY consider data for new values; not
+                #       existing limits, or we'll add padding on top of old
+                #       padding in SCALE_EXTEND mode
+                # 
+                # pad the min/max
+                # TODO: invert this padding in get_ylim
+                #ymin = limits[0]
+                #ymax = limits[1]
+                #delta = ymax - ymin if ymax != ymin else 0.1
+                #ymin -= .05 * delta
+                #ymax += .05 * delta
         else:
             y_limit = self.get_ylim()
 
@@ -410,8 +426,10 @@ class DataPlot(QWidget):
 
     def get_xlim(self):
         """get X limits"""
-        qWarning("DataPlot.get_xlim is not implemented yet")
-        return [0.0, 1.0]
+        if self._data_plot_widget:
+            return self._data_plot_widget.get_xlim()
+        else:
+            return [0.0, 1.0]
 
     def set_xlim(self, limits):
         """set X limits"""
@@ -420,8 +438,10 @@ class DataPlot(QWidget):
 
     def get_ylim(self):
         """get Y limits"""
-        qWarning("DataPlot.get_ylim is not implemented yet")
-        return [0.0, 1.0]
+        if self._data_plot_widget:
+            return self._data_plot_widget.get_ylim()
+        else:
+            return [0.0, 1.0]
 
     def set_ylim(self, limits):
         """set Y limits"""
