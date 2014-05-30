@@ -150,6 +150,8 @@ class DataPlot(QWidget):
         selected_plot = self.plot_types[plot_index]
 
         print "Creating new plot widget: %s" % ( self.getTitle() )
+        x_limits = self.get_xlim()
+        y_limits = self.get_ylim()
 
         if self._data_plot_widget:
             self._layout.removeWidget(self._data_plot_widget)
@@ -158,6 +160,8 @@ class DataPlot(QWidget):
 
         self._data_plot_widget = selected_plot['widget_class'](self)
         self._data_plot_widget.autoscroll(self._autoscroll)
+        self.set_xlim(x_limits)
+        self.set_ylim(y_limits)
         self._layout.addWidget(self._data_plot_widget)
 
         # restore old data
@@ -429,23 +433,29 @@ class DataPlot(QWidget):
         if self._data_plot_widget:
             return self._data_plot_widget.get_xlim()
         else:
+            qWarning("No plot widget; returning default X limits")
             return [0.0, 1.0]
 
     def set_xlim(self, limits):
         """set X limits"""
         if self._data_plot_widget:
             self._data_plot_widget.set_xlim(limits)
+        else:
+            qWarning("No plot widget; can't set X limits")
 
     def get_ylim(self):
         """get Y limits"""
         if self._data_plot_widget:
             return self._data_plot_widget.get_ylim()
         else:
+            qWarning("No plot widget; returning default Y limits")
             return [0.0, 1.0]
 
     def set_ylim(self, limits):
         """set Y limits"""
         if self._data_plot_widget:
             self._data_plot_widget.set_ylim(limits)
+        else:
+            qWarning("No plot widget; can't set Y limits")
 
     # signal on y limit changed?
