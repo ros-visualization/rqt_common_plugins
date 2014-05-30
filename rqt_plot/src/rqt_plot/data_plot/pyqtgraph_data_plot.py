@@ -111,11 +111,9 @@ class PyQtGraphDataPlot(QWidget):
         self._plot_widget.setYRange(limits[0], limits[1], padding=0)
 
     def get_xlim(self):
-        rect = self._plot_widget.getPlotItem().getViewBox().targetRect()
-        x_range = [rect.left(), rect.right()] 
+        x_range, _ = self._plot_widget.viewRange()
         return x_range
 
     def get_ylim(self):
-        rect = self._plot_widget.getPlotItem().getViewBox().targetRect()
-        y_range = [rect.bottom(), rect.top()] 
+        _, y_range = self._plot_widget.viewRange()
         return y_range
