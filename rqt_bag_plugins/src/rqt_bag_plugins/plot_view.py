@@ -164,6 +164,8 @@ class PlotWidget(QWidget):
         self.resolution.setText(str(round((self.end_stamp-self.start_stamp).to_sec()/200.0,5)))
 
         self.plot = DataPlot(self)
+        self.plot.set_autoscale(x=False)
+        self.plot.set_xlim(self.limits)
         self.data_plot_layout.addWidget(self.plot)
 
         self._config_button = QPushButton("Configure Plot")
@@ -208,7 +210,7 @@ class PlotWidget(QWidget):
         # autoscale Y
         #self.plot.autoscale_x
         # set X scale
-        #self.plot.set_xlim(_limits)
+        self.plot.set_xlim(_limits)
         self.plot.redraw()
         #self.ax.plot(x,y, 'o-',markersize=3,label=path)
         #self.paths_on.append(path)
@@ -224,10 +226,16 @@ class PlotWidget(QWidget):
         #self.canvas.draw()
 
     def update_plot(self, limits, timestep):
+        # TODO: update this for the new DataPlot backend
+        #       at the very least, it needs to:
+        #        * detect if the timestep has changed. if it has, recompute the
+        #          sampled data points and replace the existing curves with
+        #          the new sampled data
+        #        * update the limits, in the current version
         self.resolution.setText(str(timestep))
         self.start_time.setText(str(round(limits[0],2)))
         self.end_time.setText(str(round(limits[1],2)))
-        self.ax.set_xlim(limits)
+        self.plot.set_xlim(limits)
 
         if limits[0]<0:
             limits = [0.0,limits[1]]

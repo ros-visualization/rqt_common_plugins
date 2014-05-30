@@ -312,7 +312,7 @@ class DataPlot(QWidget):
             self._data_plot_widget.vline(x, color)
 
     # autoscaling methods
-    def setAutoscale(self, x=None, y=None):
+    def set_autoscale(self, x=None, y=None):
         """Change autoscaling of plot axes
 
         if a parameter is not passed, the autoscaling setting for that axis is
@@ -358,7 +358,7 @@ class DataPlot(QWidget):
             # get largest X value
             for curve_id in self._curves:
                 curve = self._curves[curve_id]
-                x_limit[1] = max(x_limit[1], curves['x'].max())
+                x_limit[1] = max(x_limit[1], curve['x'].max())
 
             # set lower limit based on width
             x_limit[0] = x_limit[1] - x_width
