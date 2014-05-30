@@ -102,7 +102,7 @@ class MatDataPlot(QWidget):
         color = QColor(self._colors[self._color_index % len(self._colors)])
         self._color_index += 1
         line = self._canvas.axes.plot([], [], label=curve_name, linewidth=1, picker=5, color=color.name())[0]
-        self._curves[curve_id] = ([], [], line, [None, None])
+        self._curves[curve_id] = ([], [], line)
         self.update_values(curve_id, x, y)
         self._update_legend()
 
@@ -122,54 +122,18 @@ class MatDataPlot(QWidget):
 
     @Slot(str, list, list)
     def update_values(self, curve_id, x, y):
-        data_x, data_y, line, range_y = self._curves[curve_id]
+        data_x, data_y, line = self._curves[curve_id]
         data_x.extend(x)
         data_y.extend(y)
         line.set_data(data_x, data_y)
-        if y:
-            ymin = min(y)
-            if range_y[0]:
-                ymin = min(ymin, range_y[0])
-            range_y[0] = ymin
-            ymax = max(y)
-            if range_y[1]:
-                ymax = max(ymax, range_y[1])
-            range_y[1] = ymax
 
     def clear_values(self, curve_id):
-        data_x, data_y, _, range_y = self._curves[curve_id]
+        data_x, data_y, _ = self._curves[curve_id]
         del data_x[:]
         del data_y[:]
-        range_y[0] = None
-        range_y[1] = None
 
     def redraw(self):
         self._canvas.axes.grid(True, color='gray')
-        # Set axis bounds
-        ymin = ymax = None
-        xmax = 0
-        for curve in self._curves.values():
-            data_x, _, _, range_y = curve
-            if len(data_x) == 0:
-                continue
-
-            xmax = max(xmax, data_x[-1])
-
-            if ymin is None:
-                ymin = range_y[0]
-                ymax = range_y[1]
-            else:
-                ymin = min(range_y[0], ymin)
-                ymax = max(range_y[1], ymax)
-
-        if self._autoscroll and ymin is not None:
-            # pad the min/max
-            delta = ymax - ymin if ymax != ymin else 0.1
-            ymin -= .05 * delta
-            ymax += .05 * delta
-
-            self._canvas.axes.set_xbound(lower=xmax - 5, upper=xmax)
-            self._canvas.axes.set_ybound(lower=ymin, upper=ymax)
 
         self._canvas.draw()
 
@@ -184,4 +148,10 @@ class MatDataPlot(QWidget):
         self._canvas.axes.set_xbound(lower=limits[0], upper=limits[1])
 
     def set_ylim(self, limits):
-        self._canvas.axes.set_ybound(lower=limits[0], upper=limits[1])
+        # pad the min/max
+        ymin = limits[0]
+        ymax = limits[1]
+        delta = ymax - ymin if ymax != ymin else 0.1
+        ymin -= .05 * delta
+        ymax += .05 * delta
+        self._canvas.axes.set_ybound(lower=ymin, upper=ymax)

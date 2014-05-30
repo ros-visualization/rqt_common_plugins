@@ -31,6 +31,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import numpy
 
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
 from python_qt_binding.QtCore import qWarning
@@ -101,6 +102,10 @@ class DataPlot(QWidget):
     GREEN=(0, 255, 0)
     BLUE=(0, 0, 255)
 
+    SCALE_ALL=1
+    SCALE_VISIBLE=2
+    SCALE_EXTEND=3
+
     def __init__(self, parent=None):
         """Create a new, empty DataPlot
 
@@ -112,11 +117,12 @@ class DataPlot(QWidget):
         self._autoscroll = True
 
         self._autoscale_x = True
-        self._autoscale_y = True
+        self._autoscale_y = DataPlot.SCALE_ALL
 
         # the backend widget that we're trying to hide/abstract
         self._data_plot_widget = None
         self._curves = {}
+        self._vline = None
 
         self._layout = QHBoxLayout()
         self.setLayout(self._layout)
@@ -159,7 +165,11 @@ class DataPlot(QWidget):
             curve = self._curves[curve_id]
             self._data_plot_widget.add_curve(curve_id, curve['name'],
                     curve['x'], curve['y'])
-        self._data_plot_widget.redraw()
+
+        if self._vline:
+            self.vline(*self._vline)
+
+        self.redraw()
 
     # interface out to the managing GUI component: get title, save, restore, 
     # etc
@@ -206,7 +216,9 @@ class DataPlot(QWidget):
 
         This causes the underlying plot to be redrawn. This is usually used
         after adding or updating the plot data"""
+        # TODO: autoscale on redraw
         if self._data_plot_widget:
+            self._merged_autoscale()
             self._data_plot_widget.redraw()
 
     def _get_curve(self, curve_id):
@@ -227,7 +239,10 @@ class DataPlot(QWidget):
         Note that the plot is not redraw automatically; call `redraw()` to make
         any changes visible to the user.
         """
-        self._curves[curve_id] = { 'x': data_x, 'y': data_y, 'name': curve_name }
+        # data = numpy.array(zip(data_x, data_y))
+        self._curves[curve_id] = { 'x': numpy.array(data_x),
+                                   'y': numpy.array(data_y),
+                                   'name': curve_name }
         if self._data_plot_widget:
             self._data_plot_widget.add_curve(curve_id, curve_name, data_x, data_y)
 
@@ -248,8 +263,14 @@ class DataPlot(QWidget):
         any changes visible to the user.
         """
         curve = self._get_curve(curve_id)
-        curve['x'].extend(values_x)
-        curve['y'].extend(values_y)
+        # data = numpy.append(data, zip(values_x, values_y), axis=0)
+        # data = data[data[:,0].argsort]
+        curve['x'] = numpy.append(curve['x'], values_x)
+        curve['y'] = numpy.append(curve['y'], values_y)
+        # sort resulting data, so we can slice it later
+        sort_order = curve['x'].argsort()
+        curve['x'] = curve['x'][sort_order]
+        curve['y'] = curve['y'][sort_order]
         if self._data_plot_widget:
             self._data_plot_widget.update_values(curve_id, values_x, values_y)
 
@@ -265,14 +286,14 @@ class DataPlot(QWidget):
         # clear internal curve representation
         if curve_id:
             curve = self._check_curve_exists(curve_id)
-            curve['x'] = []
-            curve['y'] = []
+            curve['x'] = numpy.array([])
+            curve['y'] = numpy.array([])
             if self._data_plot_widget:
                 self._data_plot_widget.clear_values(curve_id)
         else:
             for curve_id in self._curves:
-                self._curves[curve_id]['x'] = []
-                self._curves[curve_id]['y'] = []
+                self._curves[curve_id]['x'] = numpy.array([])
+                self._curves[curve_id]['y'] = numpy.array([])
                 if self._data_plot_widget:
                     self._data_plot_widget.clear_values(curve_id)
 
@@ -286,33 +307,125 @@ class DataPlot(QWidget):
         @param color: optional parameter specifying the color, as tuple of
                       RGB values from 0 to 255
         """
+        self._vline = (x, color)
         if self._data_plot_widget:
             self._data_plot_widget.vline(x, color)
 
     # autoscaling methods
     def setAutoscale(self, x=None, y=None):
-        """Enable or disable autoscaling of plot axes
+        """Change autoscaling of plot axes
 
         if a parameter is not passed, the autoscaling setting for that axis is
         not changed
 
         @param x: enable or disable autoscaling for X
-        @param y: enable or disable autoscaling for Y
+        @param y: set autoscaling mode for Y
         """
         # TODO: if autoscale was turned on, recompute bounds?
         if x is not None:
-            self.autoscale_x = x
+            self._autoscale_x = x
         if y is not None:
-            self.autoscale_y = y
+            self._autoscale_y = y
 
-    # get x limit
+    # autoscaling:  adjusting the plot bounds fit the data
+    # autoscrollig: move the plot X window to show the most recent data
+    #
+    # what order do we do these adjustments in?
+    #  * assuming the various stages are enabled:
+    #  * autoscale X to bring all data into view
+    #   * else, autoscale X to determine which data we're looking at
+    #  * autoscale Y to fit the data we're viewing
+    #
+    # * autoscaling of Y might have several modes:
+    #  * scale Y to fit the entire dataset
+    #  * scale Y to fit the current view
+    #  * increase the Y scale to fit the current view
+    def _merged_autoscale(self):
+        x_limit = [numpy.inf, -numpy.inf]
+        if self._autoscale_x:
+            for curve_id in self._curves:
+                curve = self._curves[curve_id]
+                x_limit[0] = min(x_limit[0], curve['x'].min())
+                x_limit[1] = max(x_limit[1], curve['x'].max())
+        elif self._autoscroll:
+            # get current width of plot
+            x_limit = self.get_xlim()
+            x_width = x_limit[1] - x_limit[0]
+
+            # reset the upper x_limit so that we ignore the previous position
+            x_limit[1] = -numpy.inf
+            
+            # get largest X value
+            for curve_id in self._curves:
+                curve = self._curves[curve_id]
+                x_limit[1] = max(x_limit[1], curves['x'].max())
+
+            # set lower limit based on width
+            x_limit[0] = x_limit[1] - x_width
+        else:
+            # don't modify limit, or get it from plot
+            x_limit = self.get_xlim()
+
+        # set sane limits if our limits are infinite
+        if numpy.isinf(x_limit[0]):
+            x_limit[0] = 0.0
+        if numpy.isinf(x_limit[1]):
+            x_limit[1] = 1.0
+
+        y_limit = [numpy.inf, -numpy.inf]
+        if self._autoscale_y:
+            # if we're extending the y limits, initialize them with the
+            # current limits
+            if self._autoscale_y == DataPlot.SCALE_EXTEND:
+                y_limit = self.get_ylim()
+            for curve_id in self._curves:
+                curve = self._curves[curve_id]
+                start_index = 0
+                end_index = len(curve['x'])
+
+                # if we're scaling based on the visible window, find the
+                # start and end indicies of our window
+                if self._autoscale_y == DataPlot.SCALE_VISIBLE:
+                    # indexof x_limit[0] in curves['x']
+                    start_index = curve['x'].searchsorted(x_limit[0])
+                    # indexof x_limit[1] in curves['x']
+                    end_index = curve['x'].searchsorted(x_limit[1])
+
+                # region here is cheap because it is a numpy view and not a
+                # copy of the underlying data
+                region = curve['y'][start_index:end_index]
+                y_limit[0] = min(y_limit[0], region.min())
+                y_limit[1] = max(y_limit[1], region.max())
+        else:
+            y_limit = self.get_ylim()
+
+        # set sane limits if our limits are infinite
+        if numpy.isinf(y_limit[0]):
+            y_limit[0] = 0.0
+        if numpy.isinf(y_limit[1]):
+            y_limit[1] = 1.0
+
+        self.set_xlim(x_limit)
+        self.set_ylim(y_limit)
+
     def get_xlim(self):
+        """get X limits"""
         qWarning("DataPlot.get_xlim is not implemented yet")
-        pass
+        return [0.0, 1.0]
 
-    # set x limit
     def set_xlim(self, limits):
-        qWarning("DataPlot.set_xlim is not impelemented yet")
-        pass
+        """set X limits"""
+        if self._data_plot_widget:
+            self._data_plot_widget.set_xlim(limits)
+
+    def get_ylim(self):
+        """get Y limits"""
+        qWarning("DataPlot.get_ylim is not implemented yet")
+        return [0.0, 1.0]
+
+    def set_ylim(self, limits):
+        """set Y limits"""
+        if self._data_plot_widget:
+            self._data_plot_widget.set_ylim(limits)
 
     # signal on y limit changed?

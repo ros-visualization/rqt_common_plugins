@@ -97,19 +97,6 @@ class PyQtGraphDataPlot(QWidget):
         for curve in self._curves.values():
             curve['plot'].setData(curve['x'], curve['y'])
 
-        if self._autoscroll:
-            # Set axis bounds
-            x_range, _ = self._plot_widget.viewRange()
-            x_delta = x_range[1] - x_range[0]
-            x_max = 0
-
-            for curve in self._curves.values():
-                if len(curve['x']) == 0:
-                    continue
-                x_max = max(x_max, curve['x'][-1])
-
-            self._plot_widget.setXRange(x_max - x_delta, x_max, padding=0)
-
     def vline(self, x, color):
         if self._current_vline:
             self._plot_widget.removeItem(self._current_vline)
