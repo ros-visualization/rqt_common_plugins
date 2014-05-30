@@ -74,7 +74,7 @@ from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, qWarning
 from python_qt_binding.QtGui import QTreeWidget, QTreeWidgetItem, QSizePolicy, QDoubleValidator
 
-from rqt_py_common.data_plot import DataPlot
+from rqt_plot.data_plot import DataPlot
 
 import rospy
 
