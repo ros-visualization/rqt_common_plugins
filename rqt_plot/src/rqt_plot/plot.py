@@ -40,7 +40,6 @@ from rqt_py_common.ini_helper import pack, unpack
 
 from .plot_widget import PlotWidget
 
-# TODO: move into rqt_py_common
 from .data_plot import DataPlot
 
 class Plot(Plugin):
