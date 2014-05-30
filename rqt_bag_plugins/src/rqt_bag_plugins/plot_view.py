@@ -165,6 +165,7 @@ class PlotWidget(QWidget):
 
         self.plot = DataPlot(self)
         self.plot.set_autoscale(x=False)
+        self.plot.autoscroll(False)
         self.plot.set_xlim(self.limits)
         self.data_plot_layout.addWidget(self.plot)
 
