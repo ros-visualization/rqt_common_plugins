@@ -30,13 +30,13 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import os
 import argparse
 import threading
 
 from qt_gui.plugin import Plugin
 
 from .bag_widget import BagWidget
-
 
 class Bag(Plugin):
     """
@@ -69,10 +69,18 @@ class Bag(Plugin):
         return parser.parse_args(argv)
 
     @staticmethod
+    def _isfile(parser, arg):
+        if os.path.isfile(arg):
+            return arg
+        else:
+            parser.error("Bag file %s does not exist" % ( arg ))
+
+    @staticmethod
     def add_arguments(parser):
         group = parser.add_argument_group('Options for rqt_bag plugin')
         group.add_argument('--clock', action='store_true', help='publish the clock time')
-        group.add_argument('bagfiles', type=argparse.FileType('r'), nargs='*', default=[], help='Bagfiles to load')
+        group.add_argument('bagfiles', type=lambda x: Bag._isfile(parser, x),
+                           nargs='*', default=[], help='Bagfiles to load')
 
     def shutdown_plugin(self):
         self._widget.shutdown_all()

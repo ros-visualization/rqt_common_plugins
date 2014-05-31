@@ -240,16 +240,16 @@ class BagWidget(QWidget):
             self.load_bag(filename[0])
 
     def load_bag(self, filename):
-        qWarning("Loading %s" % filename.name)
+        qWarning("Loading %s" % filename)
 
         # QProgressBar can EITHER: show text or show a bouncing loading bar,
         #  but apparently the text is hidden when the bounding loading bar is
         #  shown
         #self.progress_bar.setRange(0, 0)
-        self.set_status_text.emit("Loading %s" % filename.name)
+        self.set_status_text.emit("Loading %s" % filename)
         #progress_format = self.progress_bar.format()
         #progress_text_visible = self.progress_bar.isTextVisible()
-        #self.progress_bar.setFormat("Loading %s" % filename.name)
+        #self.progress_bar.setFormat("Loading %s" % filename)
         #self.progress_bar.setTextVisible(True)
 
         bag = rosbag.Bag(filename)
@@ -265,7 +265,7 @@ class BagWidget(QWidget):
         self.save_button.setEnabled(True)
         self.record_button.setEnabled(False)
         self._timeline.add_bag(bag)
-        qWarning("Done loading %s" % filename.name )
+        qWarning("Done loading %s" % filename )
         # put the progress bar back the way it was
         self.set_status_text.emit("")
         #self.progress_bar.setFormat(progress_format)
