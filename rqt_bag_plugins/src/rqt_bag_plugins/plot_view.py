@@ -152,7 +152,7 @@ class PlotWidget(QWidget):
         self.set_cursor(0)
         self.plot.redraw()
 
-        self.paths_on = []
+        self.paths_on = set()
         self._lines = None
 
         # get bag from timeline
@@ -211,7 +211,7 @@ class PlotWidget(QWidget):
                 x.append((entry[2]-self.start_stamp).to_sec())
 
         self.plot.add_curve(path, path, x, y)
-        self.paths_on.append(path)
+        self.paths_on.add(path)
 
         # set X scale
         self.plot.set_xlim(_limits)
@@ -257,6 +257,7 @@ class PlotWidget(QWidget):
 
     def remove_plot(self, path):
         self.plot.remove_curve(path)
+        self.paths_on.remove(path)
         self.plot.redraw()
 
     def load_data(self,startoffset,endoffset):
