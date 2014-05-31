@@ -55,6 +55,7 @@ class BagTimeline(QGraphicsScene):
     Also handles events
     """
     status_bar_changed_signal = Signal()
+    selected_region_changed = Signal(rospy.Time, rospy.Time)
 
     def __init__(self, context, publish_clock):
         """

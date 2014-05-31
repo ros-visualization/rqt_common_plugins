@@ -37,7 +37,7 @@ import rospy
 import rospkg
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt, qWarning
+from python_qt_binding.QtCore import Qt, qWarning, Signal
 from python_qt_binding.QtGui import QFileDialog, QGraphicsView, QIcon, QWidget
 
 import rosbag
@@ -55,6 +55,9 @@ class BagWidget(QWidget):
     Widget for use with Bag class to display and replay bag files
     Handles all widget callbacks and contains the instance of BagTimeline for storing visualizing bag data
     """
+
+    set_status_text = Signal(str)
+
     def __init__(self, context, publish_clock):
         """
         :param context: plugin context hook to enable adding widgets as a ROS_GUI pane, ''PluginContext''
@@ -123,6 +126,7 @@ class BagWidget(QWidget):
         self._recording = False
 
         self._timeline.status_bar_changed_signal.connect(self._update_status_bar)
+        self.set_status_text.connect(self._set_status_text)
 
     def graphics_view_on_key_press(self, event):
         key = event.key()
@@ -236,13 +240,18 @@ class BagWidget(QWidget):
             self.load_bag(filename[0])
 
     def load_bag(self, filename):
-        # self set loading filename
         qWarning("Loading %s" % filename.name)
-        self.progress_bar.setRange(0, 0)
-        progress_format = self.progress_bar.format()
-        progress_text_visible = self.progress_bar.isTextVisible()
-        self.progress_bar.setFormat("Loading %s" % filename.name)
-        self.progress_bar.setTextVisible(True)
+
+        # QProgressBar can EITHER: show text or show a bouncing loading bar,
+        #  but apparently the text is hidden when the bounding loading bar is
+        #  shown
+        #self.progress_bar.setRange(0, 0)
+        self.set_status_text.emit("Loading %s" % filename.name)
+        #progress_format = self.progress_bar.format()
+        #progress_text_visible = self.progress_bar.isTextVisible()
+        #self.progress_bar.setFormat("Loading %s" % filename.name)
+        #self.progress_bar.setTextVisible(True)
+
         bag = rosbag.Bag(filename)
         self.play_button.setEnabled(True)
         self.thumbs_button.setEnabled(True)
@@ -258,15 +267,23 @@ class BagWidget(QWidget):
         self._timeline.add_bag(bag)
         qWarning("Done loading %s" % filename.name )
         # put the progress bar back the way it was
-        self.progress_bar.setTextVisible(progress_text_visible)
-        self.progress_bar.setFormat(progress_format)
-        self.progress_bar.setRange(0, 100)
+        self.set_status_text.emit("")
+        #self.progress_bar.setFormat(progress_format)
+        #self.progress_bar.setTextVisible(progress_text_visible) # causes a segfault :(
+        #self.progress_bar.setRange(0, 100)
         # self clear loading filename
 
     def _handle_save_clicked(self):
         filename = QFileDialog.getSaveFileName(self, self.tr('Save selected region to file...'), '.', self.tr('Bag files {.bag} (*.bag)'))
         if filename[0] != '':
             self._timeline.copy_region_to_bag(filename[0])
+
+    def _set_status_text(self, text):
+        if text:
+            self.progress_bar.setFormat(text)
+            self.progress_bar.setTextVisible(True)
+        else:
+            self.progress_bar.setTextVisible(False)
 
     def _update_status_bar(self):
         if self._timeline._timeline_frame.playhead is None or self._timeline._timeline_frame.start_stamp is None:

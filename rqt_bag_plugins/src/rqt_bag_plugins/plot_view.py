@@ -139,17 +139,11 @@ class PlotWidget(QWidget):
         self.data_tree_layout.addWidget(self.message_tree)
         self.auto_res.stateChanged.connect(self.autoChanged) # TODO: make this a dropdown with choices for "Auto", "Full" and "Custom"
 
-        # TODO: pull or listen to start and end time from timeline region
-        self.start_time.editingFinished.connect(self.settingsChanged)
-        self.end_time.editingFinished.connect(self.settingsChanged)
         self.resolution.editingFinished.connect(self.settingsChanged)
-        self.start_time.setValidator(QDoubleValidator(0.0,1000.0,2,self.start_time))
-        self.end_time.setValidator(QDoubleValidator(0.0,1000.0,2,self.end_time))
         self.resolution.setValidator(QDoubleValidator(0.0,1000.0,6,self.resolution))
 
-        # set start and end time from limits
-        self.start_time.setText('0.0')
-        self.end_time.setText(str(round((self.end_stamp-self.start_stamp).to_sec(),2)))
+        self.timeline.selected_region_changed.connect(self.region_changed)
+
         self.resolution.setText(str(round((self.end_stamp-self.start_stamp).to_sec()/200.0,5)))
 
         self.plot = DataPlot(self)
@@ -237,8 +231,6 @@ class PlotWidget(QWidget):
         #          the new sampled data
         #        * update the limits, in the current version
         self.resolution.setText(str(timestep))
-        self.start_time.setText(str(round(limits[0],2)))
-        self.end_time.setText(str(round(limits[1],2)))
         self.plot.set_xlim(limits)
 
         if limits[0]<0:
@@ -279,15 +271,31 @@ class PlotWidget(QWidget):
 
     def on_motion(self, event):
         qWarning("PlotWidget.on_motion")
-        limits = self.ax.get_xlim()
+        limits = self.plot.get_xlim()
         if self.auto_res.isChecked():
             timestep = round((limits[1]-limits[0])/200.0,5)
         else:
             timestep = float(self.resolution.text())
         self.update_plot(limits, timestep)
 
+
+    def region_changed(self, start, end):
+        limits = [ (start - self.start_stamp).to_sec(),
+                   (end - self.start_stamp).to_sec() ]
+        if self.auto_res.isChecked():
+            timestep = round((limits[1]-limits[0])/200.0,5)
+        else:
+            timestep = float(self.resolution.text())
+
+        # hack until update_plot works properly
+        self.plot.set_xlim(limits)
+        self.plot.redraw()
+
+        # TODO: use update_plot instead
+        # self.update_plot(limits, timestep)
+
     def settingsChanged(self):
-        limits = [float(self.start_time.text()),float(self.end_time.text())]
+        limits = self.plot.get_xlim()
         if self.auto_res.isChecked():
             timestep = round((limits[1]-limits[0])/200.0,5)
         else:
@@ -297,7 +305,7 @@ class PlotWidget(QWidget):
     def autoChanged(self, state):
         if state==2:
             self.resolution.setDisabled(True) 
-            limits = self.ax.get_xlim()
+            limits = self.plot.get_xlim()
             timestep = round((limits[1]-limits[0])/200.0,5)
             self.update_plot(limits, timestep)   
         else:
