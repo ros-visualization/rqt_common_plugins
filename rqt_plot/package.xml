@@ -3,7 +3,7 @@
   <version>0.3.6</version>
   <description>rqt_plot provides a GUI plugin visualizing numeric values in a 2D plot using different plotting backends.</description>
   <maintainer email="scholz@sim.tu-darmstadt.de">Dorian Scholz</maintainer>
-  <maintainer email="isao.saito@mavs.uta.edu">Isaac Saito</maintainer>
+  <maintainer email="namniart@gmail.com">Austin Hendrix</maintainer>
 
   <license>BSD</license>
 
