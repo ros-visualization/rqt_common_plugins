@@ -92,18 +92,6 @@ class PlotView(MessageView):
 
         parent.layout().addWidget(self.plot_widget)
 
-        #TODO: set start and end timestamps from area of interest
-        #      we should probably implement this by having the timeline widget
-        #      emit a signal whenever the region of interest changes, and then
-        #      have the plugin creation code connect that signal to our
-        #      plugin
-        #
-        #      or we model the interaction explicitly, where the timeline has
-        #      a list of listeners, and calls a callback on each of them
-        #      explicitly
-        #
-        # in general, this suggests that more of the interaction
-
     def message_viewed(self, bag, msg_details):
         """
         refreshes the plot
@@ -137,7 +125,11 @@ class PlotWidget(QWidget):
         loadUi(ui_file, self)
         self.message_tree = MessageTree(msg_type, self)
         self.data_tree_layout.addWidget(self.message_tree)
-        self.auto_res.stateChanged.connect(self.autoChanged) # TODO: make this a dropdown with choices for "Auto", "Full" and "Custom"
+        # TODO: make this a dropdown with choices for "Auto", "Full" and
+        #       "Custom"
+        # I continue to want a "Full" option here, and for the callback to
+        # work properly...
+        self.auto_res.stateChanged.connect(self.autoChanged)
 
         self.resolution.editingFinished.connect(self.settingsChanged)
         self.resolution.setValidator(QDoubleValidator(0.0,1000.0,6,self.resolution))
@@ -148,6 +140,7 @@ class PlotWidget(QWidget):
 
         self.plot = DataPlot(self)
         self.plot.set_autoscale(x=False)
+        self.plot.set_autoscale(y=DataPlot.SCALE_VISIBLE)
         self.plot.autoscroll(False)
         self.plot.set_xlim(self.limits)
         self.data_plot_layout.addWidget(self.plot)
@@ -218,6 +211,7 @@ class PlotWidget(QWidget):
                 x.append((entry[2]-self.start_stamp).to_sec())
 
         self.plot.add_curve(path, path, x, y)
+        self.paths_on.append(path)
 
         # set X scale
         self.plot.set_xlim(_limits)
@@ -229,15 +223,14 @@ class PlotWidget(QWidget):
         #        * detect if the timestep has changed. if it has, recompute the
         #          sampled data points and replace the existing curves with
         #          the new sampled data
-        #        * update the limits, in the current version
         self.resolution.setText(str(timestep))
-        self.plot.set_xlim(limits)
 
         if limits[0]<0:
             limits = [0.0,limits[1]]
         if limits[1]>(self.end_stamp-self.start_stamp).to_sec():
             limits = [limits[0],(self.end_stamp-self.start_stamp).to_sec()]
 
+        self.plot.set_xlim(limits)
 
         if hasattr(self, 'paths_on') and len(self.paths_on)>0:
             self.load_data(rospy.Duration.from_sec(limits[0]),rospy.Duration.from_sec((self.end_stamp-self.start_stamp).to_sec()-limits[1]))
@@ -257,9 +250,10 @@ class PlotWidget(QWidget):
                     path_index +=  1
             path_index = 0
             for path in self.paths_on:
-                self.ax.lines[path_index+1].set_data(x[path_index],y[path_index])
+                self.plot.clear_values(path)
+                self.plot.update_values(path, x[path_index], y[path_index])
                 path_index += 1
-            self.canvas.draw()
+        self.plot.redraw()
 
     def remove_plot(self, path):
         self.plot.remove_curve(path)
@@ -270,6 +264,7 @@ class PlotWidget(QWidget):
                 self.start_stamp+startoffset,self.end_stamp-endoffset)
 
     def on_motion(self, event):
+        # TODO: create a signal in DataPlot for this to connect to
         qWarning("PlotWidget.on_motion")
         limits = self.plot.get_xlim()
         if self.auto_res.isChecked():
@@ -282,17 +277,13 @@ class PlotWidget(QWidget):
     def region_changed(self, start, end):
         limits = [ (start - self.start_stamp).to_sec(),
                    (end - self.start_stamp).to_sec() ]
+        self.limits = limits
         if self.auto_res.isChecked():
             timestep = round((limits[1]-limits[0])/200.0,5)
         else:
             timestep = float(self.resolution.text())
 
-        # hack until update_plot works properly
-        self.plot.set_xlim(limits)
-        self.plot.redraw()
-
-        # TODO: use update_plot instead
-        # self.update_plot(limits, timestep)
+        self.update_plot(limits, timestep)
 
     def settingsChanged(self):
         limits = self.plot.get_xlim()
