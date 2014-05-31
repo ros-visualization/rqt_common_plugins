@@ -289,7 +289,7 @@ class DataPlot(QWidget):
         """
         # clear internal curve representation
         if curve_id:
-            curve = self._check_curve_exists(curve_id)
+            curve = self._get_curve(curve_id)
             curve['x'] = numpy.array([])
             curve['y'] = numpy.array([])
             if self._data_plot_widget:
