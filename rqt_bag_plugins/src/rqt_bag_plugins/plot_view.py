@@ -90,7 +90,6 @@ class PlotView(MessageView):
         self.plot_widget = PlotWidget(timeline, parent, topic)
 
         parent.layout().addWidget(self.plot_widget)
-        self._fields = set()
 
         #TODO: set start and end timestamps from area of interest
         #      we should probably implement this by having the timeline widget
@@ -109,17 +108,6 @@ class PlotView(MessageView):
         refreshes the plot
         """
         _, msg, t = msg_details[:3]
-
-        if not msg:
-            #self.set_plot(None, topic, 'no message')
-            pass
-        else:
-            #self.set_plot(msg, topic, msg.header.stamp)
-            pass
-
-        # TODO: initialize this on startup
-        if self.plot_widget.bag == None:
-            self.plot_widget.bag = bag
 
         if t is None:
             self.message_cleared()
@@ -178,7 +166,13 @@ class PlotWidget(QWidget):
 
         self.paths_on = []
         self._lines = None
-        self.bag = None
+
+        # get bag from timeline
+        bag,entry = self.timeline.get_entry(self.start_stamp, topic)
+        self.bag = bag
+        # get first message from bag
+        msg = bag._read_message(entry.position)
+        self.message_tree.set_message(msg[1])
 
     def set_cursor(self, position):
         self.plot.vline(position, color=DataPlot.RED)
@@ -203,7 +197,7 @@ class PlotWidget(QWidget):
         x = []
         for entry in self.msgdata:
             if x==[] or (entry[2]-self.start_stamp).to_sec()-x[-1] >= timestep:
-                y.append(eval('entry[1].' + path))
+                y.append(getattr(entry[1], path))
                 x.append((entry[2]-self.start_stamp).to_sec())
 
         self.plot.add_curve(path, path, x, y)
@@ -254,7 +248,8 @@ class PlotWidget(QWidget):
                 path_index = 0
                 for path in self.paths_on:
                     if x[path_index]==[] or (entry[2]-self.start_stamp).to_sec()-x[path_index][-1] >= timestep:
-                        y[path_index].append(eval('entry[1].' + path))
+                        print dir(entry[1])
+                        y[path_index].append(getattr(entry[1], path))
                         x[path_index].append((entry[2]-self.start_stamp).to_sec())
                     path_index +=  1
             path_index = 0
@@ -282,7 +277,8 @@ class PlotWidget(QWidget):
         #self.canvas.draw()
 
     def load_data(self,startoffset,endoffset):
-        self.msgdata=self.bag.read_messages(self.msgtopic,self.start_stamp+startoffset,self.end_stamp-endoffset)
+        self.msgdata=self.bag.read_messages(self.msgtopic,
+                self.start_stamp+startoffset,self.end_stamp-endoffset)
 
     def on_motion(self, event):
         qWarning("PlotWidget.on_motion")
