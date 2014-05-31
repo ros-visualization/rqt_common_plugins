@@ -179,7 +179,19 @@ class PlotWidget(QWidget):
 
     def add_plot(self, path):
         limits = self.plot.get_xlim()
-        limits = self.limits # TODO: remove when get_xlim works
+        limits = self.limits # TODO: rethink the plubming around limits
+        # in particular, the original implementation hooked the plot update
+        # signals so that the data is resampled and the plot is redrawn
+        # whenever the plot is panned or zoomed
+        #
+        # reloading the data from disk and resampling it when the plot
+        # moves is probably not a great idea, but it would be nice to be able
+        # to dynamically resample the data to sane resolution for the current
+        # zoom level
+        #
+        # downsampling and constantly reloading data may be the only way to
+        # actually plot data for incredibly large data sets, when the entire
+        # data set doesn't fit into RAM
         _limits = limits
         if self.auto_res.isChecked():
             timestep = round((limits[1]-limits[0])/200.0,5)
@@ -202,23 +214,9 @@ class PlotWidget(QWidget):
 
         self.plot.add_curve(path, path, x, y)
 
-        # autoscale Y
-        #self.plot.autoscale_x
         # set X scale
         self.plot.set_xlim(_limits)
         self.plot.redraw()
-        #self.ax.plot(x,y, 'o-',markersize=3,label=path)
-        #self.paths_on.append(path)
-
-        #self._lines = self.ax.lines[0]
-        #del self.ax.lines[0]
-        #self.ax.legend()
-        #self.ax.relim()
-        #self.ax.set_autoscale_on(True)
-        #self.ax.autoscale_view(False,False,True)
-        #self.ax.set_xlim(_limits)
-        #self.ax.lines.insert(0,self._lines)
-        #self.canvas.draw()
 
     def update_plot(self, limits, timestep):
         # TODO: update this for the new DataPlot backend
@@ -261,20 +259,6 @@ class PlotWidget(QWidget):
     def remove_plot(self, path):
         self.plot.remove_curve(path)
         self.plot.redraw()
-        #del self.ax.lines[self.paths_on.index(path)+1]
-        #del self.paths_on[self.paths_on.index(path)]
-
-        #self._lines = self.ax.lines[0]
-        #del self.ax.lines[0]
-        #self.ax.relim()
-        #self.ax.set_autoscale_on(True)
-        #self.ax.autoscale_view(False,False,True)
-        #if self.paths_on == []:
-        #    self.ax.legend_ = None
-        #else:        
-        #    self.ax.legend()
-        #self.ax.lines.insert(0,self._lines)
-        #self.canvas.draw()
 
     def load_data(self,startoffset,endoffset):
         self.msgdata=self.bag.read_messages(self.msgtopic,
@@ -307,10 +291,10 @@ class PlotWidget(QWidget):
             self.resolution.setDisabled(False)
 
     def home(self):
+        # TODO: re-add the button for this. It's useful for restoring the
+        #       X and Y limits so that we can see all of the data
+        #       effectively a "zoom all" button
         limits = [0,(self.end_stamp-self.start_stamp).to_sec()]
-        self.ax.relim()
-        self.ax.set_autoscale_on(True)
-        self.ax.autoscale_view(False,False,True)
         if self.auto_res.isChecked():
             timestep = round((limits[1]-limits[0])/200.0,5)
         else:
