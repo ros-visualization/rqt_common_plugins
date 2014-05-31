@@ -237,8 +237,12 @@ class BagWidget(QWidget):
 
     def load_bag(self, filename):
         # self set loading filename
-        qWarning("Loading %s" % filename)
-        self.status_label.setText("Loading %s" % filename)
+        qWarning("Loading %s" % filename.name)
+        self.progress_bar.setRange(0, 0)
+        progress_format = self.progress_bar.format()
+        progress_text_visible = self.progress_bar.isTextVisible()
+        self.progress_bar.setFormat("Loading %s" % filename.name)
+        self.progress_bar.setTextVisible(True)
         bag = rosbag.Bag(filename)
         self.play_button.setEnabled(True)
         self.thumbs_button.setEnabled(True)
@@ -252,8 +256,11 @@ class BagWidget(QWidget):
         self.save_button.setEnabled(True)
         self.record_button.setEnabled(False)
         self._timeline.add_bag(bag)
-        qWarning("Done loading %s" % filename )
-        self.status_label.setText("Done loading %s" % filename )
+        qWarning("Done loading %s" % filename.name )
+        # put the progress bar back the way it was
+        self.progress_bar.setTextVisible(progress_text_visible)
+        self.progress_bar.setFormat(progress_format)
+        self.progress_bar.setRange(0, 100)
         # self clear loading filename
 
     def _handle_save_clicked(self):

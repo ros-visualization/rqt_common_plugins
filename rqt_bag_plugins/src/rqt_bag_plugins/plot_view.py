@@ -68,6 +68,7 @@ from python_qt_binding.QtGui import QWidget, QSplitter, QVBoxLayout, QPushButton
 
 # imports for adwilson's implementation
 import os
+import math
 import codecs
 import rospkg
 from python_qt_binding import loadUi
@@ -168,7 +169,13 @@ class PlotWidget(QWidget):
         self._lines = None
 
         # get bag from timeline
-        bag,entry = self.timeline.get_entry(self.start_stamp, topic)
+        bag = None
+        start_time = self.start_stamp
+        while bag is None:
+            bag,entry = self.timeline.get_entry(start_time, topic)
+            if bag is None:
+                start_time = self.timeline.get_entry_after(start_time)[1].time
+
         self.bag = bag
         # get first message from bag
         msg = bag._read_message(entry.position)
@@ -177,6 +184,7 @@ class PlotWidget(QWidget):
     def set_cursor(self, position):
         self.plot.vline(position, color=DataPlot.RED)
 
+    # TODO: spin off a thread for this; it can take a long time on big bag files
     def add_plot(self, path):
         limits = self.plot.get_xlim()
         limits = self.limits # TODO: rethink the plubming around limits
@@ -209,7 +217,10 @@ class PlotWidget(QWidget):
         x = []
         for entry in self.msgdata:
             if x==[] or (entry[2]-self.start_stamp).to_sec()-x[-1] >= timestep:
-                y.append(getattr(entry[1], path))
+                y_value = entry[1]
+                for field in path.split('.'):
+                    y_value = getattr(y_value, field)
+                y.append(y_value)
                 x.append((entry[2]-self.start_stamp).to_sec())
 
         self.plot.add_curve(path, path, x, y)
@@ -246,8 +257,10 @@ class PlotWidget(QWidget):
                 path_index = 0
                 for path in self.paths_on:
                     if x[path_index]==[] or (entry[2]-self.start_stamp).to_sec()-x[path_index][-1] >= timestep:
-                        print dir(entry[1])
-                        y[path_index].append(getattr(entry[1], path))
+                        y_value = entry[1]
+                        for field in path.split('.'):
+                            y_value = getattr(y_value, field)
+                        y[path_index].append(y_value)
                         x[path_index].append((entry[2]-self.start_stamp).to_sec())
                     path_index +=  1
             path_index = 0
