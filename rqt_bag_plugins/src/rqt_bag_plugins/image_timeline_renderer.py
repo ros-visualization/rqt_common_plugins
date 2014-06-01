@@ -113,7 +113,7 @@ class ImageTimelineRenderer(TimelineRenderer):
                     if width > 1:
                         if available_width < thumbnail_width:
                             thumbnail_width = available_width - 1
-                    QtImage = ImageQt.ImageQt(thumbnail_bitmap)
+                    QtImage = ImageQt(thumbnail_bitmap)
                     pixmap = QPixmap.fromImage(QtImage)
                     painter.drawPixmap(thumbnail_x, thumbnail_y, thumbnail_width, thumbnail_height, pixmap)
             thumbnail_x += thumbnail_width
