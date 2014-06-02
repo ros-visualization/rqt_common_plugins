@@ -2,6 +2,10 @@
 Changelog for package rqt_publisher
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* use queue_size for Python publishers
+
 0.3.5 (2014-05-07)
 ------------------
 

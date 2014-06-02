@@ -2,6 +2,9 @@
 Changelog for package rqt_image_view
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.3.5 (2014-05-07)
 ------------------
 * list image transport topics if parent image topic is not available (`#215 <https://github.com/ros-visualization/rqt_common_plugins/issues/215>`_)

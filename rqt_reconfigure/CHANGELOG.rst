@@ -2,6 +2,10 @@
 Changelog for package rqt_reconfigure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* remove unnecessary margins to improve usability on small screens (`#228 <https://github.com/ros-visualization/rqt_common_plugins/issues/228>`_)
+
 0.3.5 (2014-05-07)
 ------------------
 * numerous improvements and bug fixes (`#209 <https://github.com/ros-visualization/rqt_common_plugins/pull/209>`_, `#210 <https://github.com/ros-visualization/rqt_common_plugins/pull/210>`_)

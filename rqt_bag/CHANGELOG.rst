@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix closing and reopening topic views
+* use queue_size for Python publishers
+
 0.3.5 (2014-05-07)
 ------------------
 * fix raw view not showing fields named 'msg' (`#226 <https://github.com/ros-visualization/rqt_common_plugins/issues/226>`_)

@@ -2,6 +2,10 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* subscribe to any known topic, even if currently not available (`#233 <https://github.com/ros-visualization/rqt_common_plugins/pull/233>`_)
+
 0.3.5 (2014-05-07)
 ------------------
 * change minimum padding to enable viewing arbitrarily small values (`#223 <https://github.com/ros-visualization/rqt_common_plugins/pull/223>`_)
