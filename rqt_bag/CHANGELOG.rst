@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.6 (2014-06-02)
+------------------
 * fix closing and reopening topic views
 * use queue_size for Python publishers
 

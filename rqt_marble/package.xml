@@ -1,6 +1,6 @@
 <package>
   <name>rqt_marble</name>
-  <version>0.3.5</version>
+  <version>0.3.6</version>
   <description>
      rqt_marble works as an interface between KDE's Marble library and ROS.
      Utilizing sensor_msgs::NavSatFix, it provides following features: 
