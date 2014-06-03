@@ -197,21 +197,6 @@ class PlotWidget(QWidget):
                 self.start_stamp+rospy.Duration.from_sec(self.limits[1]))
 
     def resample_data(self, fields):
-        # TODO: make this threaded internally, so that we can make multiple
-        #       calls in and have it cancel, update the list of fields, and
-        #       restart
-        #
-        #       this is useful is the user clicks several "add" field buttons
-        #       quickly. it will be faster overall to throw away the existing
-        #       progress and restart the resampling
-        #
-        #       long-term, we may want to sample whole messages, and keep
-        #       the sampled messages around internally so that we can quickly
-        #       extract new fields without re-reading and resampling the
-        #       entire bag file. if we do a fancier sampling that takes into
-        #       account the minimum and maximum values of a field within
-        #       a timestep, we need all of the data to resample, so this
-        #       probably isn't worthwhile in the long term
         if self.resample_thread:
             # cancel existing thread and join
             self.resampling_active = False
@@ -229,43 +214,10 @@ class PlotWidget(QWidget):
         self.resample_thread.start()
 
     def _resample_thread(self):
-        # reloading the data from disk and resampling it when the plot
-        # moves is probably not a great idea, but it would be nice to be able
-        # to dynamically resample the data to sane resolution for the current
-        # zoom level
-        #
-        # Tested this, and it is REALLY slow on large bag files with dense
-        # topics; for example it takes 10-20 seconds on a topic with
-        # 500k+ messages, and blocks the rest of the rqt_bag UI in the process
-        #
-        # downsampling and constantly reloading data may be the only way to
-        # actually plot data for incredibly large data sets, when the entire
-        # data set doesn't fit into RAM
-        #
-        # Takeaway from testing:
-        # * should probably split the resampling of topics off into threads.
-        #   these should be cancellable, in case the user resizes the view
-        #   area again before resampling is complete
-        # * look into updating the display with the current data, before
-        #   resampling is complete
+        # TODO:
         # * look into doing partial display updates for long resampling 
         #   operations
-        # * build a more useful data structure for resampling. possibly some
-        #   kind of binary tree?
-        #
-        # What do I need to do NOW, to make this releaseable?
-        # * put resampling in a single method
-        # * put resampling in a thread. cancel and restart as appropriate
-        # * update display with current data, before resampling
-        #
-        # TODO: this causes weird bugs:
-        #  * items are not properly removed from the pyqtgraph legend
-        #  * pyqtgraph complains about "QGridLayoutEngine::addItem: Cell (2, 0) already taken"
-        #  * the plot is redrawn with incorrect X limits
-        #
-        # all of these go away if I run the resampling on the UI thread
-        # fixed these by doing add_curve through a signal in the underlying
-        # DataPlot
+        # * add a progress bar for resampling operations
         qWarning("resampling thread started")
         x = {}
         y = {}
@@ -347,6 +299,7 @@ class PlotWidget(QWidget):
 
         self.recompute_timestep()
         self.plot.set_xlim(limits)
+        self.plot.redraw()
         self.update_plot()
 
     def settingsChanged(self):
