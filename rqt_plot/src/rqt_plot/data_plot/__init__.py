@@ -149,7 +149,6 @@ class DataPlot(QWidget):
         self._plot_index = plot_index
         selected_plot = self.plot_types[plot_index]
 
-        print "Creating new plot widget: %s" % ( self.getTitle() )
         x_limits = self.get_xlim()
         y_limits = self.get_ylim()
 
@@ -159,8 +158,6 @@ class DataPlot(QWidget):
             self._data_plot_widget = None
 
         self._data_plot_widget = selected_plot['widget_class'](self)
-        self.set_xlim(x_limits)
-        self.set_ylim(y_limits)
         self._layout.addWidget(self._data_plot_widget)
 
         # restore old data
@@ -171,6 +168,8 @@ class DataPlot(QWidget):
         if self._vline:
             self.vline(*self._vline)
 
+        self.set_xlim(x_limits)
+        self.set_ylim(y_limits)
         self.redraw()
 
     # interface out to the managing GUI component: get title, save, restore, 
@@ -348,13 +347,11 @@ class DataPlot(QWidget):
     def _merged_autoscale(self):
         x_limit = [numpy.inf, -numpy.inf]
         if self._autoscale_x:
-            print "autoscaling X"
             for curve_id in self._curves:
                 curve = self._curves[curve_id]
                 x_limit[0] = min(x_limit[0], curve['x'].min())
                 x_limit[1] = max(x_limit[1], curve['x'].max())
         elif self._autoscroll:
-            print "autoscrolling x"
             # get current width of plot
             x_limit = self.get_xlim()
             x_width = x_limit[1] - x_limit[0]
@@ -370,18 +367,15 @@ class DataPlot(QWidget):
             # set lower limit based on width
             x_limit[0] = x_limit[1] - x_width
         else:
-            print "using existing x limits"
             # don't modify limit, or get it from plot
             x_limit = self.get_xlim()
 
-        print "initial x limits", x_limit
         # set sane limits if our limits are infinite
         if numpy.isinf(x_limit[0]):
             x_limit[0] = 0.0
         if numpy.isinf(x_limit[1]):
             x_limit[1] = 1.0
 
-        print "corrected x limits", x_limit
 
         y_limit = [numpy.inf, -numpy.inf]
         if self._autoscale_y:
@@ -430,7 +424,6 @@ class DataPlot(QWidget):
         if numpy.isinf(y_limit[1]):
             y_limit[1] = 1.0
 
-        print "Autoscale setting x limits", x_limit
         self.set_xlim(x_limit)
         self.set_ylim(y_limit)
 
@@ -444,7 +437,6 @@ class DataPlot(QWidget):
 
     def set_xlim(self, limits):
         """set X limits"""
-        print "Set limits to", limits
         if self._data_plot_widget:
             self._data_plot_widget.set_xlim(limits)
         else:

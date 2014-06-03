@@ -97,9 +97,14 @@ class MatDataPlot(QWidget):
     def add_curve(self, curve_id, curve_name):
         color = QColor(self._colors[self._color_index % len(self._colors)])
         self._color_index += 1
+        # adding an empty curve and change the limits, so save and restore them
+        x_limits = self.get_xlim()
+        y_limits = self.get_ylim()
         line = self._canvas.axes.plot([], [], label=curve_name, linewidth=1, picker=5, color=color.name())[0]
         self._curves[curve_id] = line
         self._update_legend()
+        self.set_xlim(x_limits)
+        self.set_ylim(y_limits)
 
     def remove_curve(self, curve_id):
         curve_id = str(curve_id)
