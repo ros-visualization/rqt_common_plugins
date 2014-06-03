@@ -107,6 +107,8 @@ class DataPlot(QWidget):
     SCALE_EXTEND=4
 
     limits_changed = Signal()
+    _redraw = Signal()
+    _add_curve = Signal(str, str)
 
     def __init__(self, parent=None):
         """Create a new, empty DataPlot
@@ -125,6 +127,7 @@ class DataPlot(QWidget):
         self._data_plot_widget = None
         self._curves = {}
         self._vline = None
+        self._redraw.connect(self._do_redraw)
 
         self._layout = QHBoxLayout()
         self.setLayout(self._layout)
@@ -161,6 +164,7 @@ class DataPlot(QWidget):
 
         self._data_plot_widget = selected_plot['widget_class'](self)
         self._data_plot_widget.limits_changed.connect(self.limits_changed)
+        self._add_curve.connect(self._data_plot_widget.add_curve)
         self._layout.addWidget(self._data_plot_widget)
 
         # restore old data
@@ -214,6 +218,9 @@ class DataPlot(QWidget):
         self._autoscroll = enabled
 
     def redraw(self):
+        self._redraw.emit()
+
+    def _do_redraw(self):
         """Redraw the underlying plot
 
         This causes the underlying plot to be redrawn. This is usually used
@@ -250,10 +257,12 @@ class DataPlot(QWidget):
                                    'y': numpy.array(data_y),
                                    'name': curve_name }
         if self._data_plot_widget:
-            self._data_plot_widget.add_curve(curve_id, curve_name)
+            self._add_curve.emit(curve_id, curve_name)
+            #self._data_plot_widget.add_curve(curve_id, curve_name)
 
     def remove_curve(self, curve_id):
         """Remove the specified curve from this plot"""
+        # TODO: do on UI thread with signals
         if curve_id in self._curves:
             del self._curves[curve_id]
         if self._data_plot_widget:
