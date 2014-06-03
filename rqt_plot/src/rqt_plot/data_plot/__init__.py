@@ -159,7 +159,6 @@ class DataPlot(QWidget):
             self._data_plot_widget = None
 
         self._data_plot_widget = selected_plot['widget_class'](self)
-        self._data_plot_widget.autoscroll(self._autoscroll)
         self.set_xlim(x_limits)
         self.set_ylim(y_limits)
         self._layout.addWidget(self._data_plot_widget)
@@ -167,8 +166,7 @@ class DataPlot(QWidget):
         # restore old data
         for curve_id in self._curves:
             curve = self._curves[curve_id]
-            self._data_plot_widget.add_curve(curve_id, curve['name'],
-                    curve['x'], curve['y'])
+            self._data_plot_widget.add_curve(curve_id, curve['name'])
 
         if self._vline:
             self.vline(*self._vline)
@@ -212,17 +210,17 @@ class DataPlot(QWidget):
     def autoscroll(self, enabled=True):
         """Enable or disable autoscrolling of the plot"""
         self._autoscroll = enabled
-        if self._data_plot_widget:
-            self._data_plot_widget.autoscroll(enabled)
 
     def redraw(self):
         """Redraw the underlying plot
 
         This causes the underlying plot to be redrawn. This is usually used
         after adding or updating the plot data"""
-        # TODO: autoscale on redraw
         if self._data_plot_widget:
             self._merged_autoscale()
+            for curve_id in self._curves:
+                curve = self._curves[curve_id]
+                self._data_plot_widget.set_values(curve_id, curve['x'], curve['y'])
             self._data_plot_widget.redraw()
 
     def _get_curve(self, curve_id):
@@ -244,11 +242,13 @@ class DataPlot(QWidget):
         any changes visible to the user.
         """
         # data = numpy.array(zip(data_x, data_y))
+        if len(data_x) < 1:
+            qWarning("New curve created with no data!")
         self._curves[curve_id] = { 'x': numpy.array(data_x),
                                    'y': numpy.array(data_y),
                                    'name': curve_name }
         if self._data_plot_widget:
-            self._data_plot_widget.add_curve(curve_id, curve_name, data_x, data_y)
+            self._data_plot_widget.add_curve(curve_id, curve_name)
 
     def remove_curve(self, curve_id):
         """Remove the specified curve from this plot"""
@@ -275,8 +275,6 @@ class DataPlot(QWidget):
         sort_order = curve['x'].argsort()
         curve['x'] = curve['x'][sort_order]
         curve['y'] = curve['y'][sort_order]
-        if self._data_plot_widget:
-            self._data_plot_widget.update_values(curve_id, values_x, values_y)
 
     def clear_values(self, curve_id=None):
         """Clear the values for the specified curve, or all curves
@@ -292,14 +290,14 @@ class DataPlot(QWidget):
             curve = self._get_curve(curve_id)
             curve['x'] = numpy.array([])
             curve['y'] = numpy.array([])
-            if self._data_plot_widget:
-                self._data_plot_widget.clear_values(curve_id)
+            #if self._data_plot_widget:
+            #    self._data_plot_widget.clear_values(curve_id)
         else:
             for curve_id in self._curves:
                 self._curves[curve_id]['x'] = numpy.array([])
                 self._curves[curve_id]['y'] = numpy.array([])
-                if self._data_plot_widget:
-                    self._data_plot_widget.clear_values(curve_id)
+                #if self._data_plot_widget:
+                #    self._data_plot_widget.clear_values(curve_id)
 
 
     def vline(self, x, color=RED):
@@ -350,11 +348,13 @@ class DataPlot(QWidget):
     def _merged_autoscale(self):
         x_limit = [numpy.inf, -numpy.inf]
         if self._autoscale_x:
+            print "autoscaling X"
             for curve_id in self._curves:
                 curve = self._curves[curve_id]
                 x_limit[0] = min(x_limit[0], curve['x'].min())
                 x_limit[1] = max(x_limit[1], curve['x'].max())
         elif self._autoscroll:
+            print "autoscrolling x"
             # get current width of plot
             x_limit = self.get_xlim()
             x_width = x_limit[1] - x_limit[0]
@@ -370,14 +370,18 @@ class DataPlot(QWidget):
             # set lower limit based on width
             x_limit[0] = x_limit[1] - x_width
         else:
+            print "using existing x limits"
             # don't modify limit, or get it from plot
             x_limit = self.get_xlim()
 
+        print "initial x limits", x_limit
         # set sane limits if our limits are infinite
         if numpy.isinf(x_limit[0]):
             x_limit[0] = 0.0
         if numpy.isinf(x_limit[1]):
             x_limit[1] = 1.0
+
+        print "corrected x limits", x_limit
 
         y_limit = [numpy.inf, -numpy.inf]
         if self._autoscale_y:
@@ -401,8 +405,9 @@ class DataPlot(QWidget):
                 # region here is cheap because it is a numpy view and not a
                 # copy of the underlying data
                 region = curve['y'][start_index:end_index]
-                y_limit[0] = min(y_limit[0], region.min())
-                y_limit[1] = max(y_limit[1], region.max())
+                if len(region) > 0:
+                    y_limit[0] = min(y_limit[0], region.min())
+                    y_limit[1] = max(y_limit[1], region.max())
 
                 # TODO: compute padding around new min and max values
                 #       ONLY consider data for new values; not
@@ -425,6 +430,7 @@ class DataPlot(QWidget):
         if numpy.isinf(y_limit[1]):
             y_limit[1] = 1.0
 
+        print "Autoscale setting x limits", x_limit
         self.set_xlim(x_limit)
         self.set_ylim(y_limit)
 
@@ -438,6 +444,7 @@ class DataPlot(QWidget):
 
     def set_xlim(self, limits):
         """set X limits"""
+        print "Set limits to", limits
         if self._data_plot_widget:
             self._data_plot_widget.set_xlim(limits)
         else:

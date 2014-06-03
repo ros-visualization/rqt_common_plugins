@@ -92,24 +92,19 @@ class MatDataPlot(QWidget):
 
         self._color_index = 0
         self._curves = {}
-        self._autoscroll = False
         self._current_vline = None
 
-    def autoscroll(self, enabled=True):
-        self._autoscroll = enabled
-
-    def add_curve(self, curve_id, curve_name, x, y):
+    def add_curve(self, curve_id, curve_name):
         color = QColor(self._colors[self._color_index % len(self._colors)])
         self._color_index += 1
         line = self._canvas.axes.plot([], [], label=curve_name, linewidth=1, picker=5, color=color.name())[0]
-        self._curves[curve_id] = ([], [], line)
-        self.update_values(curve_id, x, y)
+        self._curves[curve_id] = line
         self._update_legend()
 
     def remove_curve(self, curve_id):
         curve_id = str(curve_id)
         if curve_id in self._curves:
-            self._curves[curve_id][2].remove()
+            self._curves[curve_id].remove()
             del self._curves[curve_id]
             self._update_legend()
 
@@ -120,21 +115,12 @@ class MatDataPlot(QWidget):
             handles, labels = zip(*hl)
         self._canvas.axes.legend(handles, labels, loc='upper left')
 
-    @Slot(str, list, list)
-    def update_values(self, curve_id, x, y):
-        data_x, data_y, line = self._curves[curve_id]
-        data_x.extend(x)
-        data_y.extend(y)
+    def set_values(self, curve, data_x, data_y):
+        line = self._curves[curve]
         line.set_data(data_x, data_y)
-
-    def clear_values(self, curve_id):
-        data_x, data_y, _ = self._curves[curve_id]
-        del data_x[:]
-        del data_y[:]
 
     def redraw(self):
         self._canvas.axes.grid(True, color='gray')
-
         self._canvas.draw()
 
     def vline(self, x, color):

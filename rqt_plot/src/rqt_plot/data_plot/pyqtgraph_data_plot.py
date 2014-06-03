@@ -50,25 +50,22 @@ class PyQtGraphDataPlot(QWidget):
         vbox.addWidget(self._plot_widget)
         self.setLayout(vbox)
 
-        self._autoscroll = False
         self._color_index = 0
         self._curves = {}
         self._current_vline = None
 
-    def add_curve(self, curve_id, curve_name, data_x, data_y):
+    def add_curve(self, curve_id, curve_name):
         color = QColor(self._colors[self._color_index % len(self._colors)])
         self._color_index += 1
         pen = mkPen(color, width=2)
         # this adds the item to the plot and legend
         plot = self._plot_widget.plot(name=curve_name, pen=pen)
-        data_x = numpy.array(data_x)
-        data_y = numpy.array(data_y)
-        self._curves[curve_id] = {'x': data_x, 'y': data_y, 'plot': plot}
+        self._curves[curve_id] = plot
 
     def remove_curve(self, curve_id):
         curve_id = str(curve_id)
         if curve_id in self._curves:
-            self._plot_widget.removeItem(self._curves[curve_id]['plot'])
+            self._plot_widget.removeItem(self._curves[curve_id])
             del self._curves[curve_id]
             self._update_legend()
            
@@ -77,27 +74,16 @@ class PyQtGraphDataPlot(QWidget):
         self._plot_widget.clear()
         self._plot_widget.getPlotItem().legend.items = []
         for curve in self._curves.values():
-            self._plot_widget.addItem(curve['plot'])
+            self._plot_widget.addItem(curve)
         if self._current_vline:
             self._plot_widget.addItem(self._current_vline)
  
-    @Slot(str, list, list)
-    def update_values(self, curve_id, x, y):
-        curve = self._curves[curve_id]
-        curve['x'] = numpy.append(curve['x'], x)
-        curve['y'] = numpy.append(curve['y'], y)
-
-    def clear_values(self, curve_id):
-        curve = self._curves[curve_id]
-        curve['x'] = numpy.array([])
-        curve['y'] = numpy.array([])
-
-    def autoscroll(self, enabled=True):
-        self._autoscroll = enabled
-
     def redraw(self):
-        for curve in self._curves.values():
-            curve['plot'].setData(curve['x'], curve['y'])
+        pass
+
+    def set_values(self, curve_id, data_x, data_y):
+        curve = self._curves[curve_id]
+        curve.setData(data_x, data_y)
 
     def vline(self, x, color):
         if self._current_vline:
