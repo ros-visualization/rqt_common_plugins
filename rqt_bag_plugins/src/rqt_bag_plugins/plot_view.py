@@ -70,7 +70,7 @@ import rospkg
 from rqt_bag import MessageView
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt, qWarning
+from python_qt_binding.QtCore import Qt, qWarning, Signal
 from python_qt_binding.QtGui import QWidget, QSplitter, QVBoxLayout, QPushButton, QTreeWidget, QTreeWidgetItem, QSizePolicy, QDoubleValidator
 
 from rqt_plot.data_plot import DataPlot
@@ -107,6 +107,7 @@ class PlotView(MessageView):
         pass
 
 class PlotWidget(QWidget):
+
     def __init__(self, timeline, parent, topic):
         super(PlotWidget, self).__init__(parent)
         self.setObjectName('PlotWidget')
@@ -195,7 +196,6 @@ class PlotWidget(QWidget):
                 self.start_stamp+rospy.Duration.from_sec(self.limits[0]),
                 self.start_stamp+rospy.Duration.from_sec(self.limits[1]))
 
-    # TODO: spin off a thread for this; it can take a long time on big bag files
     def resample_data(self, fields):
         # TODO: make this threaded internally, so that we can make multiple
         #       calls in and have it cancel, update the list of fields, and
@@ -222,13 +222,11 @@ class PlotWidget(QWidget):
 
         # start resampling thread
         self.resampling_active = True
-        #self.resample_thread = threading.Thread(target=self._resample_thread)
+        self.resample_thread = threading.Thread(target=self._resample_thread)
         # explicitly mark our resampling thread as a daemon, because we don't
         # want to block program exit on a long resampling operation
-        #self.resample_thread.setDaemon(True)
-        #self.resample_thread.start()
-        self._resample_thread()
-
+        self.resample_thread.setDaemon(True)
+        self.resample_thread.start()
 
     def _resample_thread(self):
         # reloading the data from disk and resampling it when the plot
@@ -266,6 +264,8 @@ class PlotWidget(QWidget):
         #  * the plot is redrawn with incorrect X limits
         #
         # all of these go away if I run the resampling on the UI thread
+        # fixed these by doing add_curve through a signal in the underlying
+        # DataPlot
         qWarning("resampling thread started")
         x = {}
         y = {}
