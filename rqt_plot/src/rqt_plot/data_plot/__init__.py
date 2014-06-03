@@ -361,8 +361,9 @@ class DataPlot(QWidget):
         if self._autoscale_x:
             for curve_id in self._curves:
                 curve = self._curves[curve_id]
-                x_limit[0] = min(x_limit[0], curve['x'].min())
-                x_limit[1] = max(x_limit[1], curve['x'].max())
+                if len(curve['x']) > 0:
+                    x_limit[0] = min(x_limit[0], curve['x'].min())
+                    x_limit[1] = max(x_limit[1], curve['x'].max())
         elif self._autoscroll:
             # get current width of plot
             x_limit = self.get_xlim()
@@ -374,7 +375,8 @@ class DataPlot(QWidget):
             # get largest X value
             for curve_id in self._curves:
                 curve = self._curves[curve_id]
-                x_limit[1] = max(x_limit[1], curve['x'].max())
+                if len(curve['x']) > 0:
+                    x_limit[1] = max(x_limit[1], curve['x'].max())
 
             # set lower limit based on width
             x_limit[0] = x_limit[1] - x_width
