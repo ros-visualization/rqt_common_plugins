@@ -62,21 +62,20 @@
 #  doesn't make sense to make it align with the timeline. This could be done
 #  if someone wanted to implement a separate timeline view
 
-from rqt_bag import MessageView
-
-from python_qt_binding.QtGui import QWidget, QSplitter, QVBoxLayout, QPushButton
-
-# imports for adwilson's implementation
 import os
 import math
 import codecs
+import threading
 import rospkg
+from rqt_bag import MessageView
+
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, qWarning
-from python_qt_binding.QtGui import QTreeWidget, QTreeWidgetItem, QSizePolicy, QDoubleValidator
+from python_qt_binding.QtGui import QWidget, QSplitter, QVBoxLayout, QPushButton, QTreeWidget, QTreeWidgetItem, QSizePolicy, QDoubleValidator
 
 from rqt_plot.data_plot import DataPlot
 
+# rospy used for Time and Duration objects, for interacting with rosbag
 import rospy
 
 class PlotView(MessageView):
@@ -103,7 +102,6 @@ class PlotView(MessageView):
         else:
             self.plot_widget.message_tree.set_message(msg)
             self.plot_widget.set_cursor((t-self.plot_widget.start_stamp).to_sec())
-            self.plot_widget.plot.redraw()
 
     def message_cleared(self):
         pass
@@ -118,6 +116,9 @@ class PlotWidget(QWidget):
         self.msgtopic = topic
         self.start_stamp = self.timeline._get_start_stamp()
         self.end_stamp = self.timeline._get_end_stamp()
+
+        # the current region-of-interest for our bag file
+        # all resampling and plotting is done with these limits
         self.limits = [0,(self.end_stamp-self.start_stamp).to_sec()]
 
         rp = rospkg.RosPack()
@@ -133,9 +134,10 @@ class PlotWidget(QWidget):
         self.resolution.editingFinished.connect(self.settingsChanged)
         self.resolution.setValidator(QDoubleValidator(0.0,1000.0,6,self.resolution))
 
+
         self.timeline.selected_region_changed.connect(self.region_changed)
 
-        self.resolution.setText(str(round((self.end_stamp-self.start_stamp).to_sec()/200.0,5)))
+        self.recompute_timestep()
 
         self.plot = DataPlot(self)
         self.plot.set_autoscale(x=False)
@@ -149,7 +151,6 @@ class PlotWidget(QWidget):
         self._config_button.clicked.connect(self.plot.doSettingsDialog)
 
         self.set_cursor(0)
-        self.plot.redraw()
 
         self.paths_on = set()
         self._lines = None
@@ -167,17 +168,69 @@ class PlotWidget(QWidget):
         msg = bag._read_message(entry.position)
         self.message_tree.set_message(msg[1])
 
+        # state used by threaded resampling
+        self.resampling_active = False
+        self.resample_thread = None
+        self.resample_fields = set()
+
     def set_cursor(self, position):
         self.plot.vline(position, color=DataPlot.RED)
+        self.plot.redraw()
+
+    def add_plot(self, path):
+        self.resample_data([path])
+
+    def update_plot(self):
+        if len(self.paths_on)>0:
+            self.resample_data(self.paths_on)
+
+    def remove_plot(self, path):
+        self.plot.remove_curve(path)
+        self.paths_on.remove(path)
+        self.plot.redraw()
+
+    def load_data(self):
+        """get a generator for the specified time range on our bag"""
+        return self.bag.read_messages(self.msgtopic,
+                self.start_stamp+rospy.Duration.from_sec(self.limits[0]),
+                self.start_stamp+rospy.Duration.from_sec(self.limits[1]))
 
     # TODO: spin off a thread for this; it can take a long time on big bag files
-    def add_plot(self, path):
-        limits = self.plot.get_xlim()
-        limits = self.limits # TODO: rethink the plubming around limits
-        # in particular, the original implementation hooked the plot update
-        # signals so that the data is resampled and the plot is redrawn
-        # whenever the plot is panned or zoomed
+    def resample_data(self, fields):
+        # TODO: make this threaded internally, so that we can make multiple
+        #       calls in and have it cancel, update the list of fields, and
+        #       restart
         #
+        #       this is useful is the user clicks several "add" field buttons
+        #       quickly. it will be faster overall to throw away the existing
+        #       progress and restart the resampling
+        #
+        #       long-term, we may want to sample whole messages, and keep
+        #       the sampled messages around internally so that we can quickly
+        #       extract new fields without re-reading and resampling the
+        #       entire bag file. if we do a fancier sampling that takes into
+        #       account the minimum and maximum values of a field within
+        #       a timestep, we need all of the data to resample, so this
+        #       probably isn't worthwhile in the long term
+        if self.resample_thread:
+            # cancel existing thread and join
+            self.resampling_active = False
+            self.resample_thread.join()
+
+        for f in fields:
+            self.resample_fields.add(f)
+
+        # start resampling thread
+        self.resampling_active = True
+        #self.resample_thread = threading.Thread(target=self._resample_thread)
+        # explicitly mark our resampling thread as a daemon, because we don't
+        # want to block program exit on a long resampling operation
+        #self.resample_thread.setDaemon(True)
+        #self.resample_thread.start()
+        self._resample_thread()
+
+
+    def _resample_thread(self):
         # reloading the data from disk and resampling it when the plot
         # moves is probably not a great idea, but it would be nice to be able
         # to dynamically resample the data to sane resolution for the current
@@ -206,67 +259,35 @@ class PlotWidget(QWidget):
         # * put resampling in a single method
         # * put resampling in a thread. cancel and restart as appropriate
         # * update display with current data, before resampling
-        _limits = limits
-        if self.auto_res.isChecked():
-            timestep = round((limits[1]-limits[0])/200.0,5)
-        else:
-            timestep = float(self.resolution.text()) 
-        self.resolution.setText(str(timestep))
-
-        if limits[0]<0:
-            limits = [0.0,limits[1]]
-        if limits[1]>(self.end_stamp-self.start_stamp).to_sec():
-            limits = [limits[0],(self.end_stamp-self.start_stamp).to_sec()]
-
-        self.resample_data([path], limits, timestep)
-
-        # set X scale
-        self.plot.set_xlim(_limits)
-        self.plot.redraw()
-
-    def update_plot(self, limits, timestep):
-        # TODO: update this for the new DataPlot backend
-        #       at the very least, it needs to:
-        #        * detect if the timestep has changed. if it has, recompute the
-        #          sampled data points and replace the existing curves with
-        #          the new sampled data
-        self.resolution.setText(str(timestep))
-
-        if limits[0]<0:
-            limits = [0.0,limits[1]]
-        if limits[1]>(self.end_stamp-self.start_stamp).to_sec():
-            limits = [limits[0],(self.end_stamp-self.start_stamp).to_sec()]
-
-        self.plot.set_xlim(limits)
-
-        if hasattr(self, 'paths_on') and len(self.paths_on)>0:
-            self.resample_data(self.paths_on, limits, timestep)
-        self.plot.redraw()
-
-    def remove_plot(self, path):
-        self.plot.remove_curve(path)
-        self.paths_on.remove(path)
-        self.plot.redraw()
-
-    def load_data(self, startoffset, endoffset):
-        """get a generator for the specified time range on our bag"""
-        return self.bag.read_messages(self.msgtopic,
-                self.start_stamp+startoffset,self.end_stamp-endoffset)
-
-    def resample_data(self, fields, limits, timestep):
-        # TODO: is it possible to make this faster by using numpy?
+        #
+        # TODO: this causes weird bugs:
+        #  * items are not properly removed from the pyqtgraph legend
+        #  * pyqtgraph complains about "QGridLayoutEngine::addItem: Cell (2, 0) already taken"
+        #  * the plot is redrawn with incorrect X limits
+        #
+        # all of these go away if I run the resampling on the UI thread
+        qWarning("resampling thread started")
         x = {}
         y = {}
-        for path in fields:
+        for path in self.resample_fields:
             x[path] = []
             y[path] = []
 
-        msgdata = self.load_data(rospy.Duration.from_sec(limits[0]),rospy.Duration.from_sec((self.end_stamp-self.start_stamp).to_sec()-limits[1]))
+        msgdata = self.load_data()
 
         for entry in msgdata:
-            # entry is (topic, msg, time)
-            for path in fields:
-                if x[path]==[] or (entry[2]-self.start_stamp).to_sec()-x[path][-1] >= timestep:
+            # detect if we're cancelled and return early
+            if not self.resampling_active:
+                qWarning("resampling thread cancelled")
+                return
+
+            for path in self.resample_fields:
+                # this resampling method is very unstable, because it picks
+                # representative points rather than explicitly representing
+                # the minimum and maximum values present within a sample
+                # If the data has spikes, this is particularly bad because they
+                # will be missed entirely at some resolutions and offsets
+                if x[path]==[] or (entry[2]-self.start_stamp).to_sec()-x[path][-1] >= self.timestep:
                     y_value = entry[1]
                     for field in path.split('.'):
                         y_value = getattr(y_value, field)
@@ -274,9 +295,16 @@ class PlotWidget(QWidget):
                     x[path].append((entry[2]-self.start_stamp).to_sec())
 
             # TODO: incremental plot updates would go here...
+            #       we should probably do incremental updates based on time;
+            #       that is, push new data to the plot maybe every .5 or .1
+            #       seconds
+            #       time is a more useful metric than, say, messages loaded or
+            #       percentage, because it will give a reasonable refresh rate
+            #       without overloading the computer
+            # if we had a progress bar, we could emit a signal to update it here
 
         # update the plot with final resampled data
-        for path in fields:
+        for path in self.resample_fields:
             if len(x[path]) < 1:
                 qWarning("Resampling resulted in 0 data points for %s" % path)
             else:
@@ -287,60 +315,65 @@ class PlotWidget(QWidget):
                     self.plot.add_curve(path, path, x[path], y[path])
                     self.paths_on.add(path)
 
+        self.plot.redraw()
 
-    def on_motion(self, event):
-        # TODO: create a signal in DataPlot for this to connect to
-        qWarning("PlotWidget.on_motion")
-        limits = self.plot.get_xlim()
+        qWarning("resampling thread done")
+        self.resample_fields.clear()
+        self.resampling_active = False
+
+    def recompute_timestep(self):
+        # this is only called if we think the timestep has changed; either
+        # by changing the limits or by editing the resolution
+        limits = self.limits
         if self.auto_res.isChecked():
             timestep = round((limits[1]-limits[0])/200.0,5)
         else:
             timestep = float(self.resolution.text())
-        self.update_plot(limits, timestep)
-
+        self.resolution.setText(str(timestep))
+        self.timestep = timestep
 
     def region_changed(self, start, end):
+        # this is the only place where self.limits is set
         limits = [ (start - self.start_stamp).to_sec(),
                    (end - self.start_stamp).to_sec() ]
-        self.limits = limits
-        if self.auto_res.isChecked():
-            timestep = round((limits[1]-limits[0])/200.0,5)
-        else:
-            timestep = float(self.resolution.text())
 
-        self.update_plot(limits, timestep)
+        # cap the limits to the start and end of our bag file
+        if limits[0]<0:
+            limits = [0.0,limits[1]]
+        if limits[1]>(self.end_stamp-self.start_stamp).to_sec():
+            limits = [limits[0],(self.end_stamp-self.start_stamp).to_sec()]
+
+        self.limits = limits
+
+        self.recompute_timestep()
+        self.plot.set_xlim(limits)
+        self.update_plot()
 
     def settingsChanged(self):
-        limits = self.plot.get_xlim()
-        if self.auto_res.isChecked():
-            timestep = round((limits[1]-limits[0])/200.0,5)
-        else:
-            timestep = float(self.resolution.text())
-        self.update_plot(limits, timestep)
+        # resolution changed. recompute the timestep and resample
+        self.recompute_timestep()
+        self.update_plot()
 
     def autoChanged(self, state):
         if state==2:
+            # auto mode enabled. recompute the timestep and resample
             self.resolution.setDisabled(True) 
-            limits = self.plot.get_xlim()
-            timestep = round((limits[1]-limits[0])/200.0,5)
-            self.update_plot(limits, timestep)   
+            self.recompute_timestep()
+            self.update_plot()   
         else:
+            # auto mode disabled. enable the resolution text box
+            # no change to resolution yet, so no need to redraw
             self.resolution.setDisabled(False)
 
     def home(self):
         # TODO: re-add the button for this. It's useful for restoring the
         #       X and Y limits so that we can see all of the data
         #       effectively a "zoom all" button
-        # TODO: use the bag region of interest for this, rather than resetting
-        #       the limits
-        #       explicitly reset the Y limits. the plot backend probably needs
-        #       an API for this
-        limits = [0,(self.end_stamp-self.start_stamp).to_sec()]
-        if self.auto_res.isChecked():
-            timestep = round((limits[1]-limits[0])/200.0,5)
-        else:
-            timestep = float(self.resolution.text())
-        self.update_plot(limits, timestep)
+
+        # reset the plot to our current limits
+        self.plot.set_xlim(self.limits)
+        # redraw the plot; this forces a Y autoscaling
+        self.plot.redraw()
 
 
 
