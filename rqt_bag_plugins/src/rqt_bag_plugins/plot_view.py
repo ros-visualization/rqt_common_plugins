@@ -218,7 +218,6 @@ class PlotWidget(QWidget):
         # * look into doing partial display updates for long resampling 
         #   operations
         # * add a progress bar for resampling operations
-        qWarning("resampling thread started")
         x = {}
         y = {}
         for path in self.resample_fields:
@@ -230,7 +229,6 @@ class PlotWidget(QWidget):
         for entry in msgdata:
             # detect if we're cancelled and return early
             if not self.resampling_active:
-                qWarning("resampling thread cancelled")
                 return
 
             for path in self.resample_fields:
@@ -269,7 +267,6 @@ class PlotWidget(QWidget):
 
         self.plot.redraw()
 
-        qWarning("resampling thread done")
         self.resample_fields.clear()
         self.resampling_active = False
 
