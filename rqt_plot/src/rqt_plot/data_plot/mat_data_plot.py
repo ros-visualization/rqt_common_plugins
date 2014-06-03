@@ -42,7 +42,7 @@ if QT_BINDING == 'pyside':
     if parse_version(QT_BINDING_VERSION) <= parse_version('1.1.2'):
         raise ImportError('A PySide version newer than 1.1.0 is required.')
 
-from python_qt_binding.QtCore import Slot, Qt, qWarning
+from python_qt_binding.QtCore import Slot, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QWidget, QVBoxLayout, QSizePolicy, QColor
 
 import operator
@@ -81,6 +81,8 @@ class MatDataPlot(QWidget):
 
     _colors = [Qt.red, Qt.blue, Qt.magenta, Qt.cyan, Qt.green, Qt.darkYellow, Qt.black, Qt.darkRed, Qt.gray, Qt.darkCyan]
 
+    limits_changed = Signal()
+
     def __init__(self, parent=None):
         super(MatDataPlot, self).__init__(parent)
         self._canvas = MatDataPlot.Canvas()
@@ -93,6 +95,10 @@ class MatDataPlot(QWidget):
         self._color_index = 0
         self._curves = {}
         self._current_vline = None
+        self._canvas.mpl_connect('button_release_event', self._limits_changed)
+
+    def _limits_changed(self, event):
+        self.limits_changed.emit()
 
     def add_curve(self, curve_id, curve_name):
         color = QColor(self._colors[self._color_index % len(self._colors)])

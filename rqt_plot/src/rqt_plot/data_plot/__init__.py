@@ -34,7 +34,7 @@
 import numpy
 
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
-from python_qt_binding.QtCore import qWarning
+from python_qt_binding.QtCore import qWarning, Signal
 from python_qt_binding.QtGui import QWidget, QHBoxLayout
 
 try:
@@ -106,6 +106,8 @@ class DataPlot(QWidget):
     SCALE_VISIBLE=2
     SCALE_EXTEND=4
 
+    limits_changed = Signal()
+
     def __init__(self, parent=None):
         """Create a new, empty DataPlot
 
@@ -158,6 +160,7 @@ class DataPlot(QWidget):
             self._data_plot_widget = None
 
         self._data_plot_widget = selected_plot['widget_class'](self)
+        self._data_plot_widget.limits_changed.connect(self.limits_changed)
         self._layout.addWidget(self._data_plot_widget)
 
         # restore old data

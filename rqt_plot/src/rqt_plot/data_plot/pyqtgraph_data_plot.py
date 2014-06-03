@@ -30,7 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from python_qt_binding.QtCore import Slot, Qt, qWarning
+from python_qt_binding.QtCore import Slot, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QColor, QVBoxLayout, QWidget
 
 from pyqtgraph import PlotWidget, mkPen
@@ -39,6 +39,8 @@ import numpy
 
 class PyQtGraphDataPlot(QWidget):
     _colors = [Qt.red, Qt.blue, Qt.magenta, Qt.cyan, Qt.green, Qt.darkYellow, Qt.black, Qt.darkRed, Qt.gray, Qt.darkCyan]
+
+    limits_changed = Signal()
 
     def __init__(self, parent=None):
         super(PyQtGraphDataPlot, self).__init__(parent)
@@ -49,6 +51,7 @@ class PyQtGraphDataPlot(QWidget):
         vbox = QVBoxLayout()
         vbox.addWidget(self._plot_widget)
         self.setLayout(vbox)
+        self._plot_widget.getPlotItem().sigRangeChanged.connect(self.limits_changed)
 
         self._color_index = 0
         self._curves = {}

@@ -50,6 +50,7 @@ class QwtDataPlot(Qwt.QwtPlot):
     _num_values_ploted = 1000
 
     replot_needed = Signal()
+    limits_changed = Signal()
 
     def __init__(self, *args):
         super(QwtDataPlot, self).__init__(*args)
@@ -99,6 +100,7 @@ class QwtDataPlot(Qwt.QwtPlot):
             x = self.invTransform(Qwt.QwtPlot.xBottom, event.pos().x())
             y = self.invTransform(Qwt.QwtPlot.yLeft, event.pos().y())
             self._last_click_coordinates = QPointF(x, y)
+            self.limits_changed.emit()
         elif event.type() == QEvent.MouseMove:
             x = self.invTransform(Qwt.QwtPlot.xBottom, event.pos().x())
             y = self.invTransform(Qwt.QwtPlot.yLeft, event.pos().y())
@@ -141,8 +143,7 @@ class QwtDataPlot(Qwt.QwtPlot):
         curve = self._curves[curve_id]
         print "qwtplot set data"
         # this probably isn't thread-safe
-        #curve.setData(data_x, data_y)
-        curve.setSamples(data_x, data_y)
+        curve.setData(data_x, data_y)
 
     def redraw(self):
         #self.replot()
@@ -224,6 +225,7 @@ class QwtDataPlot(Qwt.QwtPlot):
         self.move_canvas(0, zoom_factor * delta_y * 1.0225)
 
         self.scale_axis_y(max(0.0005, self._canvas_display_height - zoom_factor * self._canvas_display_height))
+        self.limits_changed.emit()
 
 
     def vline(self, x, color):
