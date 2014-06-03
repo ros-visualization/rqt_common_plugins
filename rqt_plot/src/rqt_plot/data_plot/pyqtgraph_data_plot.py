@@ -94,6 +94,7 @@ class PyQtGraphDataPlot(QWidget):
         self._current_vline = self._plot_widget.addLine(x=x, pen=color)
 
     def set_xlim(self, limits):
+        # TODO: this doesn't seem to handle fast updates well
         self._plot_widget.setXRange(limits[0], limits[1], padding=0)
 
     def set_ylim(self, limits):
