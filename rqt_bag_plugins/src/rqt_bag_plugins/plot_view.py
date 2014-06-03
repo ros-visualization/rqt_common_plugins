@@ -127,8 +127,7 @@ class PlotWidget(QWidget):
         self.data_tree_layout.addWidget(self.message_tree)
         # TODO: make this a dropdown with choices for "Auto", "Full" and
         #       "Custom"
-        # I continue to want a "Full" option here, and for the callback to
-        # work properly...
+        #       I continue to want a "Full" option here
         self.auto_res.stateChanged.connect(self.autoChanged)
 
         self.resolution.editingFinished.connect(self.settingsChanged)
@@ -184,9 +183,29 @@ class PlotWidget(QWidget):
         # to dynamically resample the data to sane resolution for the current
         # zoom level
         #
+        # Tested this, and it is REALLY slow on large bag files with dense
+        # topics; for example it takes 10-20 seconds on a topic with
+        # 500k+ messages, and blocks the rest of the rqt_bag UI in the process
+        #
         # downsampling and constantly reloading data may be the only way to
         # actually plot data for incredibly large data sets, when the entire
         # data set doesn't fit into RAM
+        #
+        # Takeaway from testing:
+        # * should probably split the resampling of topics off into threads.
+        #   these should be cancellable, in case the user resizes the view
+        #   area again before resampling is complete
+        # * look into updating the display with the current data, before
+        #   resampling is complete
+        # * look into doing partial display updates for long resampling 
+        #   operations
+        # * build a more useful data structure for resampling. possibly some
+        #   kind of binary tree?
+        #
+        # What do I need to do NOW, to make this releaseable?
+        # * put resampling in a single method
+        # * put resampling in a thread. cancel and restart as appropriate
+        # * update display with current data, before resampling
         _limits = limits
         if self.auto_res.isChecked():
             timestep = round((limits[1]-limits[0])/200.0,5)
@@ -199,19 +218,7 @@ class PlotWidget(QWidget):
         if limits[1]>(self.end_stamp-self.start_stamp).to_sec():
             limits = [limits[0],(self.end_stamp-self.start_stamp).to_sec()]
 
-        self.load_data(rospy.Duration.from_sec(limits[0]),rospy.Duration.from_sec((self.end_stamp-self.start_stamp).to_sec()-limits[1]))
-        y = []
-        x = []
-        for entry in self.msgdata:
-            if x==[] or (entry[2]-self.start_stamp).to_sec()-x[-1] >= timestep:
-                y_value = entry[1]
-                for field in path.split('.'):
-                    y_value = getattr(y_value, field)
-                y.append(y_value)
-                x.append((entry[2]-self.start_stamp).to_sec())
-
-        self.plot.add_curve(path, path, x, y)
-        self.paths_on.add(path)
+        self.resample_data([path], limits, timestep)
 
         # set X scale
         self.plot.set_xlim(_limits)
@@ -233,26 +240,7 @@ class PlotWidget(QWidget):
         self.plot.set_xlim(limits)
 
         if hasattr(self, 'paths_on') and len(self.paths_on)>0:
-            self.load_data(rospy.Duration.from_sec(limits[0]),rospy.Duration.from_sec((self.end_stamp-self.start_stamp).to_sec()-limits[1]))
-         
-            y = [[] for i in range(len(self.paths_on))]
-            x = [[] for i in range(len(self.paths_on))]
-
-            for entry in self.msgdata:
-                path_index = 0
-                for path in self.paths_on:
-                    if x[path_index]==[] or (entry[2]-self.start_stamp).to_sec()-x[path_index][-1] >= timestep:
-                        y_value = entry[1]
-                        for field in path.split('.'):
-                            y_value = getattr(y_value, field)
-                        y[path_index].append(y_value)
-                        x[path_index].append((entry[2]-self.start_stamp).to_sec())
-                    path_index +=  1
-            path_index = 0
-            for path in self.paths_on:
-                self.plot.clear_values(path)
-                self.plot.update_values(path, x[path_index], y[path_index])
-                path_index += 1
+            self.resample_data(self.paths_on, limits, timestep)
         self.plot.redraw()
 
     def remove_plot(self, path):
@@ -260,9 +248,45 @@ class PlotWidget(QWidget):
         self.paths_on.remove(path)
         self.plot.redraw()
 
-    def load_data(self,startoffset,endoffset):
-        self.msgdata=self.bag.read_messages(self.msgtopic,
+    def load_data(self, startoffset, endoffset):
+        """get a generator for the specified time range on our bag"""
+        return self.bag.read_messages(self.msgtopic,
                 self.start_stamp+startoffset,self.end_stamp-endoffset)
+
+    def resample_data(self, fields, limits, timestep):
+        # TODO: is it possible to make this faster by using numpy?
+        x = {}
+        y = {}
+        for path in fields:
+            x[path] = []
+            y[path] = []
+
+        msgdata = self.load_data(rospy.Duration.from_sec(limits[0]),rospy.Duration.from_sec((self.end_stamp-self.start_stamp).to_sec()-limits[1]))
+
+        for entry in msgdata:
+            # entry is (topic, msg, time)
+            for path in fields:
+                if x[path]==[] or (entry[2]-self.start_stamp).to_sec()-x[path][-1] >= timestep:
+                    y_value = entry[1]
+                    for field in path.split('.'):
+                        y_value = getattr(y_value, field)
+                    y[path].append(y_value)
+                    x[path].append((entry[2]-self.start_stamp).to_sec())
+
+            # TODO: incremental plot updates would go here...
+
+        # update the plot with final resampled data
+        for path in fields:
+            if len(x[path]) < 1:
+                qWarning("Resampling resulted in 0 data points for %s" % path)
+            else:
+                if path in self.paths_on:
+                    self.plot.clear_values(path)
+                    self.plot.update_values(path, x[path], y[path])
+                else:
+                    self.plot.add_curve(path, path, x[path], y[path])
+                    self.paths_on.add(path)
+
 
     def on_motion(self, event):
         # TODO: create a signal in DataPlot for this to connect to
@@ -307,6 +331,10 @@ class PlotWidget(QWidget):
         # TODO: re-add the button for this. It's useful for restoring the
         #       X and Y limits so that we can see all of the data
         #       effectively a "zoom all" button
+        # TODO: use the bag region of interest for this, rather than resetting
+        #       the limits
+        #       explicitly reset the Y limits. the plot backend probably needs
+        #       an API for this
         limits = [0,(self.end_stamp-self.start_stamp).to_sec()]
         if self.auto_res.isChecked():
             timestep = round((limits[1]-limits[0])/200.0,5)
