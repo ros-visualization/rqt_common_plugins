@@ -71,7 +71,7 @@ from rqt_bag import MessageView
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, qWarning, Signal
-from python_qt_binding.QtGui import QWidget, QSplitter, QVBoxLayout, QPushButton, QTreeWidget, QTreeWidgetItem, QSizePolicy, QDoubleValidator
+from python_qt_binding.QtGui import QWidget, QSplitter, QVBoxLayout, QPushButton, QTreeWidget, QTreeWidgetItem, QSizePolicy, QDoubleValidator, QIcon
 
 from rqt_plot.data_plot import DataPlot
 
@@ -147,9 +147,15 @@ class PlotWidget(QWidget):
         self.plot.set_xlim(self.limits)
         self.data_plot_layout.addWidget(self.plot)
 
+        self._home_button = QPushButton()
+        self._home_button.setToolTip("Reset View")
+        self._home_button.setIcon(QIcon.fromTheme('go-home'))
+        self._home_button.clicked.connect(self.home)
+        self.plot_toolbar_layout.addWidget(self._home_button)
+
         self._config_button = QPushButton("Configure Plot")
-        self.plot_toolbar_layout.addWidget(self._config_button)
         self._config_button.clicked.connect(self.plot.doSettingsDialog)
+        self.plot_toolbar_layout.addWidget(self._config_button)
 
         self.set_cursor(0)
 
