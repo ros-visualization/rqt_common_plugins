@@ -49,7 +49,6 @@ class QwtDataPlot(Qwt.QwtPlot):
     _num_value_saved = 1000
     _num_values_ploted = 1000
 
-    replot_needed = Signal()
     limits_changed = Signal()
 
     def __init__(self, *args):
@@ -58,7 +57,6 @@ class QwtDataPlot(Qwt.QwtPlot):
         self.insertLegend(Qwt.QwtLegend(), Qwt.QwtPlot.BottomLegend)
 
         self._curves = {}
-        self.replot_needed.connect(self.replot)
 
         # TODO: rejigger these internal data structures so that they're easier
         # to work with, and easier to use with set_xlim and set_ylim
@@ -141,14 +139,10 @@ class QwtDataPlot(Qwt.QwtPlot):
 
     def set_values(self, curve_id, data_x, data_y):
         curve = self._curves[curve_id]
-        print "qwtplot set data"
-        # this probably isn't thread-safe
         curve.setData(data_x, data_y)
 
     def redraw(self):
-        #self.replot()
-        print "qwtplot redraw"
-        self.replot_needed.emit()
+        self.replot()
 
     # ----------------------------------------------
     # begin qwtplot internal methods
