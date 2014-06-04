@@ -167,7 +167,7 @@ class PlotWidget(QWidget):
 
     @Slot()
     def on_clear_button_clicked(self):
-        self.clean_up_subscribers()
+        self.clear_plot()
 
     def update_plot(self):
         if self.data_plot is not None:
@@ -188,6 +188,7 @@ class PlotWidget(QWidget):
         if not self.pause_button.isChecked():
             # if pause button is not pressed, enable timer based on subscribed topics
             self.enable_timer(self._rosdata)
+        self.data_plot.redraw()
 
     def _update_remove_topic_menu(self):
         def make_remove_topic_function(x):
@@ -198,6 +199,11 @@ class PlotWidget(QWidget):
             action = QAction(topic_name, self._remove_topic_menu)
             action.triggered.connect(make_remove_topic_function(topic_name))
             self._remove_topic_menu.addAction(action)
+
+        if len(self._rosdata) > 1:
+            all_action = QAction('All', self._remove_topic_menu)
+            all_action.triggered.connect(self.clean_up_subscribers)
+            self._remove_topic_menu.addAction(all_action)
 
         self.remove_topic_button.setMenu(self._remove_topic_menu)
 
@@ -222,6 +228,11 @@ class PlotWidget(QWidget):
         self.data_plot.remove_curve(topic_name)
 
         self._subscribed_topics_changed()
+
+    def clear_plot(self):
+        for topic_name, _ in self._rosdata.items():
+            self.data_plot.clear_values(topic_name)
+        self.data_plot.redraw()
 
     def clean_up_subscribers(self):
         for topic_name, rosdata in self._rosdata.items():
