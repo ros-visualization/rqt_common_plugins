@@ -270,7 +270,7 @@ class DoubleEditor(EditorWidget):
             self._max = 1e10000
             self._max_val_label.setText('inf')
 
-        if config['min'] != -float('inf') and config['max'] != -float('inf'):
+        if config['min'] != -float('inf') and config['max'] != float('inf'):
             self._func = lambda x: x
             self._ifunc = self._func
         else:
