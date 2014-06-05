@@ -92,7 +92,10 @@ class Player(QObject):
 
     def create_publisher(self, topic, msg):
         try:
-            self._publishers[topic] = rospy.Publisher(topic, type(msg), queue_size=100)
+            try:
+                self._publishers[topic] = rospy.Publisher(topic, type(msg), queue_size=100)
+            except TypeError:
+                self._publishers[topic] = rospy.Publisher(topic, type(msg))
             return True
         except Exception as ex:
             # Any errors, stop listening/publishing to this topic
