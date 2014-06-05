@@ -121,7 +121,9 @@ class Plot(Plugin):
         instance_settings.set_value('topics', pack(self._widget._rosdata.keys()))
 
     def restore_settings(self, plugin_settings, instance_settings):
-        self._widget.autoscroll_checkbox.setChecked(instance_settings.value('autoscroll', True) in [True, 'true'])
+        autoscroll = instance_settings.value('autoscroll', True) in [True, 'true']
+        self._widget.autoscroll_checkbox.setChecked(autoscroll)
+        self._data_plot.autoscroll(autoscroll)
 
         self._data_plot.restore_settings(plugin_settings, instance_settings)
         self._update_title()
