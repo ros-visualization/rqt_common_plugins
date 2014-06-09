@@ -131,6 +131,7 @@ class QwtDataPlot(Qwt.QwtPlot):
             'data': zeros(self._num_value_saved),
             'object': curve_object,
         }
+        self.update_values(curve_id, values_x, values_y)
 
     def remove_curve(self, curve_id):
         curve_id = str(curve_id)
@@ -153,6 +154,11 @@ class QwtDataPlot(Qwt.QwtPlot):
             # TODO: use value_x as timestamp
             self._curves[curve_id]['data'] = concatenate((self._curves[curve_id]['data'][1:], self._curves[curve_id]['data'][:1]), 1)
             self._curves[curve_id]['data'][-1] = float(value_y)
+
+    def clear_values(self, curve_id):
+        curve_id = str(curve_id)
+        curve = self._curves[curve_id]
+        curve['data'] = zeros(self._num_value_saved)
 
     def redraw(self):
         for curve_id in self._curves.keys():

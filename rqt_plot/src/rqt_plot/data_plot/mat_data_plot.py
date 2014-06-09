@@ -135,6 +135,13 @@ class MatDataPlot(QWidget):
                 ymax = max(ymax, range_y[1])
             range_y[1] = ymax
 
+    def clear_values(self, curve_id):
+        data_x, data_y, _, range_y = self._curves[curve_id]
+        del data_x[:]
+        del data_y[:]
+        range_y[0] = None
+        range_y[1] = None
+
     def redraw(self):
         self._canvas.axes.grid(True, color='gray')
         # Set axis bounds
