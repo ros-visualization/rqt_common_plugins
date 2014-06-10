@@ -53,6 +53,12 @@ class Plot(Plugin):
         self._args = self._parse_args(context.argv())
         self._widget = PlotWidget(initial_topics=self._args.topics, start_paused=self._args.start_paused)
         self._data_plot = DataPlot(self._widget)
+
+        # disable autoscaling of X, and set a sane default range
+        self._data_plot.set_autoscale(x=False)
+        self._data_plot.set_autoscale(y=DataPlot.SCALE_EXTEND|DataPlot.SCALE_VISIBLE)
+        self._data_plot.set_xlim([0, 10.0])
+
         self._widget.switch_data_plot_widget(self._data_plot)
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
@@ -115,7 +121,9 @@ class Plot(Plugin):
         instance_settings.set_value('topics', pack(self._widget._rosdata.keys()))
 
     def restore_settings(self, plugin_settings, instance_settings):
-        self._widget.autoscroll_checkbox.setChecked(instance_settings.value('autoscroll', True) in [True, 'true'])
+        autoscroll = instance_settings.value('autoscroll', True) in [True, 'true']
+        self._widget.autoscroll_checkbox.setChecked(autoscroll)
+        self._data_plot.autoscroll(autoscroll)
 
         self._data_plot.restore_settings(plugin_settings, instance_settings)
         self._update_title()

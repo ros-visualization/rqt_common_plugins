@@ -30,7 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from python_qt_binding.QtCore import Slot, Qt
+from python_qt_binding.QtCore import Slot, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QColor, QVBoxLayout, QWidget
 
 from pyqtgraph import PlotWidget, mkPen
@@ -39,6 +39,8 @@ import numpy
 
 class PyQtGraphDataPlot(QWidget):
     _colors = [Qt.red, Qt.blue, Qt.magenta, Qt.cyan, Qt.green, Qt.darkYellow, Qt.black, Qt.darkRed, Qt.gray, Qt.darkCyan]
+
+    limits_changed = Signal()
 
     def __init__(self, parent=None):
         super(PyQtGraphDataPlot, self).__init__(parent)
@@ -49,63 +51,59 @@ class PyQtGraphDataPlot(QWidget):
         vbox = QVBoxLayout()
         vbox.addWidget(self._plot_widget)
         self.setLayout(vbox)
+        self._plot_widget.getPlotItem().sigRangeChanged.connect(self.limits_changed)
 
-        self._autoscroll = False
         self._color_index = 0
         self._curves = {}
+        self._current_vline = None
 
-    def add_curve(self, curve_id, curve_name, data_x, data_y):
+    def add_curve(self, curve_id, curve_name):
         color = QColor(self._colors[self._color_index % len(self._colors)])
         self._color_index += 1
         pen = mkPen(color, width=2)
         # this adds the item to the plot and legend
         plot = self._plot_widget.plot(name=curve_name, pen=pen)
-        data_x = numpy.array(data_x)
-        data_y = numpy.array(data_y)
-        self._curves[curve_id] = {'x': data_x, 'y': data_y, 'plot': plot}
+        self._curves[curve_id] = plot
 
     def remove_curve(self, curve_id):
         curve_id = str(curve_id)
         if curve_id in self._curves:
-            self._plot_widget.getPlotItem().removeItem(self._curves[curve_id]['plot'])
+            self._plot_widget.removeItem(self._curves[curve_id])
             del self._curves[curve_id]
             self._update_legend()
            
     def _update_legend(self):
         # clear and rebuild legend (there is no remove item method for the legend...)
-        self._plot_widget.getPlotItem().clear()
+        self._plot_widget.clear()
         self._plot_widget.getPlotItem().legend.items = []
         for curve in self._curves.values():
-            self._plot_widget.getPlotItem().addItem(curve['plot'])
+            self._plot_widget.addItem(curve)
+        if self._current_vline:
+            self._plot_widget.addItem(self._current_vline)
  
-    @Slot(str, list, list)
-    def update_values(self, curve_id, x, y):
-        curve = self._curves[curve_id]
-        curve['x'] = numpy.append(curve['x'], x)
-        curve['y'] = numpy.append(curve['y'], y)
-
-    def clear_values(self, curve_id):
-        curve = self._curves[curve_id]
-        curve['x'] = numpy.array([])
-        curve['y'] = numpy.array([])
-
-    def autoscroll(self, enabled=True):
-        self._autoscroll = enabled
-
     def redraw(self):
-        for curve in self._curves.values():
-            curve['plot'].setData(curve['x'], curve['y'])
+        pass
 
-        if self._autoscroll:
-            # Set axis bounds
-            x_range, _ = self._plot_widget.viewRange()
-            x_delta = x_range[1] - x_range[0]
-            x_max = 0
+    def set_values(self, curve_id, data_x, data_y):
+        curve = self._curves[curve_id]
+        curve.setData(data_x, data_y)
 
-            for curve in self._curves.values():
-                if len(curve['x']) == 0:
-                    continue
-                x_max = max(x_max, curve['x'][-1])
+    def vline(self, x, color):
+        if self._current_vline:
+            self._plot_widget.removeItem(self._current_vline)
+        self._current_vline = self._plot_widget.addLine(x=x, pen=color)
 
-            self._plot_widget.setXRange(x_max - x_delta, x_max, padding=0)
+    def set_xlim(self, limits):
+        # TODO: this doesn't seem to handle fast updates well
+        self._plot_widget.setXRange(limits[0], limits[1], padding=0)
 
+    def set_ylim(self, limits):
+        self._plot_widget.setYRange(limits[0], limits[1], padding=0)
+
+    def get_xlim(self):
+        x_range, _ = self._plot_widget.viewRange()
+        return x_range
+
+    def get_ylim(self):
+        _, y_range = self._plot_widget.viewRange()
+        return y_range

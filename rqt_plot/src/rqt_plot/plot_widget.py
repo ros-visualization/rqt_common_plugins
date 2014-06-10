@@ -162,6 +162,8 @@ class PlotWidget(QWidget):
     @Slot(bool)
     def on_autoscroll_checkbox_clicked(self, checked):
         self.data_plot.autoscroll(checked)
+        if checked:
+            self.data_plot.redraw()
 
     @Slot()
     def on_clear_button_clicked(self):

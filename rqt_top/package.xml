@@ -6,7 +6,6 @@
 
   <author email="dan@lazewatsky.com">Dan Lazewatsky</author>
   <maintainer email="dan@lazewatsky.com">Dan Lazewatsky</maintainer>
-  <maintainer email="isao.saito@mavs.uta.edu">Isaac Saito</maintainer>
   <license>BSD</license>
 
   <url type="website">http://ros.org/wiki/rqt_top</url>

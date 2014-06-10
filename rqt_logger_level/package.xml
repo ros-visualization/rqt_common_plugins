@@ -6,7 +6,6 @@
   rqt_logger_level takes over `wx`-based tool [[rxloggerlevel]].
   </description>
   <maintainer email="ablasdel@willowgarage.com">Aaron Blasdel</maintainer>
-  <maintainer email="isao.saito@mavs.uta.edu">Isaac Saito</maintainer>
 
   <license>BSD</license>
 

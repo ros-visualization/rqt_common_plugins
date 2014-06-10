@@ -31,7 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
-from python_qt_binding.QtCore import qDebug, QPointF, QRectF, Qt, qWarning
+from python_qt_binding.QtCore import qDebug, QPointF, QRectF, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QBrush, QCursor, QColor, QFont, \
                                     QFontMetrics, QGraphicsItem, QPen, \
                                     QPolygonF
@@ -68,6 +68,7 @@ class TimelineFrame(QGraphicsItem):
     (time delimiters, labels, topic names and backgrounds).
     Also handles mouse callbacks since they interact closely with the drawn elements
     """
+
     def __init__(self):
         super(TimelineFrame, self).__init__()
 
@@ -250,6 +251,9 @@ class TimelineFrame(QGraphicsItem):
             return (rospy.Time.from_sec(self._selected_left), rospy.Time.from_sec(self._selected_right))
         else:
             return (self._start_stamp, self._end_stamp)
+
+    def emit_play_region(self):
+        self.scene().selected_region_changed.emit(*self.play_region)
 
     @property
     def start_stamp(self):
@@ -909,6 +913,8 @@ class TimelineFrame(QGraphicsItem):
         self._selected_right = None
         self._selecting_mode = _SelectionMode.NONE
 
+        self.emit_play_region()
+
         if self._stamp_left is not None:
             self.playhead = rospy.Time.from_sec(self._stamp_left)
 
@@ -1039,6 +1045,7 @@ class TimelineFrame(QGraphicsItem):
                     self._selected_right = None
                     self._selecting_mode = _SelectionMode.LEFT_MARKED
                     self.scene().update()
+                    self.emit_play_region()
 
                 elif self._selecting_mode == _SelectionMode.MARKED:
                     left_x = self.map_stamp_to_x(self._selected_left)
@@ -1048,6 +1055,7 @@ class TimelineFrame(QGraphicsItem):
                         self._selected_right = None
                         self._selecting_mode = _SelectionMode.LEFT_MARKED
                         self.scene().update()
+                    self.emit_play_region()
                 elif self._selecting_mode == _SelectionMode.SHIFTING:
                     self.scene().views()[0].setCursor(QCursor(Qt.ClosedHandCursor))
 
@@ -1139,6 +1147,7 @@ class TimelineFrame(QGraphicsItem):
                         self._selected_left = max(self._start_stamp.to_sec(), min(self._end_stamp.to_sec(), self._selected_left + dstamp))
                         self._selected_right = max(self._start_stamp.to_sec(), min(self._end_stamp.to_sec(), self._selected_right + dstamp))
                         self.scene().update()
+                    self.emit_play_region()
 
                 elif clicked_x >= self._history_left and clicked_x <= self._history_right and clicked_y >= self._history_top and clicked_y <= self._history_bottom:
                     # Left and clicked within timeline: change playhead

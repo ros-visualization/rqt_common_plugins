@@ -42,7 +42,7 @@ if QT_BINDING == 'pyside':
     if parse_version(QT_BINDING_VERSION) <= parse_version('1.1.2'):
         raise ImportError('A PySide version newer than 1.1.0 is required.')
 
-from python_qt_binding.QtCore import Slot, Qt
+from python_qt_binding.QtCore import Slot, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QWidget, QVBoxLayout, QSizePolicy, QColor
 
 import operator
@@ -81,6 +81,8 @@ class MatDataPlot(QWidget):
 
     _colors = [Qt.red, Qt.blue, Qt.magenta, Qt.cyan, Qt.green, Qt.darkYellow, Qt.black, Qt.darkRed, Qt.gray, Qt.darkCyan]
 
+    limits_changed = Signal()
+
     def __init__(self, parent=None):
         super(MatDataPlot, self).__init__(parent)
         self._canvas = MatDataPlot.Canvas()
@@ -92,23 +94,28 @@ class MatDataPlot(QWidget):
 
         self._color_index = 0
         self._curves = {}
-        self._autoscroll = False
+        self._current_vline = None
+        self._canvas.mpl_connect('button_release_event', self._limits_changed)
 
-    def autoscroll(self, enabled=True):
-        self._autoscroll = enabled
+    def _limits_changed(self, event):
+        self.limits_changed.emit()
 
-    def add_curve(self, curve_id, curve_name, x, y):
+    def add_curve(self, curve_id, curve_name):
         color = QColor(self._colors[self._color_index % len(self._colors)])
         self._color_index += 1
+        # adding an empty curve and change the limits, so save and restore them
+        x_limits = self.get_xlim()
+        y_limits = self.get_ylim()
         line = self._canvas.axes.plot([], [], label=curve_name, linewidth=1, picker=5, color=color.name())[0]
-        self._curves[curve_id] = ([], [], line, [None, None])
-        self.update_values(curve_id, x, y)
+        self._curves[curve_id] = line
         self._update_legend()
+        self.set_xlim(x_limits)
+        self.set_ylim(y_limits)
 
     def remove_curve(self, curve_id):
         curve_id = str(curve_id)
         if curve_id in self._curves:
-            self._curves[curve_id][2].remove()
+            self._curves[curve_id].remove()
             del self._curves[curve_id]
             self._update_legend()
 
@@ -119,55 +126,29 @@ class MatDataPlot(QWidget):
             handles, labels = zip(*hl)
         self._canvas.axes.legend(handles, labels, loc='upper left')
 
-    @Slot(str, list, list)
-    def update_values(self, curve_id, x, y):
-        data_x, data_y, line, range_y = self._curves[curve_id]
-        data_x.extend(x)
-        data_y.extend(y)
+    def set_values(self, curve, data_x, data_y):
+        line = self._curves[curve]
         line.set_data(data_x, data_y)
-        if y:
-            ymin = min(y)
-            if range_y[0]:
-                ymin = min(ymin, range_y[0])
-            range_y[0] = ymin
-            ymax = max(y)
-            if range_y[1]:
-                ymax = max(ymax, range_y[1])
-            range_y[1] = ymax
-
-    def clear_values(self, curve_id):
-        data_x, data_y, _, range_y = self._curves[curve_id]
-        del data_x[:]
-        del data_y[:]
-        range_y[0] = None
-        range_y[1] = None
 
     def redraw(self):
         self._canvas.axes.grid(True, color='gray')
-        # Set axis bounds
-        ymin = ymax = None
-        xmax = 0
-        for curve in self._curves.values():
-            data_x, _, _, range_y = curve
-            if len(data_x) == 0:
-                continue
-
-            xmax = max(xmax, data_x[-1])
-
-            if ymin is None:
-                ymin = range_y[0]
-                ymax = range_y[1]
-            else:
-                ymin = min(range_y[0], ymin)
-                ymax = max(range_y[1], ymax)
-
-        if self._autoscroll and ymin is not None:
-            # pad the min/max
-            delta = ymax - ymin if ymax != ymin else 0.1
-            ymin -= .05 * delta
-            ymax += .05 * delta
-
-            self._canvas.axes.set_xbound(lower=xmax - 5, upper=xmax)
-            self._canvas.axes.set_ybound(lower=ymin, upper=ymax)
-
         self._canvas.draw()
+
+    def vline(self, x, color):
+        # convert color range from (0,255) to (0,1.0) 
+        matcolor=(color[0]/255.0, color[1]/255.0, color[2]/255.0)
+        if self._current_vline:
+            self._current_vline.remove()
+        self._current_vline = self._canvas.axes.axvline(x=x, color=matcolor)
+
+    def set_xlim(self, limits):
+        self._canvas.axes.set_xbound(lower=limits[0], upper=limits[1])
+
+    def set_ylim(self, limits):
+        self._canvas.axes.set_ybound(lower=limits[0], upper=limits[1])
+
+    def get_xlim(self):
+        return list(self._canvas.axes.get_xbound())
+
+    def get_ylim(self):
+        return list(self._canvas.axes.get_ybound())

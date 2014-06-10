@@ -35,7 +35,7 @@ from __future__ import division
 import math
 import sys
 
-from python_qt_binding.QtCore import QEvent, QPointF, Qt, SIGNAL, Signal, Slot
+from python_qt_binding.QtCore import QEvent, QPointF, Qt, SIGNAL, Signal, Slot, qWarning
 from python_qt_binding.QtGui import QPen, QVector2D
 import Qwt
 
@@ -49,21 +49,30 @@ class QwtDataPlot(Qwt.QwtPlot):
     _num_value_saved = 1000
     _num_values_ploted = 1000
 
+    limits_changed = Signal()
+
     def __init__(self, *args):
         super(QwtDataPlot, self).__init__(*args)
         self.setCanvasBackground(Qt.white)
         self.insertLegend(Qwt.QwtLegend(), Qwt.QwtPlot.BottomLegend)
 
         self._curves = {}
-        self._data_offset_x = 0
-        self._canvas_offset_x = 0
-        self._canvas_offset_y = 0
+
+        # TODO: rejigger these internal data structures so that they're easier
+        # to work with, and easier to use with set_xlim and set_ylim
+        #  this may also entail rejiggering the _time_axis so that it's
+        #  actually time axis data, or just isn't required any more
+        # new data structure
+        self._x_limits = [0.0, 10.0]
+        self._y_limits = [0.0, 10.0]
+
+        # old data structures
         self._last_canvas_x = 0
         self._last_canvas_y = 0
         self._pressed_canvas_y = 0
+        self._pressed_canvas_x = 0
         self._last_click_coordinates = None
         self._color_index = 0
-        self._autoscroll = False
 
         marker_axis_y = Qwt.QwtPlotMarker()
         marker_axis_y.setLabelAlignment(Qt.AlignRight | Qt.AlignTop)
@@ -79,12 +88,8 @@ class QwtDataPlot(Qwt.QwtPlot):
         self._picker.setTrackerPen(QPen(self._colors[-1]))
 
         # Initialize data
-        self._time_axis = arange(self._num_values_ploted)
-        self._canvas_display_height = 1000
-        self._canvas_display_width = self.canvas().width()
-        self._data_offset_x = self._num_value_saved - len(self._time_axis)
-        self.redraw()
-        self.move_canvas(0, 0)
+        self.rescale()
+        #self.move_canvas(0, 0)
         self.canvas().setMouseTracking(True)
         self.canvas().installEventFilter(self)
 
@@ -93,6 +98,7 @@ class QwtDataPlot(Qwt.QwtPlot):
             x = self.invTransform(Qwt.QwtPlot.xBottom, event.pos().x())
             y = self.invTransform(Qwt.QwtPlot.yLeft, event.pos().y())
             self._last_click_coordinates = QPointF(x, y)
+            self.limits_changed.emit()
         elif event.type() == QEvent.MouseMove:
             x = self.invTransform(Qwt.QwtPlot.xBottom, event.pos().x())
             y = self.invTransform(Qwt.QwtPlot.yLeft, event.pos().y())
@@ -111,93 +117,76 @@ class QwtDataPlot(Qwt.QwtPlot):
         self.emit(SIGNAL('logMessage'), level, message)
 
     def resizeEvent(self, event):
-        #super(QwtDataPlot, self).resizeEvent(event)
         Qwt.QwtPlot.resizeEvent(self, event)
         self.rescale()
 
-    def autoscroll(self, enabled=True):
-        self._autoscroll = enabled
-
-    def add_curve(self, curve_id, curve_name, values_x, values_y):
+    def add_curve(self, curve_id, curve_name):
         curve_id = str(curve_id)
-        if self._curves.get(curve_id):
+        if curve_id in self._curves:
             return
         curve_object = Qwt.QwtPlotCurve(curve_name)
         curve_object.attach(self)
         curve_object.setPen(QPen(self._colors[self._color_index % len(self._colors)]))
         self._color_index += 1
-        self._curves[curve_id] = {
-            'name': curve_name,
-            'data': zeros(self._num_value_saved),
-            'object': curve_object,
-        }
-        self.update_values(curve_id, values_x, values_y)
+        self._curves[curve_id] = curve_object
 
     def remove_curve(self, curve_id):
         curve_id = str(curve_id)
         if curve_id in self._curves:
-            self._curves[curve_id]['object'].hide()
-            self._curves[curve_id]['object'].attach(None)
-            del self._curves[curve_id]['object']
+            self._curves[curve_id].hide()
+            self._curves[curve_id].attach(None)
             del self._curves[curve_id]
 
-    @Slot(str, list, list)
-    def update_values(self, curve_id, values_x, values_y):
-        for value_x, value_y in zip(values_x, values_y):
-            self.update_value(curve_id, value_x, value_y)
-
-    @Slot(str, float, float)
-    def update_value(self, curve_id, value_x, value_y):
-        curve_id = str(curve_id)
-        # update data plot
-        if curve_id in self._curves:
-            # TODO: use value_x as timestamp
-            self._curves[curve_id]['data'] = concatenate((self._curves[curve_id]['data'][1:], self._curves[curve_id]['data'][:1]), 1)
-            self._curves[curve_id]['data'][-1] = float(value_y)
-
-    def clear_values(self, curve_id):
-        curve_id = str(curve_id)
+    def set_values(self, curve_id, data_x, data_y):
         curve = self._curves[curve_id]
-        curve['data'] = zeros(self._num_value_saved)
+        curve.setData(data_x, data_y)
 
     def redraw(self):
-        for curve_id in self._curves.keys():
-            self._curves[curve_id]['object'].setData(self._time_axis, self._curves[curve_id]['data'][self._data_offset_x: self._data_offset_x + len(self._time_axis)])
-            #self._curves[curve_id]['object'].setStyle(Qwt.QwtPlotCurve.CurveStyle(3))
         self.replot()
 
+    # ----------------------------------------------
+    # begin qwtplot internal methods
+    # ----------------------------------------------
     def rescale(self):
-        y_num_ticks = self.height() / 40
-        y_lower_limit = self._canvas_offset_y - (self._canvas_display_height / 2)
-        y_upper_limit = self._canvas_offset_y + (self._canvas_display_height / 2)
+        self.setAxisScale(Qwt.QwtPlot.yLeft,
+                          self._y_limits[0],
+                          self._y_limits[1])
+        self.setAxisScale(Qwt.QwtPlot.xBottom,
+                          self._x_limits[0],
+                          self._x_limits[1])
 
-        # calculate a fitting step size for nice, round tick labels, depending on the displayed value area
-        y_delta = y_upper_limit - y_lower_limit
-        exponent = int(math.log10(y_delta))
-        presicion = -(exponent - 2)
-        y_step_size = round(y_delta / y_num_ticks, presicion)
-
-        self.setAxisScale(Qwt.QwtPlot.yLeft, y_lower_limit, y_upper_limit, y_step_size)
-        self.setAxisScale(Qwt.QwtPlot.xBottom, 0, len(self._time_axis))
-
+        self._canvas_display_height = self._y_limits[1] - self._y_limits[0]
+        self._canvas_display_width  = self._x_limits[1] - self._x_limits[0]
         self.redraw()
 
     def rescale_axis_x(self, delta__x):
-        new_len = len(self._time_axis) + delta__x
-        new_len = max(10, min(new_len, self._num_value_saved))
-        self._time_axis = arange(new_len)
-        self._data_offset_x = max(0, min(self._data_offset_x, self._num_value_saved - len(self._time_axis)))
+        """
+        add delta_x to the length of the x axis
+        """
+        x_width = self._x_limits[1] - self._x_limits[0]
+        x_width += delta__x
+        self._x_limits[1] = x_width + self._x_limits[0]
         self.rescale()
 
     def scale_axis_y(self, max_value):
-        self._canvas_display_height = max_value
+        """
+        set the y axis height to max_value, about the current center
+        """
+        canvas_display_height = max_value
+        canvas_offset_y = (self._y_limits[1] + self._y_limits[0])/2.0
+        y_lower_limit = canvas_offset_y - (canvas_display_height / 2)
+        y_upper_limit = canvas_offset_y + (canvas_display_height / 2)
+        self._y_limits = [y_lower_limit, y_upper_limit]
         self.rescale()
 
     def move_canvas(self, delta_x, delta_y):
-        self._data_offset_x += delta_x * len(self._time_axis) / float(self.canvas().width())
-        self._data_offset_x = max(0, min(self._data_offset_x, self._num_value_saved - len(self._time_axis)))
-        self._canvas_offset_x += delta_x * self._canvas_display_width / self.canvas().width()
-        self._canvas_offset_y += delta_y * self._canvas_display_height / self.canvas().height()
+        """
+        move the canvas by delta_x and delta_y in SCREEN COORDINATES
+        """
+        canvas_offset_x = delta_x * self._canvas_display_width / self.canvas().width()
+        canvas_offset_y = delta_y * self._canvas_display_height / self.canvas().height()
+        self._x_limits = [ l + canvas_offset_x for l in self._x_limits]
+        self._y_limits = [ l + canvas_offset_y for l in self._y_limits]
         self.rescale()
 
     def mousePressEvent(self, event):
@@ -222,11 +211,33 @@ class QwtDataPlot(Qwt.QwtPlot):
         self._last_canvas_y = canvas_y
 
     def wheelEvent(self, event):  # mouse wheel zooms the y-axis
+        # y position of pointer in graph coordinates
         canvas_y = event.y() - self.canvas().y()
+
         zoom_factor = max(-0.6, min(0.6, (event.delta() / 120) / 6.0))
         delta_y = (self.canvas().height() / 2.0) - canvas_y
         self.move_canvas(0, zoom_factor * delta_y * 1.0225)
+
         self.scale_axis_y(max(0.0005, self._canvas_display_height - zoom_factor * self._canvas_display_height))
+        self.limits_changed.emit()
+
+
+    def vline(self, x, color):
+        qWarning("QwtDataPlot.vline is not implemented yet")
+
+    def set_xlim(self, limits):
+        self.setAxisScale(Qwt.QwtPlot.xBottom, limits[0], limits[1])
+        self._x_limits = limits
+
+    def set_ylim(self, limits):
+        self.setAxisScale(Qwt.QwtPlot.yLeft, limits[0], limits[1])
+        self._y_limits = limits
+
+    def get_xlim(self):
+        return self._x_limits
+
+    def get_ylim(self):
+        return self._y_limits
 
 
 if __name__ == '__main__':

@@ -157,7 +157,7 @@ class TimelinePopupMenu(QMenu):
 
                 viewer_type = action.data()
 
-                view = viewer_type(self.timeline, frame)
+                view = viewer_type(self.timeline, frame, str(topic))
 
                 self.timeline.popups[popup_name] = frame
                 self.timeline.get_context().add_widget(frame)
