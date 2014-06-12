@@ -79,8 +79,6 @@ class MatDataPlot(QWidget):
             super(MatDataPlot.Canvas, self).resizeEvent(event)
             self.figure.tight_layout()
 
-    _colors = [Qt.red, Qt.blue, Qt.magenta, Qt.cyan, Qt.green, Qt.darkYellow, Qt.black, Qt.darkRed, Qt.gray, Qt.darkCyan]
-
     limits_changed = Signal()
 
     def __init__(self, parent=None):
@@ -92,7 +90,6 @@ class MatDataPlot(QWidget):
         vbox.addWidget(self._canvas)
         self.setLayout(vbox)
 
-        self._color_index = 0
         self._curves = {}
         self._current_vline = None
         self._canvas.mpl_connect('button_release_event', self._limits_changed)
@@ -100,13 +97,16 @@ class MatDataPlot(QWidget):
     def _limits_changed(self, event):
         self.limits_changed.emit()
 
-    def add_curve(self, curve_id, curve_name):
-        color = QColor(self._colors[self._color_index % len(self._colors)])
-        self._color_index += 1
+    def add_curve(self, curve_id, curve_name, curve_color=QColor(Qt.blue), markers_on=False):
+
         # adding an empty curve and change the limits, so save and restore them
         x_limits = self.get_xlim()
         y_limits = self.get_ylim()
-        line = self._canvas.axes.plot([], [], label=curve_name, linewidth=1, picker=5, color=color.name())[0]
+        if markers_on:
+            marker_size = 3
+        else:
+            marker_size = 0
+        line = self._canvas.axes.plot([], [], 'o-', markersize=marker_size, label=curve_name, linewidth=1, picker=5, color=curve_color.name())[0]
         self._curves[curve_id] = line
         self._update_legend()
         self.set_xlim(x_limits)

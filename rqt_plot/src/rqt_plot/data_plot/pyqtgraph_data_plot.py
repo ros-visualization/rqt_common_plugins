@@ -33,12 +33,11 @@
 from python_qt_binding.QtCore import Slot, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QColor, QVBoxLayout, QWidget
 
-from pyqtgraph import PlotWidget, mkPen
+from pyqtgraph import PlotWidget, mkPen, mkBrush
 import numpy
 
 
 class PyQtGraphDataPlot(QWidget):
-    _colors = [Qt.red, Qt.blue, Qt.magenta, Qt.cyan, Qt.green, Qt.darkYellow, Qt.black, Qt.darkRed, Qt.gray, Qt.darkCyan]
 
     limits_changed = Signal()
 
@@ -53,16 +52,19 @@ class PyQtGraphDataPlot(QWidget):
         self.setLayout(vbox)
         self._plot_widget.getPlotItem().sigRangeChanged.connect(self.limits_changed)
 
-        self._color_index = 0
         self._curves = {}
         self._current_vline = None
 
-    def add_curve(self, curve_id, curve_name):
-        color = QColor(self._colors[self._color_index % len(self._colors)])
-        self._color_index += 1
-        pen = mkPen(color, width=2)
+    def add_curve(self, curve_id, curve_name, curve_color=QColor(Qt.blue), markers_on=False):
+        pen = mkPen(curve_color, width=1)
+        symbol = "o"
+        symbolPen = mkPen(QColor(Qt.black))
+        symbolBrush = mkBrush(curve_color)
         # this adds the item to the plot and legend
-        plot = self._plot_widget.plot(name=curve_name, pen=pen)
+        if markers_on:
+            plot = self._plot_widget.plot(name=curve_name, pen=pen, symbol=symbol, symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=4)
+        else:
+            plot = self._plot_widget.plot(name=curve_name, pen=pen)
         self._curves[curve_id] = plot
 
     def remove_curve(self, curve_id):
