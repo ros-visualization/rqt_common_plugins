@@ -34,7 +34,7 @@
 import numpy
 
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
-from python_qt_binding.QtCore import qWarning, Signal
+from python_qt_binding.QtCore import qDebug, qWarning, Signal
 from python_qt_binding.QtGui import QWidget, QHBoxLayout
 
 try:
