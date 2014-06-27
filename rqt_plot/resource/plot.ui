@@ -131,7 +131,7 @@
         </sizepolicy>
        </property>
        <property name="toolTip">
-        <string>remove all topics</string>
+        <string>clear plot</string>
        </property>
        <property name="iconSize">
         <size>
