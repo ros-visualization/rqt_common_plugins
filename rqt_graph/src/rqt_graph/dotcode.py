@@ -40,7 +40,6 @@ import roslib
 import math
 
 import rospy
-from rosgraph_msgs.msg import TopicStatistics
 import pydot
 
 # node/node connectivity
@@ -79,7 +78,12 @@ class RosGraphDotcodeGenerator:
     nodes = dict([])
 
     def __init__(self):
-        self.stats_sub = rospy.Subscriber('/statistics', TopicStatistics, self.statistics_callback)
+        try:
+            from rosgraph_msgs.msg import TopicStatistics
+            self.stats_sub = rospy.Subscriber('/statistics', TopicStatistics, self.statistics_callback)
+        except ImportError:
+            # not supported before Indigo
+            pass
 
     def statistics_callback(self,msg):
 
