@@ -246,7 +246,14 @@ class PlotWidget(QWidget):
                 if x[path]==[] or (entry[2]-self.start_stamp).to_sec()-x[path][-1] >= self.timestep:
                     y_value = entry[1]
                     for field in path.split('.'):
+                        index = None
+                        if field.endswith(']'):
+                            field = field[:-1]
+                            field, _, index = field.rpartition('[')
                         y_value = getattr(y_value, field)
+                        if index:
+                            index = int(index)
+                            y_value = y_value[index]
                     y[path].append(y_value)
                     x[path].append((entry[2]-self.start_stamp).to_sec())
 
