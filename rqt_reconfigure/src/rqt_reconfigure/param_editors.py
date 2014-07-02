@@ -38,7 +38,7 @@ import os
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Signal
 from python_qt_binding.QtGui import (QDoubleValidator, QIntValidator, QLabel,
-                                     QWidget)
+                                     QMenu, QWidget)
 from decimal import Decimal
 import rospkg
 import rospy
@@ -83,9 +83,13 @@ class EditorWidget(QWidget):
 
         self._updater = updater
         self.param_name = config['name']
+        self.param_default = config['default']
         self.param_description = config['description']
 
         self.old_value = None
+
+        self.cmenu = QMenu()
+        self.cmenu.addAction(self.tr('Set to Default')).triggered.connect(self._set_to_default)
 
     def _update_paramserver(self, value):
         '''
@@ -123,12 +127,19 @@ class EditorWidget(QWidget):
         grid.addRow(self._paramname_label, self)
         self.setToolTip(self.param_description)
         self._paramname_label.setToolTip(self.param_description)
+        self._paramname_label.contextMenuEvent = self.contextMenuEvent
 
     def close(self):
         '''
         Should be overridden in subclass.
         '''
         pass
+
+    def _set_to_default(self):
+        self._update_paramserver(self.param_default)
+
+    def contextMenuEvent(self, e):
+        self.cmenu.exec_(e.globalPos())
 
 
 class BooleanEditor(EditorWidget):
@@ -171,6 +182,9 @@ class StringEditor(EditorWidget):
         # Make param server update text field
         self._update_signal.connect(self._paramval_lineedit.setText)
 
+        # Add special menu items
+        self.cmenu.addAction(self.tr('Set to Empty String')).triggered.connect(self._set_to_empty)
+
     def update_value(self, value):
         super(StringEditor, self).update_value(value)
         rospy.logdebug('StringEditor update_value={}'.format(value))
@@ -180,6 +194,9 @@ class StringEditor(EditorWidget):
         rospy.logdebug('StringEditor edit_finished val={}'.format(
                                               self._paramval_lineedit.text()))
         self._update_paramserver(self._paramval_lineedit.text())
+
+    def _set_to_empty(self):
+        self._update_paramserver('')
 
 
 class IntegerEditor(EditorWidget):
@@ -219,6 +236,10 @@ class IntegerEditor(EditorWidget):
         # Make the param server update selection
         self._update_signal.connect(self._update_gui)
 
+        # Add special menu items
+        self.cmenu.addAction(self.tr('Set to Maximum')).triggered.connect(self._set_to_max)
+        self.cmenu.addAction(self.tr('Set to Minimum')).triggered.connect(self._set_to_min)
+
     def _slider_moved(self):
         # This is a "local" edit - only change the text
         self._paramval_lineEdit.setText(str(
@@ -246,6 +267,12 @@ class IntegerEditor(EditorWidget):
         # Make the text match
         self._paramval_lineEdit.setText(str(value))
         self._slider_horizontal.blockSignals(False)
+
+    def _set_to_max(self):
+        self._update_paramserver(self._max)
+
+    def _set_to_min(self):
+        self._update_paramserver(self._min)
 
 
 class DoubleEditor(EditorWidget):
@@ -311,6 +338,11 @@ class DoubleEditor(EditorWidget):
         # Make the param server update selection
         self._update_signal.connect(self._update_gui)
 
+        # Add special menu items
+        self.cmenu.addAction(self.tr('Set to Maximum')).triggered.connect(self._set_to_max)
+        self.cmenu.addAction(self.tr('Set to Minimum')).triggered.connect(self._set_to_min)
+        self.cmenu.addAction(self.tr('Set to NaN')).triggered.connect(self._set_to_nan)
+
     def _slider_moved(self):
         # This is a "local" edit - only change the text
         self._paramval_lineEdit.setText('{0:f}'.format(Decimal(str(
@@ -344,11 +376,23 @@ class DoubleEditor(EditorWidget):
     def _update_gui(self, value):
         # Block all signals so we don't loop
         self._slider_horizontal.blockSignals(True)
-        # Update the slider value
-        self._slider_horizontal.setValue(self._get_value_slider(value))
+        # Update the slider value if not NaN
+        if not math.isnan(value):
+            self._slider_horizontal.setValue(self._get_value_slider(value))
+        elif not math.isnan(self.param_default):
+            self._slider_horizontal.setValue(self._get_value_slider(self.param_default))
         # Make the text match
         self._paramval_lineEdit.setText('{0:f}'.format(Decimal(str(value))))
         self._slider_horizontal.blockSignals(False)
+
+    def _set_to_max(self):
+        self._update_paramserver(self._max)
+
+    def _set_to_min(self):
+        self._update_paramserver(self._min)
+
+    def _set_to_nan(self):
+        self._update_paramserver(float('NaN'))
 
 
 class EnumEditor(EditorWidget):
@@ -383,6 +427,9 @@ class EnumEditor(EditorWidget):
 
         # Make the param server update selection
         self._update_signal.connect(self._update_gui)
+
+        # Bind the context menu
+        self._combobox.contextMenuEvent = self.contextMenuEvent
 
     def selected(self, index):
         self._update_paramserver(self.values[index])
