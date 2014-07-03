@@ -4,10 +4,14 @@
       Marble UI
     </description>
     <qtgui>
-      <label>Marble UI</label>
-      <icon type="theme">system-help</icon>
+      <group>
+        <label>Visualization</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to visualization.</statustip>
+      </group>
+      <label>Marble UI (experimental)</label>
+      <icon type="theme">applications-internet</icon>
       <statustip>Marble plugin to show a gps point on an map</statustip>
     </qtgui>
   </class>
 </library>
-
