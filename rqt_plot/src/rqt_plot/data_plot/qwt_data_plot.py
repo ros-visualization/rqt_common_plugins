@@ -35,8 +35,8 @@ from __future__ import division
 import math
 import sys
 
-from python_qt_binding.QtCore import QEvent, QPointF, Qt, SIGNAL, Signal, Slot, qWarning
-from python_qt_binding.QtGui import QPen, QVector2D
+from python_qt_binding.QtCore import QEvent, QSize, QPointF, Qt, SIGNAL, Signal, Slot, qWarning
+from python_qt_binding.QtGui import QColor, QPen, QBrush, QVector2D
 import Qwt
 
 from numpy import arange, zeros, concatenate
@@ -45,7 +45,6 @@ from numpy import arange, zeros, concatenate
 # create real QwtDataPlot class
 class QwtDataPlot(Qwt.QwtPlot):
     mouseCoordinatesChanged = Signal(QPointF)
-    _colors = [Qt.red, Qt.blue, Qt.magenta, Qt.cyan, Qt.green, Qt.darkYellow, Qt.black, Qt.darkRed, Qt.gray, Qt.darkCyan]
     _num_value_saved = 1000
     _num_values_ploted = 1000
 
@@ -72,7 +71,6 @@ class QwtDataPlot(Qwt.QwtPlot):
         self._pressed_canvas_y = 0
         self._pressed_canvas_x = 0
         self._last_click_coordinates = None
-        self._color_index = 0
 
         marker_axis_y = Qwt.QwtPlotMarker()
         marker_axis_y.setLabelAlignment(Qt.AlignRight | Qt.AlignTop)
@@ -84,8 +82,8 @@ class QwtDataPlot(Qwt.QwtPlot):
             Qwt.QwtPlot.xBottom, Qwt.QwtPlot.yLeft, Qwt.QwtPicker.PolygonSelection,
             Qwt.QwtPlotPicker.PolygonRubberBand, Qwt.QwtPicker.AlwaysOn, self.canvas()
         )
-        self._picker.setRubberBandPen(QPen(self._colors[-1]))
-        self._picker.setTrackerPen(QPen(self._colors[-1]))
+        self._picker.setRubberBandPen(QPen(Qt.blue))
+        self._picker.setTrackerPen(QPen(Qt.blue))
 
         # Initialize data
         self.rescale()
@@ -120,14 +118,15 @@ class QwtDataPlot(Qwt.QwtPlot):
         Qwt.QwtPlot.resizeEvent(self, event)
         self.rescale()
 
-    def add_curve(self, curve_id, curve_name):
+    def add_curve(self, curve_id, curve_name, curve_color=QColor(Qt.blue), markers_on=False):
         curve_id = str(curve_id)
         if curve_id in self._curves:
             return
         curve_object = Qwt.QwtPlotCurve(curve_name)
         curve_object.attach(self)
-        curve_object.setPen(QPen(self._colors[self._color_index % len(self._colors)]))
-        self._color_index += 1
+        curve_object.setPen(curve_color)
+        if markers_on:
+            curve_object.setSymbol(Qwt.QwtSymbol(Qwt.QwtSymbol.Ellipse, QBrush(curve_color), QPen(Qt.black), QSize(4,4)))
         self._curves[curve_id] = curve_object
 
     def remove_curve(self, curve_id):

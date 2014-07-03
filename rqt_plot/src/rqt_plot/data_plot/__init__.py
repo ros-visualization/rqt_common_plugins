@@ -34,8 +34,8 @@
 import numpy
 
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
-from python_qt_binding.QtCore import qDebug, qWarning, Signal
-from python_qt_binding.QtGui import QWidget, QHBoxLayout
+from python_qt_binding.QtCore import Qt, qDebug, qWarning, Signal
+from python_qt_binding.QtGui import QColor, QWidget, QHBoxLayout
 
 try:
     from pyqtgraph_data_plot import PyQtGraphDataPlot
@@ -80,19 +80,19 @@ class DataPlot(QWidget):
         {
             'title': 'PyQtGraph',
             'widget_class': PyQtGraphDataPlot,
-            'description': 'Based on PyQtGraph\n- installer: http://luke.campagnola.me/code/pyqtgraph',
+            'description': 'Based on PyQtGraph\n- installer: http://luke.campagnola.me/code/pyqtgraph\n',
             'enabled': PyQtGraphDataPlot is not None,
         },
         {
             'title': 'MatPlot',
             'widget_class': MatDataPlot,
-            'description': 'Based on MatPlotLib\n- needs most CPU\n- needs matplotlib >= 1.1.0\n- if using PySide: PySide > 1.1.0',
+            'description': 'Based on MatPlotLib\n- needs most CPU\n- needs matplotlib >= 1.1.0\n- if using PySide: PySide > 1.1.0\n',
             'enabled': MatDataPlot is not None,
         },
         {
             'title': 'QwtPlot',
             'widget_class': QwtDataPlot,
-            'description': 'Based on QwtPlot\n- does not use timestamps\n- uses least CPU\n- needs Python Qwt bindings',
+            'description': 'Based on QwtPlot\n- does not use timestamps\n- uses least CPU\n- needs Python Qwt bindings\n',
             'enabled': QwtDataPlot is not None,
         },
     ]
@@ -106,9 +106,11 @@ class DataPlot(QWidget):
     SCALE_VISIBLE=2
     SCALE_EXTEND=4
 
+    _colors = [Qt.blue, Qt.red, Qt.cyan, Qt.magenta, Qt.green, Qt.darkYellow, Qt.black, Qt.darkCyan, Qt.darkRed, Qt.gray]
+
     limits_changed = Signal()
     _redraw = Signal()
-    _add_curve = Signal(str, str)
+    _add_curve = Signal(str, str, 'QColor', bool)
 
     def __init__(self, parent=None):
         """Create a new, empty DataPlot
@@ -118,6 +120,8 @@ class DataPlot(QWidget):
         """
         super(DataPlot, self).__init__(parent)
         self._plot_index = 0
+        self._color_index = 0
+        self._markers_on = False
         self._autoscroll = True
 
         self._autoscale_x = True
@@ -141,7 +145,7 @@ class DataPlot(QWidget):
 
         self.show()
 
-    def _switch_data_plot_widget(self, plot_index):
+    def _switch_data_plot_widget(self, plot_index, markers_on=False):
         """Internal method for activating a plotting backend by index"""
         # check if selected plot type is available
         if not self.plot_types[plot_index]['enabled']:
@@ -152,6 +156,7 @@ class DataPlot(QWidget):
                     break
 
         self._plot_index = plot_index
+        self._markers_on = markers_on
         selected_plot = self.plot_types[plot_index]
 
         if self._data_plot_widget:
@@ -173,13 +178,24 @@ class DataPlot(QWidget):
         # restore old data
         for curve_id in self._curves:
             curve = self._curves[curve_id]
-            self._data_plot_widget.add_curve(curve_id, curve['name'])
+            self._data_plot_widget.add_curve(curve_id, curve['name'], curve['color'], markers_on)
 
         if self._vline:
             self.vline(*self._vline)
 
         self.set_xlim(x_limits)
         self.set_ylim(y_limits)
+        self.redraw()
+
+    def _switch_plot_markers(self, markers_on):
+        self._markers_on = markers_on
+        self._data_plot_widget._color_index = 0
+
+        for curve_id in self._curves:
+            self._data_plot_widget.remove_curve(curve_id)
+            curve = self._curves[curve_id]
+            self._data_plot_widget.add_curve(curve_id, curve['name'], curve['color'], markers_on)
+
         self.redraw()
 
     # interface out to the managing GUI component: get title, save, restore, 
@@ -208,11 +224,27 @@ class DataPlot(QWidget):
         plot type, gets the result, and updates the plot type as necessary
         
         This method is blocking"""
+
+        marker_settings = [
+            {
+                'title': 'Show Plot Markers',
+                'description': 'Warning: Displaying markers in rqt_plot may cause\n \t high cpu load, especially using PyQtGraph\n',
+                'enabled': True,
+            }]
+        if self._markers_on:
+            selected_checkboxes = [0]
+        else:
+            selected_checkboxes = []
+
         dialog = SimpleSettingsDialog(title='Plot Options')
         dialog.add_exclusive_option_group(title='Plot Type', options=self.plot_types, selected_index=self._plot_index)
-        plot_type = dialog.get_settings()[0]
+        dialog.add_checkbox_group(title='Plot Markers', options=marker_settings, selected_indexes=selected_checkboxes)
+        [plot_type, checkboxes] = dialog.get_settings()
         if plot_type is not None and plot_type['selected_index'] is not None and self._plot_index != plot_type['selected_index']:
-            self._switch_data_plot_widget(plot_type['selected_index'])
+            self._switch_data_plot_widget(plot_type['selected_index'], 0 in checkboxes['selected_indexes'])
+        else:
+            if checkboxes is not None and self._markers_on != (0 in checkboxes['selected_indexes']):
+                self._switch_plot_markers(0 in checkboxes['selected_indexes'])
 
     # interface out to the managing DATA component: load data, update data,
     # etc
@@ -253,11 +285,15 @@ class DataPlot(QWidget):
         Note that the plot is not redraw automatically; call `redraw()` to make
         any changes visible to the user.
         """
+        curve_color = QColor(self._colors[self._color_index % len(self._colors)])
+        self._color_index += 1
+
         self._curves[curve_id] = { 'x': numpy.array(data_x),
                                    'y': numpy.array(data_y),
-                                   'name': curve_name }
+                                   'name': curve_name,
+                                   'color': curve_color}
         if self._data_plot_widget:
-            self._add_curve.emit(curve_id, curve_name)
+            self._add_curve.emit(curve_id, curve_name, curve_color, self._markers_on)
 
     def remove_curve(self, curve_id):
         """Remove the specified curve from this plot"""
