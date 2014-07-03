@@ -28,6 +28,7 @@
   <run_depend>std_msgs</run_depend>
 
   <export>
+    <architecture_independent/>
     <rqt_bag plugin="${prefix}/plugin.xml"/>
   </export>
 </package>

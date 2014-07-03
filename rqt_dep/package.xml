@@ -24,6 +24,7 @@
   <test_depend>python-mock</test_depend>
 
   <export>
+    <architecture_independent/>
     <qt_gui plugin="${prefix}/plugin.xml"/>
   </export>
 </package>
