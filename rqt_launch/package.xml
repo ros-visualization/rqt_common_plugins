@@ -26,6 +26,7 @@
   <run_depend>rqt_py_common</run_depend>
 
   <export>
+    <architecture_independent/>
 		<rqt_gui plugin="${prefix}/plugin.xml" />
   </export>
 </package>
