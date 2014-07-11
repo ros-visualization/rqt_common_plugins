@@ -2,8 +2,8 @@
 Changelog for package rqt_graph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.7 (2014-07-11)
+------------------
 * fix compatibility with Groovy, use TopicStatistics only if available (`#252 <https://github.com/ros-visualization/rqt_common_plugins/issues/252>`_)
 * export architecture_independent flag in package.xml (`#254 <https://github.com/ros-visualization/rqt_common_plugins/issues/254>`_)
 

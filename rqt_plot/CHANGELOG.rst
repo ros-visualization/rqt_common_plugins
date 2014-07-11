@@ -2,8 +2,8 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.7 (2014-07-11)
+------------------
 * fix missing import (`#248 <https://github.com/ros-visualization/rqt_common_plugins/issues/248>`_)
 * significant improvements and unification of different plot backends (`#239 <https://github.com/ros-visualization/rqt_common_plugins/issues/239>`_, `#231 <https://github.com/ros-visualization/rqt_common_plugins/issues/231>`_)
 * make more things plottable including arrays and simple message types (`#246 <https://github.com/ros-visualization/rqt_common_plugins/issues/246>`_)
