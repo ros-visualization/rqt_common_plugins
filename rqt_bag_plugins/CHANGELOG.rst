@@ -2,6 +2,12 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add plotting plugin (`#239 <https://github.com/ros-visualization/rqt_common_plugins/issues/239>`_)
+* fix rqt_bag to plot array members (`#253 <https://github.com/ros-visualization/rqt_common_plugins/issues/253>`_)
+* export architecture_independent flag in package.xml (`#254 <https://github.com/ros-visualization/rqt_common_plugins/issues/254>`_)
+
 0.3.6 (2014-06-02)
 ------------------
 

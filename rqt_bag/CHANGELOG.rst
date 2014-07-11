@@ -2,6 +2,12 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix compatibility with Groovy, use queue_size for Python publishers only when available (`#243 <https://github.com/ros-visualization/rqt_common_plugins/issues/243>`_)
+* use thread for loading bag files, emit region changed signal used by plotting plugin (`#239 <https://github.com/ros-visualization/rqt_common_plugins/issues/239>`_)
+* export architecture_independent flag in package.xml (`#254 <https://github.com/ros-visualization/rqt_common_plugins/issues/254>`_)
+
 0.3.6 (2014-06-02)
 ------------------
 * fix closing and reopening topic views

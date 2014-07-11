@@ -2,6 +2,14 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix missing import (`#248 <https://github.com/ros-visualization/rqt_common_plugins/issues/248>`_)
+* significant improvements and unification of different plot backends (`#239 <https://github.com/ros-visualization/rqt_common_plugins/issues/239>`_, `#231 <https://github.com/ros-visualization/rqt_common_plugins/issues/231>`_)
+* make more things plottable including arrays and simple message types (`#246 <https://github.com/ros-visualization/rqt_common_plugins/issues/246>`_)
+* make DataPlot a proxy for its plot widget, redraw after loading new data, add clear_values (`#236 <https://github.com/ros-visualization/rqt_common_plugins/issues/236>`_)
+* export architecture_independent flag in package.xml (`#254 <https://github.com/ros-visualization/rqt_common_plugins/issues/254>`_)
+
 0.3.6 (2014-06-02)
 ------------------
 * subscribe to any known topic, even if currently not available (`#233 <https://github.com/ros-visualization/rqt_common_plugins/pull/233>`_)

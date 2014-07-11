@@ -2,6 +2,13 @@
 Changelog for package rqt_reconfigure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix slider bar, add context menus for common operations (`#251 <https://github.com/ros-visualization/rqt_common_plugins/issues/251>`_)
+* fix bug in float range calculations (`#241 <https://github.com/ros-visualization/rqt_common_plugins/issues/241>`_)
+* remove experimental suffix from rqt_reconfigure (`#256 <https://github.com/ros-visualization/rqt_common_plugins/issues/256>`_)
+* export architecture_independent flag in package.xml (`#254 <https://github.com/ros-visualization/rqt_common_plugins/issues/254>`_)
+
 0.3.6 (2014-06-02)
 ------------------
 * remove unnecessary margins to improve usability on small screens (`#228 <https://github.com/ros-visualization/rqt_common_plugins/issues/228>`_)
