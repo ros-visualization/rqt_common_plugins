@@ -2,8 +2,8 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.8 (2014-07-15)
+------------------
 * fix missing installation of Python subpackage
 
 0.3.7 (2014-07-11)
