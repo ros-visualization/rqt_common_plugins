@@ -2,6 +2,9 @@
 Changelog for package rqt_reconfigure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.3.7 (2014-07-11)
 ------------------
 * fix slider bar, add context menus for common operations (`#251 <https://github.com/ros-visualization/rqt_common_plugins/issues/251>`_)

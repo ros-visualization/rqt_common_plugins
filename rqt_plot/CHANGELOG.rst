@@ -2,6 +2,10 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix missing installation of Python subpackage
+
 0.3.7 (2014-07-11)
 ------------------
 * fix missing import (`#248 <https://github.com/ros-visualization/rqt_common_plugins/issues/248>`_)
