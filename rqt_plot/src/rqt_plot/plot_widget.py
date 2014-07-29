@@ -76,8 +76,12 @@ def get_plot_fields(topic_name):
 
     if field_class in (int, float):
         if is_array:
-            message = "topic %s is a numeric array" % ( topic_name )
-            return [ "%s[%d]" % (topic_name, i) for i in range(array_size) ], message
+            if array_size is not None:
+                message = "topic %s is fixed-size numeric array" % ( topic_name )
+                return [ "%s[%d]" % (topic_name, i) for i in range(array_size) ], message
+            else:
+                message = "topic %s is variable-size numeric array" % ( topic_name )
+                return [], message
         else:
             message = "topic %s is numeric" % ( topic_name )
             return [ topic_name ], message
