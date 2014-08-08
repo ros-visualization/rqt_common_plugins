@@ -498,9 +498,10 @@ class RosGraphDotcodeGenerator:
             for n in nn_nodes:
                 if (cluster_namespaces_level > 0 and
                     str(n).count('/') >= 1 and
-                    len(str(n).split('/')[1]) > 0 and
-                    str(n).split('/')[1] in namespace_clusters):
+                    len(str(n).split('/')[1]) > 0):
                     namespace = str(n).split('/')[1]
+                    if namespace not in namespace_clusters:
+                        namespace_clusters[namespace] = dotcode_factory.add_subgraph_to_graph(dotgraph, namespace, rank=rank, rankdir=orientation, simplify=simplify)
                     self._add_node(n, rosgraphinst=rosgraphinst, dotcode_factory=dotcode_factory, dotgraph=namespace_clusters[namespace], quiet=quiet)
                 else:
                     self._add_node(n, rosgraphinst=rosgraphinst, dotcode_factory=dotcode_factory, dotgraph=dotgraph, quiet=quiet)
