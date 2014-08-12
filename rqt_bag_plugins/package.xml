@@ -17,6 +17,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>geometry_msgs</run_depend>
+  <run_depend>python-cairo</run_depend>
   <run_depend>python-imaging</run_depend>
   <run_depend>rosbag</run_depend>
   <run_depend>roslib</run_depend>
