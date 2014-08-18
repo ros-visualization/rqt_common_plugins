@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>rqt_top</name>
-  <version>0.3.8</version>
+  <version>0.3.9</version>
   <description>RQT plugin for monitoring ROS processes.</description>
 
   <author email="dan@lazewatsky.com">Dan Lazewatsky</author>

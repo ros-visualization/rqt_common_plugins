@@ -2,8 +2,8 @@
 Changelog for package rqt_graph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.9 (2014-08-18)
+------------------
 * fix rendering of namespace boxes (`#266 <https://github.com/ros-visualization/rqt_common_plugins/issues/266>`_)
 
 0.3.8 (2014-07-15)
