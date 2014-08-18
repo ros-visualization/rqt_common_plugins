@@ -2,6 +2,10 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix visibility with dark Qt theme (`#263 <https://github.com/ros-visualization/rqt_common_plugins/issues/263>`_)
+
 0.3.8 (2014-07-15)
 ------------------
 

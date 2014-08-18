@@ -2,6 +2,10 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix handling of variable-sized arrays (`#261 <https://github.com/ros-visualization/rqt_common_plugins/issues/261>`_)
+
 0.3.8 (2014-07-15)
 ------------------
 * fix missing installation of Python subpackage

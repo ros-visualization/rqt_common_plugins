@@ -2,6 +2,10 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add missing dependency on python-cairo (`#269 <https://github.com/ros-visualization/rqt_common_plugins/issues/269>`_)
+
 0.3.8 (2014-07-15)
 ------------------
 * fix missing installation of resource subfolder
