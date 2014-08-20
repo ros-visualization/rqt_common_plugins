@@ -5,6 +5,6 @@ import sys
 from rqt_bag.bag import Bag
 from rqt_gui.main import Main
 
-plugin = 'rqt_bag.bag.Bag'
+plugin = 'rqt_bag'
 main = Main(filename=plugin)
 sys.exit(main.main(standalone=plugin, plugin_argument_provider=Bag.add_arguments))
