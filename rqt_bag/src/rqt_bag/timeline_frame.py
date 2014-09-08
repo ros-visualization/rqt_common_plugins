@@ -253,7 +253,9 @@ class TimelineFrame(QGraphicsItem):
             return (self._start_stamp, self._end_stamp)
 
     def emit_play_region(self):
-        self.scene().selected_region_changed.emit(*self.play_region)
+        play_region = self.play_region
+        if(play_region[0] is not None and play_region[1] is not None):
+            self.scene().selected_region_changed.emit(*play_region)
 
     @property
     def start_stamp(self):
