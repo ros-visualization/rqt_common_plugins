@@ -43,6 +43,7 @@ from python_qt_binding.QtGui import QFileDialog, QGraphicsView, QIcon, QWidget
 import rosbag
 import bag_helper
 from .bag_timeline import BagTimeline
+from .topic_selection import TopicSelection
 
 
 class BagGraphicsView(QGraphicsView):
@@ -215,6 +216,13 @@ class BagWidget(QWidget):
         if self._recording:
             self._timeline.toggle_recording()
             return
+
+        #TODO Implement limiting by regex and by number of messages per topic
+        self.topic_selection = TopicSelection()
+        self.topic_selection.recordSettingsSelected.connect(self._on_record_settings_selected)
+
+
+    def _on_record_settings_selected(self, all_topics, selected_topics):
         # TODO verify master is still running
         filename = QFileDialog.getSaveFileName(self, self.tr('Select prefix for new Bag File'), '.', self.tr('Bag files {.bag} (*.bag)'))
         if filename[0] != '':
@@ -229,10 +237,10 @@ class BagWidget(QWidget):
 
             rospy.loginfo('Recording to %s.' % record_filename)
 
-            #TODO Implement recording of topic subsets, regex limiting and by number of messages per topic
             self.load_button.setEnabled(False)
             self._recording = True
-            self._timeline.record_bag(record_filename)
+            self._timeline.record_bag(record_filename, all_topics, selected_topics)
+
 
     def _handle_load_clicked(self):
         filename = QFileDialog.getOpenFileName(self, self.tr('Load from File'), '.', self.tr('Bag files {.bag} (*.bag)'))
