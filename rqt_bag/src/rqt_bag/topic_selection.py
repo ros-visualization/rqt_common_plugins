@@ -64,7 +64,9 @@ class TopicSelection(QWidget):
         self.item_all = QCheckBox("All", self)
         self.item_all.stateChanged.connect(self.updateList)
         self.selection_vlayout.addWidget(self.item_all)
-        for topic, datatype in master.getPublishedTopics(''):
+        topic_data_list = master.getPublishedTopics('')
+        topic_data_list.sort()
+        for topic, datatype in topic_data_list:
             self.addCheckBox(topic)
 
         self.main_widget.setLayout(self.selection_vlayout)
