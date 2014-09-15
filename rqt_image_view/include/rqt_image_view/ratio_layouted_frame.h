@@ -78,7 +78,10 @@ signals:
 
   void delayed_update();
 
+  void pixel_clicked(int x, int y);
+
 protected:
+  void mousePressEvent(QMouseEvent *);
 
   void setAspectRatio(unsigned short width, unsigned short height);
 

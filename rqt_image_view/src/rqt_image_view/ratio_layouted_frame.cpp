@@ -31,6 +31,7 @@
  */
 
 #include <rqt_image_view/ratio_layouted_frame.h>
+#include <QMouseEvent>
 
 #include <assert.h>
 
@@ -150,4 +151,8 @@ int RatioLayoutedFrame::greatestCommonDivisor(int a, int b)
   return greatestCommonDivisor(b, a % b);
 }
 
+void RatioLayoutedFrame::mousePressEvent(QMouseEvent *mevent)
+{
+    emit pixel_clicked(qimage_.width()*mevent->x()/width(), qimage_.height()*mevent->y()/height());
+}
 }
