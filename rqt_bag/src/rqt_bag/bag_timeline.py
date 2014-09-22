@@ -230,7 +230,8 @@ class BagTimeline(QGraphicsScene):
                 bag_datatype = bag_helper.get_datatype(bag, topic)
                 if datatype and bag_datatype and (bag_datatype != datatype):
                     raise Exception('topic %s has multiple datatypes: %s and %s' % (topic, datatype, bag_datatype))
-                datatype = bag_datatype
+                if bag_datatype:
+                    datatype = bag_datatype
             return datatype
 
     def get_entries(self, topics, start_stamp, end_stamp):
