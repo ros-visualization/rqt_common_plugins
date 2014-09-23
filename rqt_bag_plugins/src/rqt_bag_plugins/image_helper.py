@@ -35,6 +35,7 @@ from cStringIO import StringIO
 import sys
 
 from PIL import Image
+from PIL import ImageOps
 import cairo
 
 
@@ -46,6 +47,7 @@ def imgmsg_to_pil(img_msg, rgba=True):
                 pil_img = pil_bgr2rgb(pil_img)
         else:
             alpha = False
+            pil_mode = 'RGB'
             if img_msg.encoding == 'mono8':
                 mode = 'L'
             elif img_msg.encoding == 'rgb8':
@@ -54,11 +56,12 @@ def imgmsg_to_pil(img_msg, rgba=True):
                 mode = 'BGR'
             elif img_msg.encoding in ['bayer_rggb8', 'bayer_bggr8', 'bayer_gbrg8', 'bayer_grbg8']:
                 mode = 'L'
-            elif img_msg.encoding == 'mono16':
+            elif img_msg.encoding == 'mono16' or img_msg.encoding == '16UC1':
+                pil_mode = 'F'
                 if img_msg.is_bigendian:
                     mode = 'F;16B'
                 else:
-                    mode = 'F:16'
+                    mode = 'F;16'
             elif img_msg.encoding == 'rgba8':
                 mode = 'BGR'
                 alpha = True
@@ -67,7 +70,12 @@ def imgmsg_to_pil(img_msg, rgba=True):
                 alpha = True
             else:
                 raise Exception("Unsupported image format: %s" % img_msg.encoding)
-            pil_img = Image.frombuffer('RGB', (img_msg.width, img_msg.height), img_msg.data, 'raw', mode, 0, 1)
+            pil_img = Image.frombuffer(pil_mode, (img_msg.width, img_msg.height), img_msg.data, 'raw', mode, 0, 1)
+
+        # 16 bits conversion to 8 bits
+        if pil_img.mode == 'F':
+            pil_img = pil_img.point(lambda i: i*(1./256.)).convert('L')
+            pil_img = ImageOps.autocontrast(pil_img)
 
         if rgba and pil_img.mode != 'RGBA':
             pil_img = pil_img.convert('RGBA')
