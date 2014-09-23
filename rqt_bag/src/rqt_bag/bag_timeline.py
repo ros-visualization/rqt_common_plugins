@@ -136,7 +136,7 @@ class BagTimeline(QGraphicsScene):
         self._timeline_frame.handle_close()
         for bag in self._bags:
             bag.close()
-        for _, frame in self._views:
+        for frame in self._views:
             if frame.parent():
                 self._context.remove_widget(frame)
 
@@ -687,9 +687,8 @@ class BagTimeline(QGraphicsScene):
                     qWarning('Error calling timeline_changed on %s: %s' % (type(listener), str(ex)))
 
     ### Views / listeners
-    def add_view(self, topic, view, frame):
-        self._views.append((view, frame))
-        self.add_listener(topic, view)
+    def add_view(self, topic, frame):
+        self._views.append(frame)
 
     def has_listeners(self, topic):
         return topic in self._listeners
