@@ -94,11 +94,18 @@ class TimelinePopupMenu(QMenu):
     """
     Custom popup menu displayed on rightclick from timeline
     """
-    def __init__(self, timeline, event):
+    def __init__(self, timeline, event, menu_topic):
         super(TimelinePopupMenu, self).__init__()
 
         self.parent = timeline
         self.timeline = timeline
+
+
+        if menu_topic is not None:
+            self.setTitle(menu_topic)
+            self._menu_topic = menu_topic
+        else:
+            self._menu_topic = None
 
         self._reset_timeline = self.addAction('Reset Timeline')
 
@@ -108,65 +115,99 @@ class TimelinePopupMenu(QMenu):
 
         self.addSeparator()
 
-        submenu = self.addMenu('Thumbnails...')
-        self._thumbnail_show_action = submenu.addAction('Show All')
-        self._thumbnail_hide_action = submenu.addAction('Hide All')
-        submenu.addSeparator()
-
         self._renderers = self.timeline._timeline_frame.get_renderers()
         self._thumbnail_actions = []
-        for topic, renderer in self._renderers:
-            self._thumbnail_actions.append(submenu.addAction(topic))
-            self._thumbnail_actions[-1].setCheckable(True)
-            self._thumbnail_actions[-1].setChecked(self.timeline._timeline_frame.is_renderer_active(topic))
 
-        self._topics = self.timeline._timeline_frame.topics
-        view_topics_menu = self.addMenu('View (by Topic)')
+        # create thumbnail menu items
+        if menu_topic is None:
+            submenu = self.addMenu('Thumbnails...')
+            self._thumbnail_show_action = submenu.addAction('Show All')
+            self._thumbnail_hide_action = submenu.addAction('Hide All')
+            submenu.addSeparator()
+
+            for topic, renderer in self._renderers:
+                self._thumbnail_actions.append(submenu.addAction(topic))
+                self._thumbnail_actions[-1].setCheckable(True)
+                self._thumbnail_actions[-1].setChecked(self.timeline._timeline_frame.is_renderer_active(topic))
+        else:
+            self._thumbnail_show_action = None
+            self._thumbnail_hide_action = None
+            for topic, renderer in self._renderers:
+                if menu_topic == topic:
+                    self._thumbnail_actions.append(self.addAction("Thumbnail"))
+                    self._thumbnail_actions[-1].setCheckable(True)
+                    self._thumbnail_actions[-1].setChecked(self.timeline._timeline_frame.is_renderer_active(topic))
+
+        # create view menu items
         self._topic_actions = []
-        for topic in self._topics:
-            datatype = self.timeline.get_datatype(topic)
-
-            # View... / topic
-            topic_menu = QMenu(topic, self)
-            viewer_types = self.timeline._timeline_frame.get_viewer_types(datatype)
-
-            # View... / topic / Viewer
-            for viewer_type in viewer_types:
-                tempaction = topic_menu.addAction(viewer_type.name)
-                tempaction.setData(viewer_type)
-                self._topic_actions.append(tempaction)
-            view_topics_menu.addMenu(topic_menu)
-
-        view_type_menu = self.addMenu('View (by Type)')
-        self._topics_by_type = self.timeline._timeline_frame._topics_by_datatype
         self._type_actions = []
-        for datatype in self._topics_by_type:
-            # View... / datatype
-            datatype_menu = QMenu(datatype, self)
-            datatype_topics = self._topics_by_type[datatype]
-            viewer_types = self.timeline._timeline_frame.get_viewer_types(datatype)
-            for topic in [t for t in self._topics if t in datatype_topics]:   # use timeline ordering
-                topic_menu = QMenu(topic, datatype_menu)
-                # View... / datatype / topic / Viewer
+        if menu_topic is None:
+            self._topics = self.timeline._timeline_frame.topics
+            view_topics_menu = self.addMenu('View (by Topic)')
+            for topic in self._topics:
+                datatype = self.timeline.get_datatype(topic)
+
+                # View... / topic
+                topic_menu = QMenu(topic, self)
+                viewer_types = self.timeline._timeline_frame.get_viewer_types(datatype)
+
+                # View... / topic / Viewer
                 for viewer_type in viewer_types:
                     tempaction = topic_menu.addAction(viewer_type.name)
                     tempaction.setData(viewer_type)
                     self._topic_actions.append(tempaction)
-                datatype_menu.addMenu(topic_menu)
-            view_type_menu.addMenu(datatype_menu)
+                view_topics_menu.addMenu(topic_menu)
+
+            view_type_menu = self.addMenu('View (by Type)')
+            self._topics_by_type = self.timeline._timeline_frame._topics_by_datatype
+            for datatype in self._topics_by_type:
+                # View... / datatype
+                datatype_menu = QMenu(datatype, self)
+                datatype_topics = self._topics_by_type[datatype]
+                viewer_types = self.timeline._timeline_frame.get_viewer_types(datatype)
+                for topic in [t for t in self._topics if t in datatype_topics]:   # use timeline ordering
+                    topic_menu = QMenu(topic, datatype_menu)
+                    # View... / datatype / topic / Viewer
+                    for viewer_type in viewer_types:
+                        tempaction = topic_menu.addAction(viewer_type.name)
+                        tempaction.setData(viewer_type)
+                        self._topic_actions.append(tempaction)
+                    datatype_menu.addMenu(topic_menu)
+                view_type_menu.addMenu(datatype_menu)
+        else:
+            view_menu = self.addMenu("View")
+            datatype = self.timeline.get_datatype(menu_topic)
+
+            viewer_types = self.timeline._timeline_frame.get_viewer_types(datatype)
+            for viewer_type in viewer_types:
+                tempaction = view_menu.addAction(viewer_type.name)
+                tempaction.setData(viewer_type)
+                self._topic_actions.append(tempaction)
 
         self.addSeparator()
-        submenu = self.addMenu('Publish...')
 
-        self._publish_all = submenu.addAction('Publish All')
-        self._publish_none = submenu.addAction('Publish None')
-        submenu.addSeparator()
-
+        # create publish menu items
         self._publish_actions = []
-        for topic in self._topics:
-            self._publish_actions.append(submenu.addAction(topic))
+        if menu_topic is None:
+            submenu = self.addMenu('Publish...')
+
+            self._publish_all = submenu.addAction('Publish All')
+            self._publish_none = submenu.addAction('Publish None')
+
+            submenu.addSeparator()
+
+            for topic in self._topics:
+                self._publish_actions.append(submenu.addAction(topic))
+                self._publish_actions[-1].setCheckable(True)
+                self._publish_actions[-1].setChecked(self.timeline.is_publishing(topic))
+        else:
+            self._publish_actions.append(self.addAction("Publish"))
             self._publish_actions[-1].setCheckable(True)
-            self._publish_actions[-1].setChecked(self.timeline.is_publishing(topic))
+            self._publish_actions[-1].setChecked(self.timeline.is_publishing(menu_topic))
+            self._publish_all = None
+            self._publish_none = None
+
+
 
         action = self.exec_(event.globalPos())
         if action is not None and action != 0:
@@ -194,12 +235,21 @@ class TimelinePopupMenu(QMenu):
         elif action == self._thumbnail_hide_action:
             self.timeline._timeline_frame.set_renderers_active(False)
         elif action in self._thumbnail_actions:
-            if self.timeline._timeline_frame.is_renderer_active(action.text()):
-                self.timeline._timeline_frame.set_renderer_active(action.text(), False)
+            if self._menu_topic is None:
+                topic = action.text()
             else:
-                self.timeline._timeline_frame.set_renderer_active(action.text(), True)
+                topic = self._menu_topic
+
+            if self.timeline._timeline_frame.is_renderer_active(topic):
+                self.timeline._timeline_frame.set_renderer_active(topic, False)
+            else:
+                self.timeline._timeline_frame.set_renderer_active(topic, True)
         elif action in self._topic_actions + self._type_actions:
-            topic = action.parentWidget().title()
+            if self._menu_topic is None:
+                topic = action.parentWidget().title()
+            else:
+                topic = self._menu_topic
+
             popup_name = topic + '__' + action.text()
             if popup_name not in self.timeline.popups:
                 frame = TopicPopupWidget(popup_name, self.timeline,
@@ -213,9 +263,14 @@ class TimelinePopupMenu(QMenu):
             frame.show(self.timeline.get_context())
 
         elif action in self._publish_actions:
-            if self.timeline.is_publishing(action.text()):
-                self.timeline.stop_publishing(action.text())
+            if self._menu_topic is None:
+                topic = action.text()
             else:
-                self.timeline.start_publishing(action.text())
+                topic = self._menu_topic
+
+            if self.timeline.is_publishing(topic):
+                self.timeline.stop_publishing(topic)
+            else:
+                self.timeline.start_publishing(topic)
         else:
             raise Exception('Unknown action in TimelinePopupMenu.process')

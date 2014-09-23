@@ -451,7 +451,8 @@ class BagTimeline(QGraphicsScene):
         elif event.buttons() == Qt.MidButton:
             self._timeline_frame.on_middle_down(event)
         elif event.buttons() == Qt.RightButton:
-            TimelinePopupMenu(self, event)
+            topic = self._timeline_frame.map_y_to_topic(event.y())
+            TimelinePopupMenu(self, event, topic)
 
     def on_mouse_up(self, event):
         self._timeline_frame.on_mouse_up(event)
