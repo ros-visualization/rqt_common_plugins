@@ -2,6 +2,10 @@
 Changelog for package rqt_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* update plugin scripts to use full name to avoid future naming collisions
+
 0.3.9 (2014-08-18)
 ------------------
 

@@ -2,6 +2,10 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add displaying of depth image thumbnails
+
 0.3.9 (2014-08-18)
 ------------------
 * add missing dependency on python-cairo (`#269 <https://github.com/ros-visualization/rqt_common_plugins/issues/269>`_)

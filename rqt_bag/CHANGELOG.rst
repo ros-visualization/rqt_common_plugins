@@ -2,6 +2,16 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix topic type retrieval for multiple bag files (`#279 <https://github.com/ros-visualization/rqt_common_plugins/issues/279>`_)
+* fix region_changed signal emission when no start/end stamps are set
+* improve right-click menu
+* improve popup management (`#280 <https://github.com/ros-visualization/rqt_common_plugins/issues/280>`_)
+* implement recording of topic subsets
+* sort the list of topics
+* update plugin scripts to use full name to avoid future naming collisions
+
 0.3.9 (2014-08-18)
 ------------------
 * fix visibility with dark Qt theme (`#263 <https://github.com/ros-visualization/rqt_common_plugins/issues/263>`_)
