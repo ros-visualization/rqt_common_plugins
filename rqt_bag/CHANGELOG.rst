@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.10 (2014-10-01)
+-------------------
 * fix topic type retrieval for multiple bag files (`#279 <https://github.com/ros-visualization/rqt_common_plugins/issues/279>`_)
 * fix region_changed signal emission when no start/end stamps are set
 * improve right-click menu

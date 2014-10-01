@@ -2,8 +2,8 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.10 (2014-10-01)
+-------------------
 * add displaying of depth image thumbnails
 
 0.3.9 (2014-08-18)
