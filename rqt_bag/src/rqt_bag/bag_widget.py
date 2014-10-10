@@ -83,6 +83,8 @@ class BagWidget(QWidget):
         self.end_button.setIcon(QIcon.fromTheme('media-skip-forward'))
         self.slower_button.setIcon(QIcon.fromTheme('media-seek-backward'))
         self.faster_button.setIcon(QIcon.fromTheme('media-seek-forward'))
+        self.previous_button.setIcon(QIcon.fromTheme('go-previous'))
+        self.next_button.setIcon(QIcon.fromTheme('go-next'))
         self.zoom_in_button.setIcon(QIcon.fromTheme('zoom-in'))
         self.zoom_out_button.setIcon(QIcon.fromTheme('zoom-out'))
         self.zoom_all_button.setIcon(QIcon.fromTheme('zoom-original'))
@@ -96,6 +98,8 @@ class BagWidget(QWidget):
         self.zoom_in_button.clicked[bool].connect(self._handle_zoom_in_clicked)
         self.zoom_out_button.clicked[bool].connect(self._handle_zoom_out_clicked)
         self.zoom_all_button.clicked[bool].connect(self._handle_zoom_all_clicked)
+        self.previous_button.clicked[bool].connect(self._handle_previous_clicked)
+        self.next_button.clicked[bool].connect(self._handle_next_clicked)
         self.faster_button.clicked[bool].connect(self._handle_faster_clicked)
         self.slower_button.clicked[bool].connect(self._handle_slower_clicked)
         self.begin_button.clicked[bool].connect(self._handle_begin_clicked)
@@ -118,6 +122,8 @@ class BagWidget(QWidget):
         self.zoom_in_button.setEnabled(False)
         self.zoom_out_button.setEnabled(False)
         self.zoom_all_button.setEnabled(False)
+        self.previous_button.setEnabled(False)
+        self.next_button.setEnabled(False)
         self.faster_button.setEnabled(False)
         self.slower_button.setEnabled(False)
         self.begin_button.setEnabled(False)
@@ -183,6 +189,16 @@ class BagWidget(QWidget):
         else:
             self.play_button.setIcon(self.play_icon)
             self._timeline.navigate_stop()
+
+    def _handle_next_clicked(self):
+        self._timeline.navigate_next()
+        self.play_button.setChecked(False)
+        self.play_button.setIcon(self.play_icon)
+
+    def _handle_previous_clicked(self):
+        self._timeline.navigate_previous()
+        self.play_button.setChecked(False)
+        self.play_button.setIcon(self.play_icon)
 
     def _handle_faster_clicked(self):
         self._timeline.navigate_fastforward()
@@ -266,6 +282,8 @@ class BagWidget(QWidget):
         self.zoom_in_button.setEnabled(True)
         self.zoom_out_button.setEnabled(True)
         self.zoom_all_button.setEnabled(True)
+        self.next_button.setEnabled(True)
+        self.previous_button.setEnabled(True)
         self.faster_button.setEnabled(True)
         self.slower_button.setEnabled(True)
         self.begin_button.setEnabled(True)

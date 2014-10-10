@@ -309,6 +309,21 @@ class BagTimeline(QGraphicsScene):
 
             return entry_bag, entry
 
+    def get_entry_before(self, t):
+        """
+        Access a bag entry
+        :param t: time, ''rospy.Time''
+        :return: tuple of (bag, entry) corresponding to time t, ''(rosbag.bag, msg)''
+        """
+        with self._bag_lock:
+            entry_bag, entry = None, None
+            for bag in self._bags:
+                bag_entry = bag._get_entry(t-rospy.Duration(0,1), bag._get_connections())
+                if bag_entry and (not entry or bag_entry.time < entry.time):
+                    entry_bag, entry = bag, bag_entry
+
+            return entry_bag, entry
+
     def get_entry_after(self, t):
         """
         Access a bag entry
@@ -334,6 +349,19 @@ class BagTimeline(QGraphicsScene):
         _, entry = self.get_entry_after(self._timeline_frame.playhead)
         if entry is None:
             return self._timeline_frame._start_stamp
+
+        return entry.time
+
+    def get_previous_message_time(self):
+        """
+        :return: time of the next message before the current playhead position,''rospy.Time''
+        """
+        if self._timeline_frame.playhead is None:
+            return None
+
+        _, entry = self.get_entry_before(self._timeline_frame.playhead)
+        if entry is None:
+            return self._timeline_frame._end_stamp
 
         return entry.time
 
@@ -631,6 +659,7 @@ class BagTimeline(QGraphicsScene):
 
         self.last_frame = rospy.Time.from_sec(time.time())
         self.last_playhead = self._timeline_frame.playhead
+
     ### Recording
 
     def record_bag(self, filename, all=True, topics=[], regex=False, limit=0):
@@ -752,11 +781,25 @@ class BagTimeline(QGraphicsScene):
 
     def navigate_play(self):
         self.play_speed = 1.0
+        self.last_frame = rospy.Time.from_sec(time.time())
+        self.last_playhead = self._timeline_frame.playhead
         self._play_timer.start()
 
     def navigate_stop(self):
         self.play_speed = 0.0
         self._play_timer.stop()
+
+    def navigate_previous(self):
+        self.navigate_stop()
+        self.play_speed = -1.0
+        self._timeline_frame.playhead = self.get_previous_message_time()
+        self.last_playhead = self._timeline_frame.playhead
+
+    def navigate_next(self):
+        self.navigate_stop()
+        self.play_speed = 1.0
+        self._timeline_frame.playhead = self.get_next_message_time()
+        self.last_playhead = self._timeline_frame.playhead
 
     def navigate_rewind(self):
         if self._play_speed < 0.0:

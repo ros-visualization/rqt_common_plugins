@@ -110,6 +110,22 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="previous_button">
+       <property name="toolTip">
+        <string>Previous frame</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="play_button">
        <property name="toolTip">
         <string>Play / Pause</string>
@@ -125,6 +141,22 @@
        </property>
        <property name="checkable">
         <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="next_button">
+       <property name="toolTip">
+        <string>Next frame</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
        </property>
       </widget>
      </item>
