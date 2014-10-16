@@ -194,19 +194,19 @@ class RosGraphDotcodeGenerator:
             sub = edge.end
             topic = edge.label
             pub = edge.start
-            [more_label, penwidth, color] = self._calc_statistic_info(sub, topic, pub)
-            if more_label is not None:
-                edge.label = edge.label + "\\n" + more_label
-                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label, penwidth=penwidth, color=color)
+            [stat_label, penwidth, color] = self._calc_statistic_info(sub, topic, pub)
+            if stat_label is not None:
+                temp_label = edge.label + "\\n" + stat_label
+                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=temp_label, url='topic:%s' % edge.label, penwidth=penwidth, color=color)
             else:
                 dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label)
         else:
             sub = edge.end.strip()
             topic = edge.start.strip()
-            [more_label, penwidth, color] = self._calc_statistic_info(sub, topic)
-            if more_label is not None:
-                edge.label = edge.label + "\\n" + more_label
-                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, penwidth=penwidth, color=color)
+            [stat_label, penwidth, color] = self._calc_statistic_info(sub, topic)
+            if stat_label is not None:
+                temp_label = edge.label + "\\n" + stat_label
+                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=temp_label, penwidth=penwidth, color=color)
             else:
                 dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label)
 
