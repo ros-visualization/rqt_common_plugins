@@ -32,8 +32,10 @@
 
 import rospy
 
+# HACK workaround for upstream pillow issue python-pillow/Pillow#400
 import sys
-
+if sys.modules['PyQt5']:
+    sys.modules['PyQt5'] = None
 from PIL import Image
 from PIL.ImageQt import ImageQt
 
