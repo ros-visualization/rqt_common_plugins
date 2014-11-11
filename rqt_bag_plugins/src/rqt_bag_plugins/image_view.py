@@ -31,6 +31,11 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from PIL import Image
+
+# HACK workaround for upstream pillow issue python-pillow/Pillow#400
+import sys
+if sys.modules['PyQt5']:
+    sys.modules['PyQt5'] = None
 from PIL.ImageQt import ImageQt
 
 from rqt_bag import TopicMessageView
