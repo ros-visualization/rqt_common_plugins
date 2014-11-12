@@ -72,13 +72,13 @@ void RatioLayoutedFrame::resizeToFitAspectRatio()
   {
     // too large width
     width = height * aspect_ratio_.width() / aspect_ratio_.height();
-    rect.setWidth(int(width));
+    rect.setWidth(int(width + 0.5));
   }
   else
   {
     // too large height
     height = width * aspect_ratio_.height() / aspect_ratio_.width();
-    rect.setHeight(int(height));
+    rect.setHeight(int(height + 0.5));
   }
 
   // resize taking the border line into account
