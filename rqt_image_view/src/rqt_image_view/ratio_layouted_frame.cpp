@@ -112,10 +112,20 @@ void RatioLayoutedFrame::setInnerFrameFixedSize(const QSize& size)
 
 void RatioLayoutedFrame::setAspectRatio(unsigned short width, unsigned short height)
 {
+  int min_aspect_w = 10;
+  int min_aspect_h = 10;
+  int divisor_step = 5;
+
   int divisor = greatestCommonDivisor(width, height);
   if (divisor != 0) {
-    aspect_ratio_.setWidth(width / divisor);
-    aspect_ratio_.setHeight(height / divisor);
+    int w = width / divisor;
+    int h = height / divisor;
+    while (w > min_aspect_w && h > min_aspect_h) {
+      w = w / divisor_step;
+      h = h / divisor_step;
+    }
+    aspect_ratio_.setWidth(w);
+    aspect_ratio_.setHeight(h);
   }
 }
 
