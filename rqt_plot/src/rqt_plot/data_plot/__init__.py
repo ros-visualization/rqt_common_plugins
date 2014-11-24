@@ -36,6 +36,7 @@ import numpy
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
 from python_qt_binding.QtCore import Qt, qWarning, Signal
 from python_qt_binding.QtGui import QColor, QWidget, QHBoxLayout
+from rqt_py_common.ini_helper import pack, unpack
 
 try:
     from pyqtgraph_data_plot import PyQtGraphDataPlot
@@ -207,12 +208,37 @@ class DataPlot(QWidget):
         Currently, this is just the plot type, but may include more useful
         data in the future"""
         instance_settings.set_value('plot_type', self._plot_index)
+        xlim = self.get_xlim()
+        ylim = self.get_ylim()
+        # convert limits to normal arrays of floats; some backends return numpy
+        # arrays
+        xlim = [float(x) for x in xlim]
+        ylim = [float(y) for y in ylim]
+        instance_settings.set_value('x_limits', pack(xlim))
+        instance_settings.set_value('y_limits', pack(ylim))
 
     def restore_settings(self, plugin_settings, instance_settings):
         """Restore the settings for this widget
 
         Currently, this just restores the plot type."""
         self._switch_data_plot_widget(int(instance_settings.value('plot_type', 0)))
+        xlim = unpack(instance_settings.value('x_limits', []))
+        ylim = unpack(instance_settings.value('y_limits', []))
+        if xlim:
+            # convert limits to an array of floats; they're often lists of
+            # strings
+            try:
+                xlim = [float(x) for x in xlim]
+                self.set_xlim(xlim)
+            except:
+                qWarning("Failed to restore X limits")
+        if ylim:
+            try:
+                ylim = [float(y) for y in ylim]
+                self.set_ylim(ylim)
+            except:
+                qWarning("Failed to restore Y limits")
+
 
     def doSettingsDialog(self):
         """Present the user with a dialog for choosing the plot backend

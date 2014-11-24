@@ -125,7 +125,6 @@ class Plot(Plugin):
         self._widget.autoscroll_checkbox.setChecked(autoscroll)
         self._data_plot.autoscroll(autoscroll)
 
-        self._data_plot.restore_settings(plugin_settings, instance_settings)
         self._update_title()
 
         if len(self._widget._rosdata.keys()) == 0 and not self._args.start_empty:
@@ -133,6 +132,8 @@ class Plot(Plugin):
             if topics:
                 for topic in topics:
                     self._widget.add_topic(topic)
+
+        self._data_plot.restore_settings(plugin_settings, instance_settings)
 
     def trigger_configuration(self):
         self._data_plot.doSettingsDialog()
