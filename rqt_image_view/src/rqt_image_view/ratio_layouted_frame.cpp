@@ -72,13 +72,13 @@ void RatioLayoutedFrame::resizeToFitAspectRatio()
   {
     // too large width
     width = height * aspect_ratio_.width() / aspect_ratio_.height();
-    rect.setWidth(int(width));
+    rect.setWidth(int(width + 0.5));
   }
   else
   {
     // too large height
     height = width * aspect_ratio_.height() / aspect_ratio_.width();
-    rect.setHeight(int(height));
+    rect.setHeight(int(height + 0.5));
   }
 
   // resize taking the border line into account
@@ -112,20 +112,10 @@ void RatioLayoutedFrame::setInnerFrameFixedSize(const QSize& size)
 
 void RatioLayoutedFrame::setAspectRatio(unsigned short width, unsigned short height)
 {
-  int min_aspect_w = 10;
-  int min_aspect_h = 10;
-  int divisor_step = 5;
-
   int divisor = greatestCommonDivisor(width, height);
   if (divisor != 0) {
-    int w = width / divisor;
-    int h = height / divisor;
-    while (w > min_aspect_w && h > min_aspect_h) {
-      w = w / divisor_step;
-      h = h / divisor_step;
-    }
-    aspect_ratio_.setWidth(w);
-    aspect_ratio_.setHeight(h);
+    aspect_ratio_.setWidth(width / divisor);
+    aspect_ratio_.setHeight(height / divisor);
   }
 }
 
