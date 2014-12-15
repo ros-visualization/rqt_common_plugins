@@ -89,6 +89,7 @@ class GroupWidget(QWidget):
 
     # public signal
     sig_node_disabled_selected = Signal(str)
+    sig_node_state_change = Signal(bool)
 
     def __init__(self, updater, config, nodename):
         '''
@@ -97,13 +98,9 @@ class GroupWidget(QWidget):
         :type nodename: str
         '''
 
-        #TODO figure out what data type 'config' is. It is afterall returned
-        #     from dynamic_reconfigure.client.get_parameter_descriptions()
-        # ros.org/doc/api/dynamic_reconfigure/html/dynamic_reconfigure.client-pysrc.html#Client
-
         super(GroupWidget, self).__init__()
         self.state = config['state']
-        self.name = config['name']
+        self.param_name = config['name']
         self._toplevel_treenode_name = nodename
 
         # TODO: .ui file needs to be back into usage in later phase.
@@ -176,8 +173,8 @@ class GroupWidget(QWidget):
                 widget = EnumEditor(self.updater, param)
             elif param['type'] in EDITOR_TYPES:
                 rospy.logdebug('GroupWidget i_debug=%d param type =%s',
-                              i_debug,
-                              param['type'])
+                               i_debug,
+                               param['type'])
                 editor_type = EDITOR_TYPES[param['type']]
                 widget = eval(editor_type)(self.updater, param)
 
@@ -195,38 +192,41 @@ class GroupWidget(QWidget):
 
         for name, group in config['groups'].items():
             if group['type'] == 'tab':
-                widget = TabGroup(self, self.updater, group)
+                widget = TabGroup(self, self.updater, group, self._toplevel_treenode_name)
             elif group['type'] in _GROUP_TYPES.keys():
-                widget = eval(_GROUP_TYPES[group['type']])(self.updater, group)
+                widget = eval(_GROUP_TYPES[group['type']])(self.updater, group, self._toplevel_treenode_name)
+            else:
+                widget = eval(_GROUP_TYPES[''])(self.updater, group, self._toplevel_treenode_name)
 
             self.editor_widgets.append(widget)
             rospy.logdebug('groups._create_node_widgets ' +
-                          #'num groups=%d' +
-                          'name=%s',
-                          name)
+                           'name=%s',
+                           name)
 
         for i, ed in enumerate(self.editor_widgets):
             ed.display(self.grid)
 
         rospy.logdebug('GroupWdgt._create_node_widgets len(editor_widgets)=%d',
-                      len(self.editor_widgets))
+                       len(self.editor_widgets))
 
-    def display(self, grid, row):
-        # groups span across all columns
-        grid.addWidget(self, row, 0, 1, -1)
+    def display(self, grid):
+        grid.addRow(self)
 
     def update_group(self, config):
-        self.state = config['state']
+        if 'state' in config:
+            old_state = self.state
+            self.state = config['state']
+            if self.state != old_state:
+                self.sig_node_state_change.emit(self.state)
 
-        # TODO: should use config.keys but this method doesnt exist
-        names = [name for name in config.items()]
+        names = [name for name in config.keys()]
 
         for widget in self.editor_widgets:
             if isinstance(widget, EditorWidget):
-                if widget.name in names:
-                    widget.update_value(config[widget.name])
+                if widget.param_name in names:
+                    widget.update_value(config[widget.param_name])
             elif isinstance(widget, GroupWidget):
-                cfg = find_cfg(config, widget.name)
+                cfg = find_cfg(config, widget.param_name)
                 widget.update_group(cfg)
 
     def close(self):
@@ -245,41 +245,56 @@ class GroupWidget(QWidget):
 
 
 class BoxGroup(GroupWidget):
-    def __init__(self, updater, config):
-        super(BoxGroup, self).__init__(updater, config)
+    def __init__(self, updater, config, nodename):
+        super(BoxGroup, self).__init__(updater, config, nodename)
 
-        self.box = QGroupBox(self.name)
+        self.box = QGroupBox(self.param_name)
         self.box.setLayout(self.grid)
 
-    def display(self, grid, row):
-        grid.addWidget(self.box, row, 0, 1, -1)
+    def display(self, grid):
+        grid.addRow(self.box)
 
 
 class CollapseGroup(BoxGroup):
-    def __init__(self, updater, config):
-        super(CollapseGroup, self).__init__(updater, config)
+    def __init__(self, updater, config, nodename):
+        super(CollapseGroup, self).__init__(updater, config, nodename)
         self.box.setCheckable(True)
+        self.box.clicked.connect(self.click_cb)
+        self.sig_node_state_change.connect(self.box.setChecked)
+
+        for child in self.box.children():
+            if child.isWidgetType():
+                self.box.toggled.connect(child.setShown)
+
+        self.box.setChecked(self.state)
+
+    def click_cb(self, on):
+        self.updater.update({'groups': {self.param_name: on}})
 
 
 class HideGroup(BoxGroup):
-    def update_group(self, config):
-        super(HideGroup, self).update_group(config)
-        self.box.setVisible(self.state)
+    def __init__(self, updater, config, nodename):
+        super(HideGroup, self).__init__(updater, config, nodename)
+        self.box.setShown(self.state)
+        self.sig_node_state_change.connect(self.box.setShown)
 
 
 class TabGroup(GroupWidget):
-    def __init__(self, parent, updater, config):
-        super(TabGroup, self).__init__(updater, config)
+    def __init__(self, parent, updater, config, nodename):
+        super(TabGroup, self).__init__(updater, config, nodename)
         self.parent = parent
 
         if not self.parent.tab_bar:
             self.parent.tab_bar = QTabWidget()
 
-        parent.tab_bar.addTab(self, self.name)
+        self.wid = QWidget()
+        self.wid.setLayout(self.grid)
 
-    def display(self, grid, row):
+        parent.tab_bar.addTab(self.wid, self.param_name)
+
+    def display(self, grid):
         if not self.parent.tab_bar_shown:
-            grid.addWidget(self.parent.tab_bar, row, 0, 1, -1)
+            grid.addRow(self.parent.tab_bar)
             self.parent.tab_bar_shown = True
 
     def close(self):
@@ -290,24 +305,25 @@ class TabGroup(GroupWidget):
 
 class ApplyGroup(BoxGroup):
     class ApplyUpdater:
-        def __init__(self, updater):
+        def __init__(self, updater, loopback):
             self.updater = updater
+            self.loopback = loopback
             self._configs_pending = {}
 
         def update(self, config):
             for name, value in config.items():
                 self._configs_pending[name] = value
+            self.loopback(config)
 
         def apply_update(self):
             self.updater.update(self._configs_pending)
             self._configs_pending = {}
 
-    def __init__(self, updater, config):
-        self.updater = ApplyGroup.ApplyUpdater(updater)
-        super(ApplyGroup, self).__init__(self.updater, config)
+    def __init__(self, updater, config, nodename):
+        self.updater = ApplyGroup.ApplyUpdater(updater, self.update_group)
+        super(ApplyGroup, self).__init__(self.updater, config, nodename)
 
-        self.button = QPushButton("Apply %s" % self.name)
+        self.button = QPushButton('Apply %s' % self.param_name)
         self.button.clicked.connect(self.updater.apply_update)
 
-        rows = self.grid.rowCount()
-        self.grid.addWidget(self.button, rows + 1, 1, Qt.AlignRight)
+        self.grid.addRow(self.button)

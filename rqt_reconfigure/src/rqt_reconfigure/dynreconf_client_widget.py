@@ -35,7 +35,7 @@
 import rospy
 
 from .param_editors import EditorWidget
-from .param_groups import GroupWidget
+from .param_groups import GroupWidget, find_cfg
 from .param_updater import ParamUpdater
 
 
@@ -85,7 +85,7 @@ class DynreconfClientWidget(GroupWidget):
                                        widget.param_name)
                         widget.update_value(config[widget.param_name])
                 elif isinstance(widget, GroupWidget):
-                    cfg = self.find_cfg(config, widget.param_name)
+                    cfg = find_cfg(config, widget.param_name)
                     rospy.logdebug('GROUP widget.param_name=%s',
                                    widget.param_name)
                     widget.update_group(cfg)
