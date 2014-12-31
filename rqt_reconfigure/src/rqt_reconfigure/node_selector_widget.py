@@ -101,6 +101,7 @@ class NodeSelectorWidget(QWidget):
         self._collapse_button.pressed.connect(
                                           self._node_selector_view.collapseAll)
         self._expand_button.pressed.connect(self._node_selector_view.expandAll)
+        self._refresh_button.pressed.connect(self._refresh_nodes)
 
         # Filtering preparation.
         self._proxy_model = FilterChildrenModel(self)
