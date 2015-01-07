@@ -34,8 +34,9 @@ ID = '/NODEINFO'
 
 class NodeInfo(object):
     nodes = dict()
-    def get_node_info(self, node_name):
-        node_api = rosnode.get_api_uri(rospy.get_master(), node_name)
+    
+    def get_node_info(self, node_name, skip_cache=False):
+        node_api = rosnode.get_api_uri(rospy.get_master(), node_name, skip_cache=skip_cache)
         try:
             code, msg, pid = xmlrpclib.ServerProxy(node_api[2]).getPid(ID)
             if node_name in self.nodes:
@@ -48,11 +49,14 @@ class NodeInfo(object):
                 except:
                     return False
         except xmlrpclib.socket.error:
-            return False
-
+            if not skip_cache:
+                return self.get_node_info(node_name, skip_cache=True)
+            else:
+                return False
 
     def get_all_node_info(self):
         infos = []
+        self.remove_dead_nodes()
         for node_name in rosnode.get_node_names():
             info = self.get_node_info(node_name)
             if info is not False: infos.append((node_name, info))
@@ -65,6 +69,12 @@ class NodeInfo(object):
             infos.append(self.as_dict(p, fields + ['cmdline', 'get_memory_info']))
             infos[-1]['node_name'] = name
         return infos
+        
+    def remove_dead_nodes(self):
+        running_nodes = rosnode.get_node_names()
+        dead_nodes = [node_name for node_name in self.nodes if node_name not in running_nodes]
+        for node_name in dead_nodes:
+            self.nodes.pop(node_name, None)
 
     def kill_node(self, node_name):
         success, fail = rosnode.kill_nodes([node_name])
