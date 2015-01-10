@@ -42,7 +42,7 @@ class SpyderShellWidget(ExternalShellBase):
     SHELL_CLASS = TerminalWidget
     close_signal = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, scriptPath=""):
         ExternalShellBase.__init__(self, parent=parent, fname=None, wdir='.',
                                    history_filename='.history',
                                    light_background=True,
@@ -64,12 +64,12 @@ class SpyderShellWidget(ExternalShellBase):
         self.is_ipython_kernel = False
         self.connection_file = None
 
-        self.create_process()
+        self.create_process(scriptPath)
 
     def get_icon(self):
         return QIcon()
 
-    def create_process(self):
+    def create_process(self, scriptPath=""):
         self.shell.clear()
 
         self.process = QProcess(self)
@@ -87,8 +87,11 @@ class SpyderShellWidget(ExternalShellBase):
         self.process.readyReadStandardOutput.connect(self.write_output)
         self.process.finished.connect(self.finished)
         self.process.finished.connect(self.close_signal)
-
-        self.process.start('/bin/bash', ['-i'])
+        
+        if len(scriptPath > 0):
+            self.process.start('/bin/bash', ['i', "-c 'source " + scriptPath + "; /bin/bash -i'"])
+        else:
+            self.process.start('/bin/bash', ['-i'])
 
         running = self.process.waitForStarted()
         self.set_running_state(running)
