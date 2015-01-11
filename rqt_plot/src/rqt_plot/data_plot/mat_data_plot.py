@@ -51,6 +51,7 @@ if matplotlib.__version__ < '1.1.0':
     raise ImportError('A newer matplotlib is required (at least 1.1.0)')
 
 try:
+    matplotlib.use('Qt4Agg')
     from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 except ImportError:
     # work around bug in dateutil
