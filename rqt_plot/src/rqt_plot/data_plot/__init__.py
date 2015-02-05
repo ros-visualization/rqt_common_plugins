@@ -129,6 +129,7 @@ class DataPlot(QWidget):
 
         # the backend widget that we're trying to hide/abstract
         self._data_plot_widget = None
+        self._curve_order = []
         self._curves = {}
         self._vline = None
         self._redraw.connect(self._do_redraw)
@@ -176,7 +177,7 @@ class DataPlot(QWidget):
         self._layout.addWidget(self._data_plot_widget)
 
         # restore old data
-        for curve_id in self._curves:
+        for curve_id in self._curve_order:
             curve = self._curves[curve_id]
             self._data_plot_widget.add_curve(curve_id, curve['name'], curve['color'], markers_on)
 
@@ -191,7 +192,7 @@ class DataPlot(QWidget):
         self._markers_on = markers_on
         self._data_plot_widget._color_index = 0
 
-        for curve_id in self._curves:
+        for curve_id in self._curve_order:
             self._data_plot_widget.remove_curve(curve_id)
             curve = self._curves[curve_id]
             self._data_plot_widget.add_curve(curve_id, curve['name'], curve['color'], markers_on)
@@ -262,7 +263,7 @@ class DataPlot(QWidget):
         after adding or updating the plot data"""
         if self._data_plot_widget:
             self._merged_autoscale()
-            for curve_id in self._curves:
+            for curve_id in self._curve_order:
                 curve = self._curves[curve_id]
                 self._data_plot_widget.set_values(curve_id, curve['x'], curve['y'])
             self._data_plot_widget.redraw()
@@ -287,7 +288,7 @@ class DataPlot(QWidget):
         """
         curve_color = QColor(self._colors[self._color_index % len(self._colors)])
         self._color_index += 1
-
+        self._curve_order.append(curve_id)
         self._curves[curve_id] = { 'x': numpy.array(data_x),
                                    'y': numpy.array(data_y),
                                    'name': curve_name,
@@ -299,6 +300,7 @@ class DataPlot(QWidget):
         """Remove the specified curve from this plot"""
         # TODO: do on UI thread with signals
         if curve_id in self._curves:
+            self._curve_order.remove(curve_id)
             del self._curves[curve_id]
         if self._data_plot_widget:
             self._data_plot_widget.remove_curve(curve_id)
@@ -335,7 +337,7 @@ class DataPlot(QWidget):
             curve['x'] = numpy.array([])
             curve['y'] = numpy.array([])
         else:
-            for curve_id in self._curves:
+            for curve_id in self._curve_order:
                 self._curves[curve_id]['x'] = numpy.array([])
                 self._curves[curve_id]['y'] = numpy.array([])
 
@@ -387,7 +389,7 @@ class DataPlot(QWidget):
     def _merged_autoscale(self):
         x_limit = [numpy.inf, -numpy.inf]
         if self._autoscale_x:
-            for curve_id in self._curves:
+            for curve_id in self._curve_order:
                 curve = self._curves[curve_id]
                 if len(curve['x']) > 0:
                     x_limit[0] = min(x_limit[0], curve['x'].min())
@@ -401,7 +403,7 @@ class DataPlot(QWidget):
             x_limit[1] = -numpy.inf
             
             # get largest X value
-            for curve_id in self._curves:
+            for curve_id in self._curve_order:
                 curve = self._curves[curve_id]
                 if len(curve['x']) > 0:
                     x_limit[1] = max(x_limit[1], curve['x'].max())
@@ -425,7 +427,7 @@ class DataPlot(QWidget):
             # current limits
             if self._autoscale_y & DataPlot.SCALE_EXTEND:
                 y_limit = self.get_ylim()
-            for curve_id in self._curves:
+            for curve_id in self._curve_order:
                 curve = self._curves[curve_id]
                 start_index = 0
                 end_index = len(curve['x'])

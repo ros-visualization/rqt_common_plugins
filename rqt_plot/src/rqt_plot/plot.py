@@ -118,7 +118,7 @@ class Plot(Plugin):
     def save_settings(self, plugin_settings, instance_settings):
         self._data_plot.save_settings(plugin_settings, instance_settings)
         instance_settings.set_value('autoscroll', self._widget.autoscroll_checkbox.isChecked())
-        instance_settings.set_value('topics', pack(self._widget._rosdata.keys()))
+        instance_settings.set_value('topics', pack(self._widget._ordered_topics))
 
     def restore_settings(self, plugin_settings, instance_settings):
         autoscroll = instance_settings.value('autoscroll', True) in [True, 'true']
