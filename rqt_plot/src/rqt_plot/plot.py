@@ -51,6 +51,7 @@ class Plot(Plugin):
         self._context = context
 
         self._args = self._parse_args(context.argv())
+        self._title = self._args.title
         self._widget = PlotWidget(initial_topics=self._args.topics, start_paused=self._args.start_paused)
         self._data_plot = DataPlot(self._widget)
 
@@ -60,8 +61,7 @@ class Plot(Plugin):
         self._data_plot.set_xlim([0, 10.0])
 
         self._widget.switch_data_plot_widget(self._data_plot)
-        if context.serial_number() > 1:
-            self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
+        self._update_title(self._title)
         context.add_widget(self._widget)
 
     def _parse_args(self, argv):
@@ -108,10 +108,14 @@ class Plot(Plugin):
             help='Start in paused state')
         group.add_argument('-e', '--empty', action='store_true', dest='start_empty',
             help='Start without restoring previous topics')
+        group.add_argument('-T', '--title', dest='title', default='',
+                           help='Window title')
         group.add_argument('topics', nargs='*', default=[], help='Topics to plot')
 
-    def _update_title(self):
-        self._widget.setWindowTitle(self._data_plot.getTitle())
+    def _update_title(self, title):
+        if title is None or title == '':
+            title = self._data_plot.getTitle()
+        self._widget.setWindowTitle(title)
         if self._context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % self._context.serial_number()))
 
@@ -119,6 +123,7 @@ class Plot(Plugin):
         self._data_plot.save_settings(plugin_settings, instance_settings)
         instance_settings.set_value('autoscroll', self._widget.autoscroll_checkbox.isChecked())
         instance_settings.set_value('topics', pack(self._widget._ordered_topics))
+        instance_settings.set_value('title', self._title)
 
     def restore_settings(self, plugin_settings, instance_settings):
         autoscroll = instance_settings.value('autoscroll', True) in [True, 'true']
@@ -126,7 +131,8 @@ class Plot(Plugin):
         self._data_plot.autoscroll(autoscroll)
 
         self._data_plot.restore_settings(plugin_settings, instance_settings)
-        self._update_title()
+        title = instance_settings.value('title', '')
+        self._update_title(title)
 
         if len(self._widget._rosdata.keys()) == 0 and not self._args.start_empty:
             topics = unpack(instance_settings.value('topics', []))
@@ -136,7 +142,7 @@ class Plot(Plugin):
 
     def trigger_configuration(self):
         self._data_plot.doSettingsDialog()
-        self._update_title()
+        self._update_title(self._title)
 
     def shutdown_plugin(self):
         self._widget.clean_up_subscribers()
