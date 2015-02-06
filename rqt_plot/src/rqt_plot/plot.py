@@ -51,8 +51,16 @@ class Plot(Plugin):
         self._context = context
 
         self._args = self._parse_args(context.argv())
+        #Split labels and flatten the list of labels
+        labels = [label for labelstr in self._args.labels for label in labelstr.split(',')]
+        self._topic_labels = {}
+        for ix, topic in enumerate(self._args.topics):
+            if ix >= len(labels):
+                break
+            self._topic_labels[topic] = labels[ix]
+
         self._title = self._args.title
-        self._widget = PlotWidget(initial_topics=self._args.topics, start_paused=self._args.start_paused)
+        self._widget = PlotWidget(initial_topics=self._args.topics, labels=self._topic_labels, start_paused=self._args.start_paused)
         self._data_plot = DataPlot(self._widget)
 
         # disable autoscaling of X, and set a sane default range
@@ -108,6 +116,8 @@ class Plot(Plugin):
             help='Start in paused state')
         group.add_argument('-e', '--empty', action='store_true', dest='start_empty',
             help='Start without restoring previous topics')
+        group.add_argument('-l', '--labels', action='append', default=[],
+                           dest='labels', help='Topic labels')
         group.add_argument('-T', '--title', dest='title', default='',
                            help='Window title')
         group.add_argument('topics', nargs='*', default=[], help='Topics to plot')
@@ -123,6 +133,9 @@ class Plot(Plugin):
         self._data_plot.save_settings(plugin_settings, instance_settings)
         instance_settings.set_value('autoscroll', self._widget.autoscroll_checkbox.isChecked())
         instance_settings.set_value('topics', pack(self._widget._ordered_topics))
+        #Only store labels where the topic still exists
+        labels = [self._topic_labels[topic] for topic in self._widget._ordered_topics if topic in self._topic_labels]
+        instance_settings.set_value('labels', pack(labels))
         instance_settings.set_value('title', self._title)
 
     def restore_settings(self, plugin_settings, instance_settings):
@@ -136,9 +149,15 @@ class Plot(Plugin):
 
         if len(self._widget._rosdata.keys()) == 0 and not self._args.start_empty:
             topics = unpack(instance_settings.value('topics', []))
+            labels = unpack(instance_settings.value('labels', []))
             if topics:
-                for topic in topics:
-                    self._widget.add_topic(topic)
+                for ix, topic in enumerate(topics):
+                    if ix < len(labels):
+                        label = labels[ix]
+                        self._topic_labels[topic] = label
+                        self._widget.add_topic(topic, label)
+                    else:
+                        self._widget.add_topic(topic)
 
     def trigger_configuration(self):
         self._data_plot.doSettingsDialog()

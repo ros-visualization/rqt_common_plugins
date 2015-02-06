@@ -111,11 +111,12 @@ def is_plottable(topic_name):
 class PlotWidget(QWidget):
     _redraw_interval = 40
 
-    def __init__(self, initial_topics=None, start_paused=False):
+    def __init__(self, initial_topics=None, labels={}, start_paused=False):
         super(PlotWidget, self).__init__()
         self.setObjectName('PlotWidget')
 
         self._initial_topics = initial_topics
+        self._labels = labels
 
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_plot'), 'resource', 'plot.ui')
@@ -160,7 +161,10 @@ class PlotWidget(QWidget):
 
         if self._initial_topics:
             for topic_name in self._initial_topics:
-                self.add_topic(topic_name)
+                try:
+                    self.add_topic(topic_name, self._labels[topic_name])
+                except KeyError:
+                    self.add_topic(topic_name)
             self._initial_topics = None
         else:
             for topic_name, rosdata in self._rosdata.items():
@@ -271,7 +275,9 @@ class PlotWidget(QWidget):
 
         self.remove_topic_button.setMenu(self._remove_topic_menu)
 
-    def add_topic(self, topic_name):
+    def add_topic(self, topic_name, label=None):
+        if label is None:
+            label = topic_name
         topics_changed = False
         for topic_name in get_plot_fields(topic_name)[0]:
             if topic_name in self._rosdata:
@@ -284,7 +290,7 @@ class PlotWidget(QWidget):
             else:
                 self._ordered_topics.append(topic_name)
                 data_x, data_y = self._rosdata[topic_name].next()
-                self.data_plot.add_curve(topic_name, topic_name, data_x, data_y)
+                self.data_plot.add_curve(topic_name, label, data_x, data_y)
                 topics_changed = True
 
         if topics_changed:
