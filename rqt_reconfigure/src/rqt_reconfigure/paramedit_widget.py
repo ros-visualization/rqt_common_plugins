@@ -110,7 +110,8 @@ class ParameditWidget(QWidget):
 
         # Add color to alternate the rim of the widget.
         LayoutUtil.alternate_color(self._dynreconf_clients.itervalues(),
-                                   [Qt.white, Qt.lightGray])
+                                   [self.palette().background().color().lighter(125),
+                                    self.palette().background().color().darker(125)])
 
     def close(self):
         for dc in self._dynreconf_clients:
