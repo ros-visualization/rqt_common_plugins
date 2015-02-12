@@ -69,7 +69,7 @@ class Plot(Plugin):
         self._data_plot.set_xlim([0, 10.0])
 
         self._widget.switch_data_plot_widget(self._data_plot)
-        self._update_title(self._title)
+        self._update_title()
         context.add_widget(self._widget)
 
     def _parse_args(self, argv):
@@ -122,7 +122,8 @@ class Plot(Plugin):
                            help='Window title')
         group.add_argument('topics', nargs='*', default=[], help='Topics to plot')
 
-    def _update_title(self, title):
+    def _update_title(self):
+        title = self._title
         if title is None or title == '':
             title = self._data_plot.getTitle()
         self._widget.setWindowTitle(title)
@@ -145,7 +146,9 @@ class Plot(Plugin):
 
         self._data_plot.restore_settings(plugin_settings, instance_settings)
         title = instance_settings.value('title', '')
-        self._update_title(title)
+        if self._title is None or self._title == '':
+            self._title = title
+        self._update_title()
 
         if len(self._widget._rosdata.keys()) == 0 and not self._args.start_empty:
             topics = unpack(instance_settings.value('topics', []))
@@ -161,7 +164,7 @@ class Plot(Plugin):
 
     def trigger_configuration(self):
         self._data_plot.doSettingsDialog()
-        self._update_title(self._title)
+        self._update_title()
 
     def shutdown_plugin(self):
         self._widget.clean_up_subscribers()
