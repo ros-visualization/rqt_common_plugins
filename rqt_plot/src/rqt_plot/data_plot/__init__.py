@@ -34,25 +34,22 @@
 import numpy
 
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
-from python_qt_binding.QtCore import Qt, qDebug, qWarning, Signal
+from python_qt_binding.QtCore import Qt, qWarning, Signal
 from python_qt_binding.QtGui import QColor, QWidget, QHBoxLayout
 
 try:
     from pyqtgraph_data_plot import PyQtGraphDataPlot
 except ImportError:
-    qDebug('[DEBUG] rqt_plot.plot: import of PyQtGraphDataPlot failed (trying other backends)')
     PyQtGraphDataPlot = None
 
 try:
     from mat_data_plot import MatDataPlot
 except ImportError:
-    qDebug('[DEBUG] rqt_plot.plot: import of MatDataPlot failed (trying other backends)')
     MatDataPlot = None
 
 try:
     from qwt_data_plot import QwtDataPlot
 except ImportError:
-    qDebug('[DEBUG] rqt_plot.plot: import of QwtDataPlot failed (trying other backends)')
     QwtDataPlot = None
 
 # separate class for DataPlot exceptions, just so that users can differentiate
