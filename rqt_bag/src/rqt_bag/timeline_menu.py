@@ -45,22 +45,19 @@ class TopicPopupWidget(QWidget):
         self._viewer_type = viewer_type
         self._topic = topic
         self._viewer = None
+        self._is_listening = False
 
     def hideEvent(self, event):
-        # check that we were actually hidden. hide events can also happen if a
-        # window is minimized, but isVisible will still be true if a window is
-        # only minimized and not closed
-        if not self.isVisible():
-            # remove the viewer
-            if self._viewer:
-                self._timeline.remove_listener(self._topic, self._viewer)
-                self._viewer.close()
-                self._viewer = None
+        if self._is_listening:
+            self._timeline.remove_listener(self._topic, self._viewer)
+            self._is_listening = False
+        super(TopicPopupWidget, self).hideEvent(event)
 
-            # clean out the layout
-            while self.layout().count() > 0:
-                item = self.layout().itemAt(0)
-                self.layout().removeItem(item)
+    def showEvent(self, event):
+        if not self._is_listening:
+            self._timeline.add_listener(self._topic, self._viewer)
+            self._is_listening = True
+        super(TopicPopupWidget, self).showEvent(event)
 
     def show(self, context):
         """
@@ -86,7 +83,9 @@ class TopicPopupWidget(QWidget):
 
             # create a new viewer
             self._viewer = self._viewer_type(self._timeline, self, self._topic)
-            self._timeline.add_listener(self._topic, self._viewer)
+            if not self._is_listening:
+                self._timeline.add_listener(self._topic, self._viewer)
+                self._is_listening = True
 
         super(TopicPopupWidget, self).show()
 
