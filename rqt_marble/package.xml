@@ -3,13 +3,13 @@
   <version>0.3.10</version>
   <description>
      rqt_marble works as an interface between KDE's Marble library and ROS.
-     Utilizing sensor_msgs::NavSatFix, it provides following features: 
-     
+     Utilizing sensor_msgs::NavSatFix, it provides following features:
+
      <ul>
       <li>Publishes GPS coordinates in a path that user sets on global map</li>
       <li>Plots GPS coordinates of the robot's current positions</li>
      </ul>
-           
+
      Originally created as
      <a href = "http://www.ros.org/wiki/marble_plugin">marble_plugin</a> by
      Tobias Baer.
@@ -18,7 +18,7 @@
   </description>
   <license>BSD</license>
   <maintainer email="130s@alumni.smu.edu">Isaac Saito</maintainer>
-  <author email="isaito@osrfoundation.org">Isaac Saito</author>
+  <author>Isaac Saito</author>
   <author email="baer@fzi.de">Tobias Baer</author>
   <author email="aiden@fzi.de">Jan Aidel</author>
 
@@ -27,21 +27,21 @@
   <url type="bugtracker">https://github.com/ros-visualization/rqt_robot_plugins/issues</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  
+
   <build_depend>libmarble-dev</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>rqt_gui</build_depend>
   <build_depend>rqt_gui_cpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
-  
+
   <run_depend>libmarble-dev</run_depend>
   <run_depend>message_runtime</run_depend>
   <run_depend>rqt_gui</run_depend>
   <run_depend>rqt_gui_cpp</run_depend>
   <run_depend>sensor_msgs</run_depend>
-  
-  <test_depend>rostest</test_depend>  
-  
+
+  <test_depend>rostest</test_depend>
+
   <export>
     <rqt_gui plugin="${prefix}/plugin.xml"/>
   </export>
