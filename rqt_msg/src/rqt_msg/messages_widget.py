@@ -205,7 +205,8 @@ class MessagesWidget(QWidget):
                                     self.tr('The selected item component ' +
                                             'does not have text to view.'))
             if browsetext is not None:
-                self._browsers.append(TextBrowseDialog(browsetext))
+                self._browsers.append(TextBrowseDialog(browsetext,
+                                                       self._rospack))
                 self._browsers[-1].show()
         else:
             return
