@@ -2,8 +2,8 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.11 (2015-04-30)
+-------------------
 * save and restore axes settings (`#234 <https://github.com/ros-visualization/rqt_common_plugins/issues/234>`_)
 * remove warning when backend is not found (`#301 <https://github.com/ros-visualization/rqt_common_plugins/issues/301>`_)
 * fix version clash for matplot backend when PyQt5 is installed (`#299 <https://github.com/ros-visualization/rqt_common_plugins/pull/200>`_)

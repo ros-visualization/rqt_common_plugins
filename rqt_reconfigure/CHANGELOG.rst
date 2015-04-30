@@ -2,8 +2,8 @@
 Changelog for package rqt_reconfigure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.11 (2015-04-30)
+-------------------
 * restore support for parameter groups (`#162 <https://github.com/ros-visualization/rqt_common_plugins/issues/162>`_)
 * fix background colors for dark themes (`#293 <https://github.com/ros-visualization/rqt_common_plugins/issues/293>`_)
 
