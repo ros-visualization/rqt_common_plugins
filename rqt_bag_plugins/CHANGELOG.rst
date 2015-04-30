@@ -2,6 +2,11 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add missing dependency on rqt_plot (`#316 <https://github.com/ros-visualization/rqt_common_plugins/pull/316>`_)
+* work around Pillow segfault if PyQt5 is installed (`#289 <https://github.com/ros-visualization/rqt_common_plugins/pull/289>`_, `#290 <https://github.com/ros-visualization/rqt_common_plugins/pull/290>`_)
+
 0.3.10 (2014-10-01)
 -------------------
 * add displaying of depth image thumbnails

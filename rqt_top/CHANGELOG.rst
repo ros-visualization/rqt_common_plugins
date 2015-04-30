@@ -2,6 +2,11 @@
 Changelog for package rqt_top
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix information when nodes are restarted, remove dead nodes from memory (`#294 <https://github.com/ros-visualization/rqt_common_plugins/issues/294>`_)
+* fix rqt_top script (`#303 <https://github.com/ros-visualization/rqt_common_plugins/issues/303>`_)
+
 0.3.10 (2014-10-01)
 -------------------
 * update plugin scripts to use full name to avoid future naming collisions

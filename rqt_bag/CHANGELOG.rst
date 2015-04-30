@@ -2,6 +2,10 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix viewer plugin relocation issue (`#306 <https://github.com/ros-visualization/rqt_common_plugins/issues/306>`_)
+
 0.3.10 (2014-10-01)
 -------------------
 * fix topic type retrieval for multiple bag files (`#279 <https://github.com/ros-visualization/rqt_common_plugins/issues/279>`_)

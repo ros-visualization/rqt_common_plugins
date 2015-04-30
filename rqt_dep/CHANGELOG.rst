@@ -2,6 +2,10 @@
 Changelog for package rqt_dep
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* install rqt_dep globally (`#286 <https://github.com/ros-visualization/rqt_common_plugins/pull/286>`_)
+
 0.3.10 (2014-10-01)
 -------------------
 * update plugin scripts to use full name to avoid future naming collisions
