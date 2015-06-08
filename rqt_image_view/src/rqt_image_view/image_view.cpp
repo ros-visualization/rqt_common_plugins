@@ -41,12 +41,13 @@
 
 #include <QMessageBox>
 #include <QPainter>
+#include <QResizeEvent>
 
 namespace rqt_image_view {
 
 ImageView::ImageView()
-  : rqt_gui_cpp::Plugin()
-  , widget_(0)
+: rqt_gui_cpp::Plugin(), widget_(0),
+  preZoomSize_(80, 60), rotateAngle_(0)
 {
   setObjectName("ImageView");
 }
@@ -66,11 +67,18 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   ui_.topics_combo_box->setCurrentIndex(ui_.topics_combo_box->findText(""));
   connect(ui_.topics_combo_box, SIGNAL(currentIndexChanged(int)), this, SLOT(onTopicChanged(int)));
 
+  updateRotationList();
+  ui_.comboBoxRotation->setCurrentIndex(ui_.comboBoxRotation->findText("0 Deg"));
+  connect(ui_.comboBoxRotation, SIGNAL(currentIndexChanged(int)), this, SLOT(onRotationChanged(int)));
+
   ui_.refresh_topics_push_button->setIcon(QIcon::fromTheme("view-refresh"));
   connect(ui_.refresh_topics_push_button, SIGNAL(pressed()), this, SLOT(updateTopicList()));
 
+  ui_.pushButtonStretch->setIcon(QIcon::fromTheme("zoom-fit-best"));
+  connect(ui_.pushButtonStretch, SIGNAL(pressed()), this, SLOT(toggleStretch()));
+
   ui_.zoom_1_push_button->setIcon(QIcon::fromTheme("zoom-original"));
-  connect(ui_.zoom_1_push_button, SIGNAL(toggled(bool)), this, SLOT(onZoom1(bool)));
+  connect(ui_.zoom_1_push_button, SIGNAL(toggled(bool)), this, SLOT(onZoom(bool)));
   
   connect(ui_.dynamic_range_check_box, SIGNAL(toggled(bool)), this, SLOT(onDynamicRange(bool)));
 }
@@ -88,6 +96,8 @@ void ImageView::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::
   instance_settings.setValue("zoom1", ui_.zoom_1_push_button->isChecked());
   instance_settings.setValue("dynamic_range", ui_.dynamic_range_check_box->isChecked());
   instance_settings.setValue("max_range", ui_.max_range_double_spin_box->value());
+  instance_settings.setValue("rotation", ui_.comboBoxRotation->itemData(
+                                                ui_.comboBoxRotation->currentIndex() ).toInt());
 }
 
 void ImageView::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings)
@@ -104,6 +114,18 @@ void ImageView::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, con
   QString topic = instance_settings.value("topic", "").toString();
   //qDebug("ImageView::restoreSettings() topic '%s'", topic.toStdString().c_str());
   selectTopic(topic);
+
+  int rotation = instance_settings.value("rotation", 0).toInt();
+
+  selectCwRotation(rotation);
+}
+
+void ImageView::updateRotationList()
+{
+  ui_.comboBoxRotation->addItem("0 Deg", QVariant(0));
+  ui_.comboBoxRotation->addItem("90 Deg", QVariant(90));
+  ui_.comboBoxRotation->addItem("180 Deg", QVariant(180));
+  ui_.comboBoxRotation->addItem("270 Deg", QVariant(270));
 }
 
 void ImageView::updateTopicList()
@@ -213,6 +235,25 @@ void ImageView::selectTopic(const QString& topic)
   ui_.topics_combo_box->setCurrentIndex(index);
 }
 
+void ImageView::selectCwRotation(const int rotation)
+{
+  int index = ui_.comboBoxRotation->findData( QVariant(rotation));
+
+  if (index == -1)
+  {
+    ui_.comboBoxRotation->setCurrentIndex(0);
+  }
+  else
+  {
+    ui_.comboBoxRotation->setCurrentIndex(index);
+  }
+}
+
+void ImageView::onRotationChanged(int index)
+{
+  rotateAngle_ = ui_.comboBoxRotation->itemData(index).toString().split(" ")[0].toInt();
+}
+
 void ImageView::onTopicChanged(int index)
 {
   subscriber_.shutdown();
@@ -230,6 +271,8 @@ void ImageView::onTopicChanged(int index)
     image_transport::TransportHints hints(transport.toStdString());
     try {
       subscriber_ = it.subscribe(topic.toStdString(), 1, &ImageView::callbackImage, this, hints);
+      preZoomSize_ = QSize(80, 60);
+      onZoom(true);
       //qDebug("ImageView::onTopicChanged() to topic '%s' with transport '%s'", topic.toStdString().c_str(), subscriber_.getTransport().c_str());
     } catch (image_transport::TransportLoadException& e) {
       QMessageBox::warning(widget_, tr("Loading image transport plugin failed"), e.what());
@@ -237,14 +280,24 @@ void ImageView::onTopicChanged(int index)
   }
 }
 
-void ImageView::onZoom1(bool checked)
+void ImageView::resizeEvent(QResizeEvent *event)
 {
-  if (checked)
+  if( ui_.zoom_1_push_button->isChecked() == false )
   {
-    if (ui_.image_frame->getImage().isNull())
-    {
-      return;
-    }
+    preZoomSize_ = event->size();
+  }
+}
+
+void ImageView::onZoom(bool checked)
+{
+  if (ui_.image_frame->getImage().isNull())
+  {
+    return;
+  }
+    
+  if (ui_.zoom_1_push_button->isChecked())
+  {
+    preZoomSize_ = widget_->size();
     ui_.image_frame->setInnerFrameFixedSize(ui_.image_frame->getImage().size());
     widget_->resize(ui_.image_frame->size());
     widget_->setMinimumSize(widget_->sizeHint());
@@ -255,6 +308,11 @@ void ImageView::onZoom1(bool checked)
     widget_->setMinimumSize(QSize(80, 60));
     widget_->setMaximumSize(QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX));
   }
+}
+
+void ImageView::toggleStretch()
+{
+  ui_.image_frame->toggleStretch();
 }
 
 void ImageView::onDynamicRange(bool checked)
@@ -317,12 +375,21 @@ void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)
 
   // image must be copied since it uses the conversion_mat_ for storage which is asynchronously overwritten in the next callback invocation
   QImage image(conversion_mat_.data, conversion_mat_.cols, conversion_mat_.rows, conversion_mat_.step[0], QImage::Format_RGB888);
+
+  if( rotateAngle_ != 0 )
+  {
+     QTransform transform;
+     transform.rotate(rotateAngle_);
+
+     image = image.transformed(transform);
+  }
+
   ui_.image_frame->setImage(image);
 
   if (!ui_.zoom_1_push_button->isEnabled())
   {
     ui_.zoom_1_push_button->setEnabled(true);
-    onZoom1(ui_.zoom_1_push_button->isChecked());
+    onZoom(true);
   }
 }
 

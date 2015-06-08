@@ -74,6 +74,10 @@ public:
 
   void setInnerFrameFixedSize(const QSize& size);
 
+  void toggleStretch();
+ 
+  virtual void resizeEvent(QResizeEvent * event);
+
 signals:
 
   void delayed_update();
@@ -85,14 +89,15 @@ protected:
   void paintEvent(QPaintEvent* event);
 
 private:
-
+  void rescale();
   static int greatestCommonDivisor(int a, int b);
 
-  QSize aspect_ratio_;
-
+  QPoint offset_;
   QImage qimage_;
+  QImage qimageScaled_;
   QMutex qimage_mutex_;
-
+  bool stretch_;
+  bool forceRescale_;
 };
 
 }

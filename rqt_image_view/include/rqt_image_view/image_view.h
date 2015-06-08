@@ -73,6 +73,7 @@ public:
 protected slots:
 
   virtual void updateTopicList();
+  virtual void toggleStretch();
 
 protected:
 
@@ -82,27 +83,31 @@ protected:
   virtual QSet<QString> getTopics(const QSet<QString>& message_types, const QSet<QString>& message_sub_types, const QList<QString>& transports);
 
   virtual void selectTopic(const QString& topic);
+  virtual void selectCwRotation(const int rotation);
 
 protected slots:
 
   virtual void onTopicChanged(int index);
+  virtual void onRotationChanged(int index);
 
-  virtual void onZoom1(bool checked);
+  virtual void onZoom(bool checked);
 
   virtual void onDynamicRange(bool checked);
 
 protected:
 
+  virtual void resizeEvent(QResizeEvent * event);
   virtual void callbackImage(const sensor_msgs::Image::ConstPtr& msg);
+  void updateRotationList();
 
   Ui::ImageViewWidget ui_;
 
   QWidget* widget_;
 
   image_transport::Subscriber subscriber_;
-
   cv::Mat conversion_mat_;
-
+  QSize preZoomSize_;
+  int rotateAngle_;
 };
 
 }

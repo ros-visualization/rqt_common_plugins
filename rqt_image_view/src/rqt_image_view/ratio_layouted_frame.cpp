@@ -33,12 +33,12 @@
 #include <rqt_image_view/ratio_layouted_frame.h>
 
 #include <assert.h>
+#include <ros/ros.h>
 
 namespace rqt_image_view {
 
 RatioLayoutedFrame::RatioLayoutedFrame(QWidget* parent, Qt::WFlags flags)
-  : QFrame()
-  , aspect_ratio_(4, 3)
+ : QFrame(), offset_(0, 0), stretch_(false), forceRescale_(true)
 {
   connect(this, SIGNAL(delayed_update()), this, SLOT(update()), Qt::QueuedConnection);
 }
@@ -55,35 +55,51 @@ const QImage& RatioLayoutedFrame::getImage() const
 void RatioLayoutedFrame::setImage(const QImage& image)//, QMutex* image_mutex)
 {
   qimage_mutex_.lock();
+    forceRescale_ = true;
   qimage_ = image.copy();
+
+    if( qimage_.isNull() )
+        qimageScaled_ = qimage_;
+
   qimage_mutex_.unlock();
-  setAspectRatio(qimage_.width(), qimage_.height());
+
   emit delayed_update();
 }
 
-void RatioLayoutedFrame::resizeToFitAspectRatio()
+void RatioLayoutedFrame::rescale()
 {
-  QRect rect = contentsRect();
+    if( qimage_.isNull() )
+        return;
 
-  // reduce longer edge to aspect ration
-  double width = double(rect.width());
-  double height = double(rect.height());
-  if (width * aspect_ratio_.height() / height > aspect_ratio_.width())
-  {
-    // too large width
-    width = height * aspect_ratio_.width() / aspect_ratio_.height();
-    rect.setWidth(int(width + 0.5));
-  }
-  else
-  {
-    // too large height
-    height = width * aspect_ratio_.height() / aspect_ratio_.width();
-    rect.setHeight(int(height + 0.5));
-  }
+    if( stretch_ == false && forceRescale_ )
+    { 
+        float cw = width(), ch = height();
+        float pw = qimage_.width(), ph = qimage_.height();
 
-  // resize taking the border line into account
-  int border = lineWidth();
-  resize(rect.width() + 2 * border, rect.height() + 2 * border);
+        if (pw > cw && ph > ch && pw/cw > ph/ch ||  //both width and high are bigger, ratio at high is bigger or
+            pw > cw && ph <= ch ||                  //only the width is bigger or
+            pw < cw && ph < ch && cw/pw < ch/ph )   //both width and height is smaller, ratio at width is smaller
+        {
+            qimageScaled_ = qimage_.scaledToWidth(cw, Qt::FastTransformation);
+        }
+        else if (pw > cw && ph > ch && pw/cw <= ph/ch || //both width and high are bigger, ratio at width is bigger or
+                 ph > ch && pw <= cw ||                  //only the height is bigger or
+                 pw < cw && ph < ch && cw/pw > ch/ph)    //both width and height is smaller, ratio at height is smaller
+        {
+            qimageScaled_ = qimage_.scaledToHeight(ch, Qt::FastTransformation);
+        }
+
+        offset_.setX( (cw - qimageScaled_.width()) / 2 );
+        offset_.setY( (ch - qimageScaled_.height()) / 2 );
+
+        forceRescale_ = false;
+    }
+}
+
+void RatioLayoutedFrame::resizeEvent(QResizeEvent * event)
+{
+    forceRescale_ = true;
+    rescale();
 }
 
 void RatioLayoutedFrame::setInnerFrameMinimumSize(const QSize& size)
@@ -110,13 +126,9 @@ void RatioLayoutedFrame::setInnerFrameFixedSize(const QSize& size)
   setInnerFrameMaximumSize(size);
 }
 
-void RatioLayoutedFrame::setAspectRatio(unsigned short width, unsigned short height)
+void RatioLayoutedFrame::toggleStretch()
 {
-  int divisor = greatestCommonDivisor(width, height);
-  if (divisor != 0) {
-    aspect_ratio_.setWidth(width / divisor);
-    aspect_ratio_.setHeight(height / divisor);
-  }
+    stretch_ = ! stretch_;
 }
 
 void RatioLayoutedFrame::paintEvent(QPaintEvent* event)
@@ -125,11 +137,12 @@ void RatioLayoutedFrame::paintEvent(QPaintEvent* event)
   qimage_mutex_.lock();
   if (!qimage_.isNull())
   {
-    resizeToFitAspectRatio();
-    // TODO: check if full draw is really necessary
-    //QPaintEvent* paint_event = dynamic_cast<QPaintEvent*>(event);
-    //painter.drawImage(paint_event->rect(), qimage_);
-    painter.drawImage(contentsRect(), qimage_);
+    if( stretch_ )
+         painter.drawImage(contentsRect(), qimage_);
+    else {
+         rescale();
+         painter.drawImage(offset_, qimageScaled_);
+    }
   } else {
     // default image with gradient
     QLinearGradient gradient(0, 0, frameRect().width(), frameRect().height());
