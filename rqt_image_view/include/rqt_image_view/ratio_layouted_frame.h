@@ -62,6 +62,8 @@ public:
 
   const QImage& getImage() const;
 
+  QImage getImageCopy() const;
+
   void setImage(const QImage& image);
 
   QRect getAspectRatioCorrectPaintArea();
@@ -91,7 +93,7 @@ private:
   QSize aspect_ratio_;
 
   QImage qimage_;
-  QMutex qimage_mutex_;
+  mutable QMutex qimage_mutex_;
 
 };
 

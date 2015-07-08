@@ -91,6 +91,8 @@ protected slots:
 
   virtual void onDynamicRange(bool checked);
 
+  virtual void saveImage();
+
 protected:
 
   virtual void callbackImage(const sensor_msgs::Image::ConstPtr& msg);

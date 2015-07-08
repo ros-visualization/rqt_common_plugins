@@ -39,6 +39,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include <QFileDialog>
 #include <QMessageBox>
 #include <QPainter>
 
@@ -71,8 +72,11 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
 
   ui_.zoom_1_push_button->setIcon(QIcon::fromTheme("zoom-original"));
   connect(ui_.zoom_1_push_button, SIGNAL(toggled(bool)), this, SLOT(onZoom1(bool)));
-  
+
   connect(ui_.dynamic_range_check_box, SIGNAL(toggled(bool)), this, SLOT(onDynamicRange(bool)));
+
+  ui_.save_as_image_push_button->setIcon(QIcon::fromTheme("image"));
+  connect(ui_.save_as_image_push_button, SIGNAL(pressed()), this, SLOT(saveImage()));
 }
 
 void ImageView::shutdownPlugin()
@@ -260,6 +264,20 @@ void ImageView::onZoom1(bool checked)
 void ImageView::onDynamicRange(bool checked)
 {
   ui_.max_range_double_spin_box->setEnabled(!checked);
+}
+
+void ImageView::saveImage()
+{
+  // take a snapshot before asking for the filename
+  QImage img = ui_.image_frame->getImageCopy();
+
+  QString file_name = QFileDialog::getSaveFileName(widget_, tr("Save as image"), "image.png", tr("Image (*.bmp *.jpg *.png *.tiff)"));
+  if (file_name.isEmpty())
+  {
+    return;
+  }
+
+  img.save(file_name);
 }
 
 void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)

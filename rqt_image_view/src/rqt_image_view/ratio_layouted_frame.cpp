@@ -52,6 +52,15 @@ const QImage& RatioLayoutedFrame::getImage() const
   return qimage_;
 }
 
+QImage RatioLayoutedFrame::getImageCopy() const
+{
+  QImage img;
+  qimage_mutex_.lock();
+  img = qimage_.copy();
+  qimage_mutex_.unlock();
+  return img;
+}
+
 void RatioLayoutedFrame::setImage(const QImage& image)//, QMutex* image_mutex)
 {
   qimage_mutex_.lock();
