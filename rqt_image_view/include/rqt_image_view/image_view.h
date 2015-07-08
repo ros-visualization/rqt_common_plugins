@@ -70,9 +70,18 @@ public:
 
   virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
 
+signals:
+
+  void delayed_update_pixel_value();
+
+
 protected slots:
 
   virtual void updateTopicList();
+
+  virtual void setDisplayPixel(int x, int y);
+
+  void updatePixelValueDisplay();
 
 protected:
 
@@ -102,6 +111,11 @@ protected:
   image_transport::Subscriber subscriber_;
 
   cv::Mat conversion_mat_;
+  cv::Mat cv_passthrough_;
+
+  QMutex pixelValueDisplayMutex_;
+  int x_;
+  int y_;
 
 };
 

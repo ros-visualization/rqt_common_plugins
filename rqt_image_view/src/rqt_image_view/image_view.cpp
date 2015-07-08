@@ -42,11 +42,15 @@
 #include <QMessageBox>
 #include <QPainter>
 
+#include<sstream>
+
 namespace rqt_image_view {
 
 ImageView::ImageView()
   : rqt_gui_cpp::Plugin()
   , widget_(0)
+  , x_(-1)
+  , y_(-1)
 {
   setObjectName("ImageView");
 }
@@ -73,6 +77,11 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   connect(ui_.zoom_1_push_button, SIGNAL(toggled(bool)), this, SLOT(onZoom1(bool)));
   
   connect(ui_.dynamic_range_check_box, SIGNAL(toggled(bool)), this, SLOT(onDynamicRange(bool)));
+
+  connect(ui_.image_frame, SIGNAL(pixel_clicked(int, int)), this, SLOT(setDisplayPixel(int,int)));
+  connect(this, SIGNAL(delayed_update_pixel_value()), this, SLOT(updatePixelValueDisplay()), Qt::QueuedConnection);
+
+
 }
 
 void ImageView::shutdownPlugin()
@@ -262,8 +271,42 @@ void ImageView::onDynamicRange(bool checked)
   ui_.max_range_double_spin_box->setEnabled(!checked);
 }
 
+
+void ImageView::updatePixelValueDisplay(){
+    if(x_ < 0 || y_ < 0 || x_ >= cv_passthrough_.cols || y_ >= cv_passthrough_.rows)
+        return;
+
+    std::stringstream ss;
+
+    pixelValueDisplayMutex_.lock();
+    try
+    {
+        ss << "X="   << x_
+           << ", Y=" << y_
+           << " " << cv_passthrough_(cv::Range(y_,y_ + 1),cv::Range(x_,x_ + 1));
+    }
+    catch(cv::Exception)
+    {
+
+    }
+
+    pixelValueDisplayMutex_.unlock();
+
+    ui_.pixel_value_textBrowser->setText(ss.str().c_str());
+}
+
 void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)
 {
+
+  cv_bridge::CvImageConstPtr cv_passthrough_ptr =
+    cv_bridge::toCvShare(msg);
+
+  pixelValueDisplayMutex_.lock();
+  cv_passthrough_ = cv_passthrough_ptr->image;
+  pixelValueDisplayMutex_.unlock();
+
+  emit delayed_update_pixel_value();
+
   try
   {
     // First let cv_bridge do its magic
@@ -324,6 +367,14 @@ void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)
     ui_.zoom_1_push_button->setEnabled(true);
     onZoom1(ui_.zoom_1_push_button->isChecked());
   }
+}
+
+void ImageView::setDisplayPixel(int x, int y)
+{
+    x_ = x;
+    y_ = y;
+    emit delayed_update_pixel_value();
+
 }
 
 }
