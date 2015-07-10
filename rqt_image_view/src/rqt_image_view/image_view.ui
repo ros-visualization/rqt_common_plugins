@@ -69,6 +69,19 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="save_as_image_push_button">
+       <property name="toolTip">
+        <string>Save as image</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
