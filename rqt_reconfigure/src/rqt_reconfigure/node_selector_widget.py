@@ -101,6 +101,7 @@ class NodeSelectorWidget(QWidget):
         self._collapse_button.pressed.connect(
                                           self._node_selector_view.collapseAll)
         self._expand_button.pressed.connect(self._node_selector_view.expandAll)
+        self._refresh_button.pressed.connect(self._refresh_nodes)
 
         # Filtering preparation.
         self._proxy_model = FilterChildrenModel(self)
@@ -304,6 +305,11 @@ class NodeSelectorWidget(QWidget):
             num_nodes = len(nodes)
             elapsedtime_overall = 0.0
             for node_name_grn in nodes:
+                # Skip this grn if we already have it
+                if node_name_grn in self._nodeitems:
+                    i_node_curr += 1
+                    continue
+
                 time_siglenode_loop = time.time()
 
                 ####(Begin) For DEBUG ONLY; skip some dynreconf creation
@@ -383,7 +389,13 @@ class NodeSelectorWidget(QWidget):
         # ignored (that means children will be added to the same parent)
         if name_prev != name_currentnode:
             stditem_currentnode.setText(name_currentnode)
-            treenodeitem_parent.appendRow(stditem_currentnode)
+
+            # Arrange alphabetically by display name
+            insert_index = 0
+            while insert_index < treenodeitem_parent.rowCount() and treenodeitem_parent.child(insert_index).text() < name_currentnode:
+                insert_index += 1
+
+            treenodeitem_parent.insertRow(insert_index, stditem_currentnode)
             stditem = stditem_currentnode
         else:
             stditem = stditem_prev
@@ -398,16 +410,24 @@ class NodeSelectorWidget(QWidget):
             #TODO: Accept even non-terminal treenode as long as it's ROS Node.
             self._item_model.set_item_from_index(grn_curr, stditem.index())
 
-    def _refresh_nodes(self):
-        # TODO: In the future, do NOT remove all nodes. Instead,
-        #            remove only the ones that are gone. And add new ones too.
+    def _prune_nodetree_pernode(self):
+        try:
+            nodes = dyn_reconf.find_reconfigure_services()
+        except rosservice.ROSServiceIOException as e:
+            rospy.logerr("Reconfigure GUI cannot connect to master.")
+            raise e  # TODO Make sure 'raise' here returns or finalizes func.
 
-        model = self._rootitem
-        if model.hasChildren():
-            row_count = model.rowCount()
-            model.removeRows(0, row_count)
-            rospy.logdebug("ParamWidget _refresh_nodes row_count=%s",
-                           row_count)
+        for i in reversed(range(0, self._rootitem.rowCount())):
+            candidate_for_removal = self._rootitem.child(i).get_raw_param_name()
+            if not candidate_for_removal in nodes:
+                rospy.logdebug('Removing {} because the server is no longer available.'.format(
+                                   candidate_for_removal))
+                self._nodeitems[candidate_for_removal].disconnect_param_server()
+                self._rootitem.removeRow(i)
+                self._nodeitems.pop(candidate_for_removal)
+
+    def _refresh_nodes(self):
+        self._prune_nodetree_pernode()
         self._update_nodetree_pernode()
 
     def close_node(self):

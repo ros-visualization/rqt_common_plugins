@@ -113,7 +113,10 @@ class TreenodeQstdItem(ReadonlyItem):
                                                        self._param_name_raw))
 
     def clear_dynreconf_client(self):
-        self._dynreconf_client = None
+        if self._dynreconf_client is not None:
+            self._dynreconf_client.close()
+            del self._dynreconf_client
+            self._dynreconf_client = None
 
     def get_dynreconf_widget(self):
         """
@@ -178,7 +181,9 @@ class TreenodeQstdItem(ReadonlyItem):
                          'ROS Node. Return with nothing.')
             return
 
-        if not self._dynreconfclient_widget:
+        if not self._dynreconf_client:
+            if self._paramserver_connect_thread:
+                self.disconnect_param_server()
             self._paramserver_connect_thread = ParamserverConnectThread(
                                        self, self._param_name_raw)
             self._paramserver_connect_thread.start()
