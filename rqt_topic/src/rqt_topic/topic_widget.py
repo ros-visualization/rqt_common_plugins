@@ -347,6 +347,16 @@ class TopicWidget(QWidget):
                                                          len(selected_topics)))
         self._selected_topics = selected_topics
 
+    # TODO(Enhancement) Save/Restore tree expansion state
+    def save_settings(self, plugin_settings, instance_settings):
+        header_state = self.topics_tree_widget.header().saveState()
+        instance_settings.set_value('tree_widget_header_state', header_state)
+
+    def restore_settings(self, pluggin_settings, instance_settings):
+        if instance_settings.contains('tree_widget_header_state'):
+            header_state = instance_settings.value('tree_widget_header_state')
+            if not self.topics_tree_widget.header().restoreState(header_state):
+                rospy.logwarn("rqt_topic: Failed to restore header state.")
 
 class TreeWidgetItem(QTreeWidgetItem):
 
