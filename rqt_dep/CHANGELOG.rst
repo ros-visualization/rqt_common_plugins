@@ -2,6 +2,9 @@
 Changelog for package rqt_dep
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.12 (2015-07-24)
+-------------------
+
 0.3.11 (2015-04-30)
 -------------------
 * install rqt_dep globally (`#286 <https://github.com/ros-visualization/rqt_common_plugins/pull/286>`_)

@@ -2,6 +2,9 @@
 Changelog for package rqt_top
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.12 (2015-07-24)
+-------------------
+
 0.3.11 (2015-04-30)
 -------------------
 * fix information when nodes are restarted, remove dead nodes from memory (`#294 <https://github.com/ros-visualization/rqt_common_plugins/issues/294>`_)

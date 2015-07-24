@@ -2,6 +2,11 @@
 Changelog for package rqt_topic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.12 (2015-07-24)
+-------------------
+* Save/Restore of headers added
+* Contributors: Aaron Blasdel
+
 0.3.11 (2015-04-30)
 -------------------
 

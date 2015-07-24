@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.12 (2015-07-24)
+-------------------
+* Added step-by-step playback capability
+* Contributors: Aaron Blasdel, sambrose
+
 0.3.11 (2015-04-30)
 -------------------
 * fix viewer plugin relocation issue (`#306 <https://github.com/ros-visualization/rqt_common_plugins/issues/306>`_)

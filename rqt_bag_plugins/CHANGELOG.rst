@@ -2,6 +2,9 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.12 (2015-07-24)
+-------------------
+
 0.3.11 (2015-04-30)
 -------------------
 * add missing dependency on rqt_plot (`#316 <https://github.com/ros-visualization/rqt_common_plugins/pull/316>`_)

@@ -2,6 +2,11 @@
 Changelog for package rqt_image_view
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.12 (2015-07-24)
+-------------------
+* Added button to save current image to file
+* Contributors: Dirk Thomas
+
 0.3.11 (2015-04-30)
 -------------------
 * fix image shrinking problem (`#291 <https://github.com/ros-visualization/rqt_common_plugins/issues/291>`_)

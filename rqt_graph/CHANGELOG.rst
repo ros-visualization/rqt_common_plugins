@@ -2,6 +2,9 @@
 Changelog for package rqt_graph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.12 (2015-07-24)
+-------------------
+
 0.3.11 (2015-04-30)
 -------------------
 * fix duplicate rendering of statistics information (`#283 <https://github.com/ros-visualization/rqt_common_plugins/issues/283>`_)
