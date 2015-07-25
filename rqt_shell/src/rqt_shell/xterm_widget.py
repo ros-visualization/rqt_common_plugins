@@ -42,8 +42,9 @@ class XTermWidget(QX11EmbedContainer):
     xterm_cmd = '/usr/bin/xterm'
     close_signal = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, scriptPath=""):
         super(XTermWidget, self).__init__(parent)
+        xterm_cmd = xterm_cmd + " -e $SHELL -c '. " + scriptPath + ";$SHELL'" if len(scriptPath > 0) else xterm_cmd
         self.setObjectName('XTermWidget')
         self._process = QProcess(self)
         self._process.finished.connect(self.close_signal)

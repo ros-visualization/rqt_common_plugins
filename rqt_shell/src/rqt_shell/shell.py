@@ -80,8 +80,16 @@ class Shell(Plugin):
         super(Shell, self).__init__(context)
         self._context = context
         self.setObjectName('Shell')
+        
+        self.args = self._parse_args(context.argv())
 
         self._widget = None
+        
+    def _parse_args(self, argv):
+        parser = argparse.ArgumentParser(prog='rqt_shell', add_help=False)
+        parser.add_argument('-i','--init_script', help="load a file after startup of the shell", default="")
+        Shell.add_arguments(parser)
+        return parser.parse_args(argv)
 
     def _switch_shell_widget(self):
         # check for available shell type
@@ -95,7 +103,7 @@ class Shell(Plugin):
             self._context.remove_widget(self._widget)
             self._widget.close()
 
-        self._widget = selected_shell['widget_class']()
+        self._widget = selected_shell['widget_class'](scriptPath=args.init_script)
         self._widget.setWindowTitle(selected_shell['title'])
         if self._context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % self._context.serial_number()))
