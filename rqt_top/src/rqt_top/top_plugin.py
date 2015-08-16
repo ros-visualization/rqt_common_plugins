@@ -34,7 +34,7 @@ from python_qt_binding.QtGui import QLabel, QTreeWidget, QTreeWidgetItem, QVBoxL
 from python_qt_binding.QtCore import Qt, QTimer
 
 from rqt_top.node_info import NodeInfo
-from rqt_top.msg import *
+from rqt_top.msg import Process, CPUUsage
 import rospy
 import re
 from threading import RLock
