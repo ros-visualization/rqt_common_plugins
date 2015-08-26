@@ -105,6 +105,10 @@ protected:
 
   cv::Mat conversion_mat_;
 
+private:
+
+  QString arg_topic_name;
+
 };
 
 }
