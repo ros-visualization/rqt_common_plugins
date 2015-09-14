@@ -65,8 +65,8 @@ class PublisherWidget(QWidget):
         loadUi(ui_file, self, {'ExtendedComboBox': ExtendedComboBox, 'PublisherTreeWidget': PublisherTreeWidget})
         self.refresh_button.setIcon(QIcon.fromTheme('view-refresh'))
         self.refresh_button.clicked.connect(self.refresh_combo_boxes)
-        self.add_publisher_button.setIcon(QIcon.fromTheme('add'))
-        self.remove_publisher_button.setIcon(QIcon.fromTheme('remove'))
+        self.add_publisher_button.setIcon(QIcon.fromTheme('list-add'))
+        self.remove_publisher_button.setIcon(QIcon.fromTheme('list-remove'))
         self.clear_button.setIcon(QIcon.fromTheme('edit-clear'))
 
         self.refresh_combo_boxes()
