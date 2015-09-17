@@ -5,8 +5,8 @@ find_package(catkin REQUIRED)
 catkin_python_setup()
 
 if(CATKIN_ENABLE_TESTING)
-  find_package(genmsg)
-  find_package(std_msgs)
+  find_package(genmsg REQUIRED)
+  find_package(std_msgs REQUIRED)
   add_message_files(
     NOINSTALL
     DIRECTORY test/msg
