@@ -8,6 +8,7 @@ if(CATKIN_ENABLE_TESTING)
   find_package(genmsg)
   find_package(std_msgs)
   add_message_files(
+    NOINSTALL
     DIRECTORY test/msg
     FILES ArrayVal.msg Val.msg
     )
