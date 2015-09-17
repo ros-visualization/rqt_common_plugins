@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
-# Copyright (c) 2009, Willow Garage, Inc.
+# Copyright (c) 2015, Robert Haschke
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 import unittest
 
 class TestMessageTreeModel(unittest.TestCase):
-    def test_foo(self):
+    def test_path_names(self):
         from rqt_py_common.message_tree_model import MessageTreeModel
         from rqt_py_common.msg import Val, ArrayVal
         m = MessageTreeModel()
