@@ -288,9 +288,12 @@ class Publisher(Plugin):
                 if value is not None:
                     setattr(message, slot_name, value)
 
-        elif type(message) in (list, tuple) and (len(message) > 0) and hasattr(message[0], '__slots__'):
+        elif type(message) in (list, tuple) and (len(message) > 0):
             for index, slot in enumerate(message):
-                self._fill_message_slots(slot, topic_name + '[%d]' % index, expressions, counter)
+                value = self._fill_message_slots(slot, topic_name + '[%d]' % index, expressions, counter)
+                # this deals with primitive-type arrays
+                if not hasattr(message[0], '__slots__') and value is not None:
+                    message[index] = value
 
         return None
 
