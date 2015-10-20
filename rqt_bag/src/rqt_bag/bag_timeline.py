@@ -102,7 +102,7 @@ class BagTimeline(QGraphicsScene):
         # the timeline renderer fixes use of black pens and fills, so ensure we fix white here for contrast.
         # otherwise a dark qt theme will default it to black and the frame render pen will be unreadable
         self.setBackgroundBrush(Qt.white)
-        self._timeline_frame = TimelineFrame()
+        self._timeline_frame = TimelineFrame(self)
         self._timeline_frame.setPos(0, 0)
         self.addItem(self._timeline_frame)
 
@@ -364,6 +364,10 @@ class BagTimeline(QGraphicsScene):
             return self._timeline_frame._end_stamp
 
         return entry.time
+
+    def resume(self):
+        if (self._player):
+            self._player.resume()
 
     ### Copy messages to...
 
