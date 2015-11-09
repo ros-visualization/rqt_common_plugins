@@ -1,0 +1,18 @@
+<library path="src">
+  <class name="rqt_yn_btn/YesNoButton" type="rqt_yn_btn.rqt_yn_btn.YesNoButton"
+         base_class_type="rqt_gui_py::Plugin">
+    <description>
+      A GUI plugin to ask user for yes or no input.
+    </description>
+    <qtgui>
+      <group>
+        <label>Interaction</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to interaction.</statustip>
+      </group>
+      <label>YesNo Button</label>
+      <icon type="theme">go-next</icon>
+      <statustip>A GUI plugin to ask user for yes or no input.</statustip>
+    </qtgui>
+  </class>
+</library>
