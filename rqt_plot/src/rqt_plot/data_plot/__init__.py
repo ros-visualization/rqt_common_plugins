@@ -34,6 +34,7 @@
 import numpy
 
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
+from python_qt_binding import QT_BINDING
 from python_qt_binding.QtCore import Qt, qWarning, Signal
 from python_qt_binding.QtGui import QColor, QWidget, QHBoxLayout
 from rqt_py_common.ini_helper import pack, unpack
