@@ -53,6 +53,11 @@ class Player(QObject):
         self._publishers = {}
 
         self._publish_clock = False
+        self._last_clock = rosgraph_msgs.msg.Clock()
+        self._resume = False
+
+    def resume(self):
+        self._resume = True
 
     def is_publishing(self, topic):
         return topic in self._publishing
@@ -123,8 +128,10 @@ class Player(QObject):
         if self._publish_clock:
             time_msg = rosgraph_msgs.msg.Clock()
             time_msg.clock = clock
-            self._publishers[CLOCK_TOPIC].publish(time_msg)
-
+            if self._resume or self._last_clock.clock < time_msg.clock:
+                self._resume = False
+                self._last_clock = time_msg
+                self._publishers[CLOCK_TOPIC].publish(time_msg)
         self._publishers[topic].publish(msg)
 
     def message_cleared(self):

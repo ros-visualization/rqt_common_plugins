@@ -69,9 +69,9 @@ class TimelineFrame(QGraphicsItem):
     Also handles mouse callbacks since they interact closely with the drawn elements
     """
 
-    def __init__(self):
+    def __init__(self, bag_timeline):
         super(TimelineFrame, self).__init__()
-
+        self._bag_timeline = bag_timeline
         self._clicked_pos = None
         self._dragged_pos = None
 
@@ -1019,10 +1019,17 @@ class TimelineFrame(QGraphicsItem):
 
         return (left, right)
 
+    def pause(self):
+        self._paused = True
+
+    def resume(self):
+        self._paused = False
+        self._bag_timeline.resume()
+
     # Mouse event handlers
     def on_middle_down(self, event):
         self._clicked_pos = self._dragged_pos = event.pos()
-        self._paused = True
+        self.pause()
 
     def on_left_down(self, event):
         if self.playhead == None:
@@ -1030,7 +1037,7 @@ class TimelineFrame(QGraphicsItem):
 
         self._clicked_pos = self._dragged_pos = event.pos()
 
-        self._paused = True
+        self.pause()
 
         if event.modifiers() == Qt.ShiftModifier:
             return
@@ -1069,7 +1076,7 @@ class TimelineFrame(QGraphicsItem):
                     self.scene().views()[0].setCursor(QCursor(Qt.ClosedHandCursor))
 
     def on_mouse_up(self, event):
-        self._paused = False
+        self.resume()
 
         if self._selecting_mode in [_SelectionMode.LEFT_MARKED, _SelectionMode.MOVE_LEFT, _SelectionMode.MOVE_RIGHT, _SelectionMode.SHIFTING]:
             if self._selected_left is None:
