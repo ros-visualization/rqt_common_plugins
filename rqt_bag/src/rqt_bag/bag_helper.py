@@ -36,7 +36,7 @@ Helper functions for bag files and timestamps.
 
 import time
 import rospy
-
+import math
 
 def stamp_to_str(t):
     """
@@ -125,3 +125,13 @@ def get_datatype(bag, topic):
         return c.datatype
 
     return None
+
+def filesize_to_str(size):
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size,1024)))
+    p = math.pow(1024,i)
+    s = round(size/p,2)
+    if (s > 0):
+        return '%s %s' % (s,size_name[i])
+    else:
+        return '0B'
