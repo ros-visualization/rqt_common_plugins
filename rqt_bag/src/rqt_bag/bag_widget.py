@@ -46,7 +46,6 @@ import bag_helper
 from .bag_timeline import BagTimeline
 from .topic_selection import TopicSelection
 
-
 class BagGraphicsView(QGraphicsView):
     def __init__(self, parent=None):
         super(BagGraphicsView, self).__init__()
@@ -328,6 +327,9 @@ class BagWidget(QWidget):
 
             # Elapsed time (in seconds)
             self.seconds_label.setText('%.3fs' % (self._timeline._timeline_frame.playhead - self._timeline._timeline_frame.start_stamp).to_sec())
+
+            # File size
+            self.filesize_label.setText(bag_helper.filesize_to_str(self._timeline.file_size()))
 
             # Play speed
             spd = self._timeline.play_speed
