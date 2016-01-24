@@ -24,7 +24,7 @@
   <run_depend>rospy</run_depend>
   <run_depend version_gte="0.2.12">rqt_gui</run_depend>
   <run_depend>rqt_gui_py</run_depend>
-
+  <run_depend>rosnode</run_depend>
   <export>
     <architecture_independent/>
     <rqt_gui plugin="${prefix}/plugin.xml"/>

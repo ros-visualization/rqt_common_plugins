@@ -34,6 +34,7 @@ import rosgraph
 
 from python_qt_binding.QtCore import Qt, Signal
 from python_qt_binding.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QCheckBox, QScrollArea, QPushButton
+from .node_selection import NodeSelection
 
 class TopicSelection(QWidget):
 
@@ -48,16 +49,18 @@ class TopicSelection(QWidget):
         self.topic_list = []
         self.selected_topics = []
         self.items_list = []
-
         self.area = QScrollArea(self)
         self.main_widget = QWidget(self.area)
         self.ok_button = QPushButton("Record", self)
         self.ok_button.clicked.connect(self.onButtonClicked)
         self.ok_button.setEnabled(False)
-
+        self.from_nodes_button = QPushButton("From Nodes", self)
+        self.from_nodes_button.clicked.connect(self.onFromNodesButtonClicked)
+        
         self.main_vlayout = QVBoxLayout(self)
         self.main_vlayout.addWidget(self.area)
         self.main_vlayout.addWidget(self.ok_button)
+        self.main_vlayout.addWidget(self.from_nodes_button)
         self.setLayout(self.main_vlayout)
 
         self.selection_vlayout = QVBoxLayout(self)
@@ -81,8 +84,12 @@ class TopicSelection(QWidget):
         self.items_list.append(item)
         self.selection_vlayout.addWidget(item)
 
-
-    def updateList(self, state, topic = None):
+    def changeTopicCheckState(self, topic, state):
+        for item in self.items_list:
+            if item.text() == topic:
+                item.setCheckState(state)
+                return
+    def updateList(self, state, topic = None, force_update_state=False):
         if topic is None: # The "All" checkbox was checked / unchecked
             if state == Qt.Checked:
                 self.item_all.setTristate(False)
@@ -110,3 +117,6 @@ class TopicSelection(QWidget):
     def onButtonClicked(self):
         self.close()
         self.recordSettingsSelected.emit((self.item_all.checkState() == Qt.Checked), self.selected_topics)
+    def onFromNodesButtonClicked(self):
+        self.node_selection = NodeSelection(self)
+        
