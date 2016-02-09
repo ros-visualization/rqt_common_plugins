@@ -102,7 +102,7 @@ class NodeInfo(object):
                         ret = attr()
                 else:
                     ret = attr
-            except AccessDenied:
+            except psutil.AccessDenied:
                 ret = ad_value
             except NotImplementedError:
                 # in case of not implemented functionality (may happen
