@@ -106,9 +106,13 @@ class TopicInfo(ROSTopicHz):
     def get_bw(self):
         if len(self.timestamps) < 2:
             return None, None, None, None
+        current_time = rospy.get_time()
+        if current_time <= self.timestamps[0]:
+            return None, None, None, None
+            
         with self.lock:
             total = sum(self.sizes)
-            bytes_per_s = total / (rospy.get_time() - self.timestamps[0])
+            bytes_per_s = total / (current_time - self.timestamps[0])
             mean_size = total / len(self.timestamps)
             max_size = max(self.sizes)
             min_size = min(self.sizes)
