@@ -33,7 +33,7 @@
 import os
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QDialog
+from python_qt_binding.QtWidgets import QDialog
 
 
 class TextBrowseDialog(QDialog):

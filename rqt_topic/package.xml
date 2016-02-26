@@ -15,6 +15,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>python-rospkg</run_depend>
+  <run_depend version_gte="0.2.19">python_qt_binding</run_depend>
   <run_depend>rostopic</run_depend>
   <run_depend>rqt_gui</run_depend>
   <run_depend>rqt_gui_py</run_depend>
