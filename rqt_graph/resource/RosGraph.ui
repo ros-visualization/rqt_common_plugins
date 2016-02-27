@@ -133,53 +133,86 @@
     <widget class="QWidget" name="widget" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_4">
       <item>
-       <widget class="QCheckBox" name="namespace_cluster_check_box">
-        <property name="toolTip">
-         <string>Show namespace boxes</string>
-        </property>
-        <property name="text">
-         <string>Group namespaces</string>
+       <widget class="QWidget" name="widget" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_4a">
+         <item>
+          <widget class="QLabel">
+           <property name="text">
+            <string>Group:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="namespace_cluster_check_box">
+           <property name="toolTip">
+            <string>Show namespace boxes</string>
+           </property>
+           <property name="text">
+            <string>Namespaces</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="actionlib_check_box">
+           <property name="toolTip">
+            <string>Summarize action topics into one virtual topic node (named &lt;action_server&gt;/action_topics)</string>
+           </property>
+           <property name="text">
+            <string>Actions</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="actionlib_check_box">
-        <property name="toolTip">
-         <string>Summarize action topics into one virtual topic node (named &lt;action_server&gt;/action_topics)</string>
-        </property>
-        <property name="text">
-         <string>Group actions</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="dead_sinks_check_box">
-        <property name="toolTip">
-         <string>Hide topics without subscribers</string>
-        </property>
-        <property name="text">
-         <string>Hide dead sinks</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="leaf_topics_check_box">
-        <property name="toolTip">
-         <string>Hide topics with one connection only (implicates dead sinks)</string>
-        </property>
-        <property name="text">
-         <string>Hide leaf topics</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="quiet_check_box">
-        <property name="toolTip">
-         <string>Hide common debugging nodes</string>
-        </property>
-        <property name="text">
-         <string>Hide Debug</string>
-        </property>
+       <widget class="QWidget" name="widget" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_4b">
+         <item>
+          <widget class="QLabel">
+           <property name="text">
+            <string>Hide:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="dead_sinks_check_box">
+           <property name="toolTip">
+            <string>Hide topics without subscribers</string>
+           </property>
+           <property name="text">
+            <string>Dead sinks</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="leaf_topics_check_box">
+           <property name="toolTip">
+            <string>Hide topics with one connection only (implicates dead sinks)</string>
+           </property>
+           <property name="text">
+            <string>Leaf topics</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="quiet_check_box">
+           <property name="toolTip">
+            <string>Hide common debugging nodes</string>
+           </property>
+           <property name="text">
+            <string>Debug</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
