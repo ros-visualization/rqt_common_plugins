@@ -2,6 +2,11 @@
 Changelog for package rqt_top
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* rqt_top: fix exception catching
+* Contributors: Benjamin Chrétien
+
 0.3.12 (2015-07-24)
 -------------------
 

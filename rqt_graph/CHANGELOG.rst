@@ -2,6 +2,12 @@
 Changelog for package rqt_graph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Remove repeated prefices from buttons
+* Prefix all node and topic names with `n\_` and `t\_` respectively, to allow dot to distinguish them
+* Contributors: Eric Wieser
+
 0.3.12 (2015-07-24)
 -------------------
 

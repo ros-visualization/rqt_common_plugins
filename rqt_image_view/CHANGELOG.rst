@@ -2,6 +2,13 @@
 Changelog for package rqt_image_view
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* use proper icon for images
+* add optional topic argument to rqt_image_view
+* fix width of save-as-image button
+* Contributors: Dirk Thomas, Vincent Rabaud
+
 0.3.12 (2015-07-24)
 -------------------
 * Added button to save current image to file

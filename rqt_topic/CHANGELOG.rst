@@ -2,6 +2,11 @@
 Changelog for package rqt_topic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* check for divide by zero and data failures
+* Contributors: Aaron Blasdel
+
 0.3.12 (2015-07-24)
 -------------------
 * Save/Restore of headers added
