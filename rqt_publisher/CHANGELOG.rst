@@ -2,8 +2,8 @@
 Changelog for package rqt_publisher
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.13 (2016-03-08)
+-------------------
 * fixed rqt_publisher plugin to fill message slots for individual fields of primitive arrays
 * use proper icon names for add/remove
 * Contributors: Robert Haschke, Vincent Rabaud

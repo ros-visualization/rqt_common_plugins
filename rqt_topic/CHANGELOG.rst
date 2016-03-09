@@ -2,8 +2,8 @@
 Changelog for package rqt_topic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.13 (2016-03-08)
+-------------------
 * check for divide by zero and data failures
 * Contributors: Aaron Blasdel
 

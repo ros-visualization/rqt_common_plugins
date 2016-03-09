@@ -2,8 +2,8 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.13 (2016-03-08)
+-------------------
 * Added missing include
 * use proper icon names for add/remove
 * Contributors: Jochen Sprickerhof, Vincent Rabaud
