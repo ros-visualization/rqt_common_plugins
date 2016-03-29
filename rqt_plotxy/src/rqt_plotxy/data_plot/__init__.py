@@ -340,9 +340,9 @@ class DataPlot(QWidget):
         curve['x'] = numpy.append(curve['x'], values_x)
         curve['y'] = numpy.append(curve['y'], values_y)
         # sort resulting data, so we can slice it later
-        sort_order = curve['x'].argsort()
-        curve['x'] = curve['x'][sort_order]
-        curve['y'] = curve['y'][sort_order]
+        # sort_order = curve['x'].argsort()
+        # curve['x'] = curve['x'][sort_order]
+        # curve['y'] = curve['y'][sort_order]
 
     def clear_values(self, curve_id=None):
         """Clear the values for the specified curve, or all curves

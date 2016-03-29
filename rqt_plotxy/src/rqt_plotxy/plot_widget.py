@@ -43,7 +43,7 @@ import rospy
 from rqt_py_common.topic_completer import TopicCompleter
 from rqt_py_common import topic_helpers
 
-from . rosplot import ROSData, RosPlotException
+from . rosplot import ROSDataXY, RosPlotException
 
 def get_plot_fields(topic_name):
     topic_type, real_topic, _ = topic_helpers.get_topic_type(topic_name)
@@ -159,7 +159,8 @@ class PlotWidget(QWidget):
 
         if self._initial_topics:
             for topic_name in self._initial_topics:
-                self.add_topic(topic_name)
+                # self.add_topic(topic_name)
+                qWarning('self.add_topic(topic_name) disabled')
             self._initial_topics = None
         else:
             for topic_name, rosdata in self._rosdata.items():
@@ -197,7 +198,8 @@ class PlotWidget(QWidget):
         else:
             droped_item = event.source().selectedItems()[0]
             topic_name = str(droped_item.data(0, Qt.UserRole))
-        self.add_topic(topic_name)
+        # self.add_topic(topic_name)
+        qWarning('self.add_topic(topic_name) disabled')
 
     @Slot(str)
     def on_topic_edit_textChanged(self, topic_name):
@@ -212,11 +214,11 @@ class PlotWidget(QWidget):
     @Slot()
     def on_topic_edit_returnPressed(self):
         if self.subscribe_topic_button.isEnabled():
-            self.add_topic(str(self.topic_edit.text()))
+            self.add_topic(str(self.topic_edit_x.text()),str(self.topic_edit.text())) #TODO
 
     @Slot()
     def on_subscribe_topic_button_clicked(self):
-        self.add_topic(str(self.topic_edit.text()))
+        self.add_topic(str(self.topic_edit_x.text()),str(self.topic_edit.text())) #TODO
 
     @Slot(bool)
     def on_pause_button_clicked(self, checked):
@@ -270,19 +272,21 @@ class PlotWidget(QWidget):
 
         self.remove_topic_button.setMenu(self._remove_topic_menu)
 
-    def add_topic(self, topic_name):
+    def add_topic(self, topic_name_x, topic_name_y):
         topics_changed = False
-        for topic_name in get_plot_fields(topic_name)[0]:
-            if topic_name in self._rosdata:
-                qWarning('PlotWidget.add_topic(): topic already subscribed: %s' % topic_name)
+        if len(get_plot_fields(topic_name_x)[0]) != len(get_plot_fields(topic_name_y)[0]):
+            qWarning('get_plot_fields(%s)[0] != get_plot_fields(%s)[0] %s' % topic_name_x, topic_name_y)
+        for topic_name_x, topic_name_y  in zip(get_plot_fields(topic_name_x)[0], get_plot_fields(topic_name_y)[0]):
+            if topic_name_y in self._rosdata:
+                qWarning('PlotWidget.add_topic(): topic already subscribed: %s' % topic_name_y)
                 continue
-            self._rosdata[topic_name] = ROSData(topic_name, self._start_time)
-            if self._rosdata[topic_name].error is not None:
-                qWarning(str(self._rosdata[topic_name].error))
-                del self._rosdata[topic_name]
+            self._rosdata[topic_name_y] = ROSDataXY((topic_name_x, topic_name_y), self._start_time)
+            if self._rosdata[topic_name_y].error is not None:
+                qWarning(str(self._rosdata[topic_name_y].error))
+                del self._rosdata[topic_name_y]
             else:
-                data_x, data_y = self._rosdata[topic_name].next()
-                self.data_plot.add_curve(topic_name, topic_name, data_x, data_y)
+                data_x, data_y = self._rosdata[topic_name_y].next()
+                self.data_plot.add_curve(topic_name_y, topic_name_y, data_x, data_y)
                 topics_changed = True
 
         if topics_changed:

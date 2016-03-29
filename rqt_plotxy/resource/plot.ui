@@ -34,7 +34,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Topic X</string>
+        <string>Topic Y</string>
        </property>
       </widget>
      </item>
@@ -48,12 +48,12 @@
      <item>
       <widget class="QLabel" name="labelY">
        <property name="text">
-        <string>Topic Y</string>
+        <string>Topic X</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="topicY_edit">
+      <widget class="QLineEdit" name="topic_edit_x">
        <property name="text">
         <string>/</string>
        </property>

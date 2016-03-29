@@ -89,6 +89,61 @@ def get_topic_type(topic):
         return None, None, None
 
 
+class ROSDataXY(object):
+    """
+    Subscriber to two ROS topics that buffers incoming data
+    """
+
+    def __init__(self, topics, start_time, precision_digits=3):
+        self.ros_data_x = ROSData(topics[0], start_time)
+        self.ros_data_y = ROSData(topics[1], start_time)
+
+        self.precision = precision_digits
+
+        self.prev1 = []
+        self.prev2 = []
+
+    def close(self):
+        self.ros_data_x.close()
+        self.ros_data_y.close()
+
+    def next(self):
+        datax = self.ros_data_x.next()
+        datay = self.ros_data_y.next()
+
+        data1 = self.prev1 + zip(np.around(datax[0], decimals=self.precision), datax[1])
+        data2 = self.prev2 + zip(np.around(datay[0], decimals=self.precision), datay[1])
+
+        result = [[],[]]
+
+        while data1 and data2:
+            p1, p2 = data1[0], data2[0]
+            if p1[0] == p2[0]:
+                result[0].append(p1[1])
+                result[1].append(p2[1])
+                data1 = data1[1:]
+                data2 = data2[1:]
+            elif p1[0] < p2[0]:
+                data1 = data1[1:]
+            else: # p1[0] > p2[0]
+                data2 = data2[1:]
+        else:
+            self.prev1 = data1
+            self.prev2 = data2
+
+        return result
+
+    def generate_field_evals(fields_x, fields_y):
+        fx = self.ros_data_x.generate_field_evals(fields_x)
+        fy = self.ros_data_x.generate_field_evals(fields_y)
+
+        return fx, fy
+
+    @property
+    def error(self):
+        return self.ros_data_y.error
+
+
 class ROSData(object):
     """
     Subscriber to ROS topic that buffers incoming data
