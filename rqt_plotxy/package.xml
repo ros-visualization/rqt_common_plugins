@@ -1,9 +1,8 @@
 <package>
   <name>rqt_plotxy</name>
   <version>0.3.13</version>
-  <description>rqt_plotxy provides a GUI plugin visualizing numeric values in a 2D plot using different plotting backends.</description>
-  <maintainer email="scholz@sim.tu-darmstadt.de">Dorian Scholz</maintainer>
-  <maintainer email="namniart@gmail.com">Austin Hendrix</maintainer>
+  <description>rqt_plotxy provides a GUI plugin visualizing numeric values in a 2D plot.</description>
+  <maintainer email="rafael.bailon-ruiz@laas.fr">Rafael Bailón-Ruiz</maintainer>
 
   <license>BSD</license>
 
@@ -12,6 +11,7 @@
   <url type="bugtracker">https://github.com/ros-visualization/rqt_common_plugins/issues</url>
 
   <author>Dorian Scholz</author>
+  <author>Rafael Bailón-Ruiz</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 

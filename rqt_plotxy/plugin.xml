@@ -1,7 +1,7 @@
 <library path="src">
   <class name="Plot" type="rqt_plotxy.plot.Plot" base_class_type="rqt_gui_py::Plugin">
     <description>
-      A plugin visualizing numeric values in a 2D plot using different plotting backends.
+      A plugin visualizing numeric values in a 2D plot.
     </description>
     <qtgui>
       <group>
