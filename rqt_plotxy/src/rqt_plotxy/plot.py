@@ -116,24 +116,26 @@ class Plot(Plugin):
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % self._context.serial_number()))
 
     def save_settings(self, plugin_settings, instance_settings):
-        self._data_plot.save_settings(plugin_settings, instance_settings)
-        instance_settings.set_value('autoscroll', self._widget.autoscroll_checkbox.isChecked())
-        instance_settings.set_value('topics', pack(self._widget._rosdata.keys()))
+        pass
+        # self._data_plot.save_settings(plugin_settings, instance_settings)
+        # instance_settings.set_value('autoscroll', self._widget.autoscroll_checkbox.isChecked())
+        # instance_settings.set_value('topics', pack(self._widget._rosdata.keys()))
 
     def restore_settings(self, plugin_settings, instance_settings):
-        autoscroll = instance_settings.value('autoscroll', True) in [True, 'true']
-        self._widget.autoscroll_checkbox.setChecked(autoscroll)
-        self._data_plot.autoscroll(autoscroll)
-
-        self._update_title()
-
-        if len(self._widget._rosdata.keys()) == 0 and not self._args.start_empty:
-            topics = unpack(instance_settings.value('topics', []))
-            if topics:
-                for topic in topics:
-                    self._widget.add_topic(topic)
-
-        self._data_plot.restore_settings(plugin_settings, instance_settings)
+        pass
+        # autoscroll = instance_settings.value('autoscroll', True) in [True, 'true']
+        # self._widget.autoscroll_checkbox.setChecked(autoscroll)
+        # self._data_plot.autoscroll(autoscroll)
+        #
+        # self._update_title()
+        #
+        # if len(self._widget._rosdata.keys()) == 0 and not self._args.start_empty:
+        #     topics = unpack(instance_settings.value('topics', []))
+        #     if topics:
+        #         for topic in topics:
+        #             self._widget.add_topic(topic)
+        #
+        # self._data_plot.restore_settings(plugin_settings, instance_settings)
 
     def trigger_configuration(self):
         self._data_plot.doSettingsDialog()
