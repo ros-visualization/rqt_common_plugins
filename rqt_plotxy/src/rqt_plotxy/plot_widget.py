@@ -214,11 +214,13 @@ class PlotWidget(QWidget):
     @Slot()
     def on_topic_edit_returnPressed(self):
         if self.subscribe_topic_button.isEnabled():
-            self.add_topic(str(self.topic_edit_x.text()),str(self.topic_edit.text())) #TODO
+            self.add_topic(str(self.topic_edit_x.text()),
+                           str(self.topic_edit.text()))
 
     @Slot()
     def on_subscribe_topic_button_clicked(self):
-        self.add_topic(str(self.topic_edit_x.text()),str(self.topic_edit.text())) #TODO
+        self.add_topic(str(self.topic_edit_x.text()),
+                       str(self.topic_edit.text()))
 
     @Slot(bool)
     def on_pause_button_clicked(self, checked):
@@ -274,19 +276,25 @@ class PlotWidget(QWidget):
 
     def add_topic(self, topic_name_x, topic_name_y):
         topics_changed = False
-        if len(get_plot_fields(topic_name_x)[0]) != len(get_plot_fields(topic_name_y)[0]):
-            qWarning('get_plot_fields(%s)[0] != get_plot_fields(%s)[0] %s' % topic_name_x, topic_name_y)
-        for topic_name_x, topic_name_y  in zip(get_plot_fields(topic_name_x)[0], get_plot_fields(topic_name_y)[0]):
+        if len(get_plot_fields(topic_name_x)[0]) != \
+           len(get_plot_fields(topic_name_y)[0]):
+            return
+        for topic_name_x, topic_name_y in zip(get_plot_fields(topic_name_x)[0],
+                                              get_plot_fields(topic_name_y)[0]):
             if topic_name_y in self._rosdata:
                 qWarning('PlotWidget.add_topic(): topic already subscribed: %s' % topic_name_y)
                 continue
-            self._rosdata[topic_name_y] = ROSDataXY((topic_name_x, topic_name_y), self._start_time)
+            self._rosdata[topic_name_y] = ROSDataXY(
+                (topic_name_x, topic_name_y), self._start_time)
             if self._rosdata[topic_name_y].error is not None:
                 qWarning(str(self._rosdata[topic_name_y].error))
                 del self._rosdata[topic_name_y]
             else:
                 data_x, data_y = self._rosdata[topic_name_y].next()
-                self.data_plot.add_curve(topic_name_y, topic_name_y, data_x, data_y)
+                self.data_plot.add_curve(topic_name_y,
+                                         "{}\n{}".format(topic_name_y,
+                                                         topic_name_x),
+                                         data_x, data_y)
                 topics_changed = True
 
         if topics_changed:
