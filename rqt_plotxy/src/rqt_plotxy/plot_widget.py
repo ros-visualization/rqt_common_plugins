@@ -134,6 +134,10 @@ class PlotWidget(QWidget):
         self._topic_completer.update_topics()
         self.topic_edit.setCompleter(self._topic_completer)
 
+        self._topic_completer_x = TopicCompleter(self.topic_edit_x)
+        self._topic_completer_x.update_topics()
+        self.topic_edit_x.setCompleter(self._topic_completer_x)
+
         self._start_time = rospy.get_time()
         self._rosdata = {}
         self._remove_topic_menu = QMenu()
@@ -208,8 +212,22 @@ class PlotWidget(QWidget):
             self._topic_completer.update_topics()
 
         plottable, message = is_plottable(topic_name)
-        self.subscribe_topic_button.setEnabled(plottable)
-        self.subscribe_topic_button.setToolTip(message)
+        plottable_x, message_x = is_plottable(self.topic_edit_x.text())
+        self.subscribe_topic_button.setEnabled(plottable and plottable_x)
+        self.subscribe_topic_button.setToolTip(
+            "Topic Y: {}\nTopic X: {}".format(message, message_x))
+
+    @Slot(str)
+    def on_topic_edit_x_textChanged(self, topic_name):
+        # on empty topic name, update topics
+        if topic_name in ('', '/'):
+            self._topic_completer_x.update_topics()
+
+        plottable, message = is_plottable(self.topic_edit.text())
+        plottable_x, message_x = is_plottable(topic_name)
+        self.subscribe_topic_button.setEnabled(plottable and plottable_x)
+        self.subscribe_topic_button.setToolTip(
+            "Topic Y: {}\nTopic X: {}".format(message, message_x))
 
     @Slot()
     def on_topic_edit_returnPressed(self):
