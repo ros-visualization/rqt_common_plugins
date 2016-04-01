@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # Copyright (c) 2011, Dorian Scholz, TU Darmstadt
+# Copyright (c) 2016, Rafael Bailon-Ruiz
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -116,26 +117,29 @@ class Plot(Plugin):
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % self._context.serial_number()))
 
     def save_settings(self, plugin_settings, instance_settings):
-        pass
-        # self._data_plot.save_settings(plugin_settings, instance_settings)
-        # instance_settings.set_value('autoscroll', self._widget.autoscroll_checkbox.isChecked())
-        # instance_settings.set_value('topics', pack(self._widget._rosdata.keys()))
+        self._data_plot.save_settings(plugin_settings, instance_settings)
+        instance_settings.set_value('autoscroll', self._widget.autoscroll_checkbox.isChecked())
+        topics = self._widget._rosdata.values()
+        topic_names_x = [t.ros_data_x.name for t in topics]
+        instance_settings.set_value('topicsX', pack(topic_names_x))
+        topic_names_y = [t.ros_data_y.name for t in topics]
+        instance_settings.set_value('topicsY', pack(topic_names_y))
 
     def restore_settings(self, plugin_settings, instance_settings):
-        pass
-        # autoscroll = instance_settings.value('autoscroll', True) in [True, 'true']
-        # self._widget.autoscroll_checkbox.setChecked(autoscroll)
-        # self._data_plot.autoscroll(autoscroll)
-        #
-        # self._update_title()
-        #
-        # if len(self._widget._rosdata.keys()) == 0 and not self._args.start_empty:
-        #     topics = unpack(instance_settings.value('topics', []))
-        #     if topics:
-        #         for topic in topics:
-        #             self._widget.add_topic(topic)
-        #
-        # self._data_plot.restore_settings(plugin_settings, instance_settings)
+        autoscroll = instance_settings.value('autoscroll', True) in [True, 'true']
+        self._widget.autoscroll_checkbox.setChecked(autoscroll)
+        self._data_plot.autoscroll(autoscroll)
+
+        self._update_title()
+
+        if len(self._widget._rosdata.keys()) == 0 and not self._args.start_empty:
+            topicsX = unpack(instance_settings.value('topicsX', []))
+            topicsY = unpack(instance_settings.value('topicsY', []))
+            if topicsX and topicsY and len(topicsX) == len(topicsY):
+                for topic in zip(topicsX, topicsY):
+                    self._widget.add_topic(*topic)
+
+        self._data_plot.restore_settings(plugin_settings, instance_settings)
 
     def trigger_configuration(self):
         self._data_plot.doSettingsDialog()

@@ -3,6 +3,7 @@
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2009, Willow Garage, Inc.
+# Copyright (c) 2016, Rafael Bailon-Ruiz
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -111,10 +112,12 @@ class ROSDataXY(object):
         datax = self.ros_data_x.next()
         datay = self.ros_data_y.next()
 
-        data1 = self.prev1 + zip(np.around(datax[0], decimals=self.precision), datax[1])
-        data2 = self.prev2 + zip(np.around(datay[0], decimals=self.precision), datay[1])
+        data1 = self.prev1 + zip(np.around(datax[0], decimals=self.precision),
+                                 datax[1])
+        data2 = self.prev2 + zip(np.around(datay[0], decimals=self.precision),
+                                 datay[1])
 
-        result = [[],[]]
+        result = [[], []]
 
         while data1 and data2:
             p1, p2 = data1[0], data2[0]
@@ -125,7 +128,7 @@ class ROSDataXY(object):
                 data2 = data2[1:]
             elif p1[0] < p2[0]:
                 data1 = data1[1:]
-            else: # p1[0] > p2[0]
+            else:  # p1[0] > p2[0]
                 data2 = data2[1:]
         else:
             self.prev1 = data1
@@ -183,7 +186,6 @@ class ROSData(object):
                     self.buff_x.append(msg.header.stamp.to_sec() - self.start_time)
                 else:
                     self.buff_x.append(rospy.get_time() - self.start_time)
-                #self.axes[index].plot(datax, buff_y)
             except AttributeError, e:
                 self.error = RosPlotException("Invalid topic spec [%s]: %s" % (self.name, str(e)))
         finally:

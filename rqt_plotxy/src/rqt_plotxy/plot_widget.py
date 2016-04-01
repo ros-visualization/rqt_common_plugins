@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # Copyright (c) 2011, Dorian Scholz, TU Darmstadt
+# Copyright (c) 2016, Rafael Bailon-Ruiz
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
