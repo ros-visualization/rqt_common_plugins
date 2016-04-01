@@ -70,6 +70,11 @@ class Plot(Plugin):
         Plot.add_arguments(parser)
         args = parser.parse_args(argv)
 
+        # Ignore 'topics' argument
+        if not hasattr(args, 'topics'):
+            args.topics = []
+            return args
+
         # convert topic arguments into topic names
         topic_list = []
         for t in args.topics:
@@ -109,7 +114,7 @@ class Plot(Plugin):
             help='Start in paused state')
         group.add_argument('-e', '--empty', action='store_true', dest='start_empty',
             help='Start without restoring previous topics')
-        group.add_argument('topics', nargs='*', default=[], help='Topics to plot')
+        #group.add_argument('topics', nargs='*', default=[], help='Topics to plot')
 
     def _update_title(self):
         self._widget.setWindowTitle(self._data_plot.getTitle())
