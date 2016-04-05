@@ -38,10 +38,10 @@ from python_qt_binding.QtCore import qDebug
 from rqt_gui_py.plugin import Plugin
 
 from rqt_py_common.ini_helper import pack, unpack
+from rqt_plot.data_plot import DataPlot
 
 from .plot_widget_xy import PlotWidgetXY
 
-from .data_plot import DataPlot
 
 class PlotXY(Plugin):
 
