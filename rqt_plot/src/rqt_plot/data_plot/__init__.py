@@ -335,14 +335,19 @@ class DataPlot(QWidget):
 
         Note that the plot is not redraw automatically; call `redraw()` to make
         any changes visible to the user.
+
+        If `sort_data` is set to False, values won't be sorted by `values_x`
+        order.
         """
         curve = self._get_curve(curve_id)
         curve['x'] = numpy.append(curve['x'], values_x)
         curve['y'] = numpy.append(curve['y'], values_y)
-        # sort resulting data, so we can slice it later
-        sort_order = curve['x'].argsort()
-        curve['x'] = curve['x'][sort_order]
-        curve['y'] = curve['y'][sort_order]
+
+        if sort_data:
+            # sort resulting data, so we can slice it later
+            sort_order = curve['x'].argsort()
+            curve['x'] = curve['x'][sort_order]
+            curve['y'] = curve['y'][sort_order]
 
     def clear_values(self, curve_id=None):
         """Clear the values for the specified curve, or all curves
