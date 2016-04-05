@@ -50,6 +50,8 @@ class PlotWidgetXY(PlotWidget):
         super(PlotWidgetXY, self).__init__(
             initial_topics=initial_topics, start_paused=start_paused)
 
+        self.setObjectName('PlotWidgetXY')
+
         self.label.setText("Topic Y")
 
         self.topic_edit_x = QLineEdit()
