@@ -44,7 +44,10 @@ import rospy
 from rqt_py_common.topic_completer import TopicCompleter
 from rqt_py_common import topic_helpers
 
-from . rosplot import ROSDataXY, RosPlotException
+from rqt_plot.rosplot import RosPlotException
+
+from . rosplotxy import ROSDataXY
+
 
 def get_plot_fields(topic_name):
     topic_type, real_topic, _ = topic_helpers.get_topic_type(topic_name)
