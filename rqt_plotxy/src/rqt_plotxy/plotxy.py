@@ -52,10 +52,10 @@ class PlotXY(Plugin):
         self._context = context
 
         parser = argparse.ArgumentParser(prog='rqt_plotxy', add_help=False)
-        Plot.add_arguments(parser)
-        self._args = parser.parse_args(argv)
+        PlotXY.add_arguments(parser)
+        self._args = parser.parse_args(context.argv())
 
-        self._widget = PlotWidgetXY(initial_topics=self._args.topics, start_paused=self._args.start_paused)
+        self._widget = PlotWidgetXY(start_paused=self._args.start_paused)
         self._data_plot = DataPlot(self._widget)
 
         # disable autoscaling of X, and set a sane default range

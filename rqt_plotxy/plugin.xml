@@ -1,5 +1,5 @@
 <library path="src">
-  <class name="Plot" type="rqt_plotxy.plot.Plot" base_class_type="rqt_gui_py::Plugin">
+  <class name="PlotXY" type="rqt_plotxy.plotxy.PlotXY" base_class_type="rqt_gui_py::Plugin">
     <description>
       A plugin for visualizing numeric values of a topic with respect to another.
     </description>
