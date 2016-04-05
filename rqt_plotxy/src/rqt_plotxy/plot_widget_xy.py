@@ -108,6 +108,22 @@ class PlotWidgetXY(PlotWidget):
         self.add_topic(str(self.topic_edit_x.text()),
                        str(self.topic_edit.text()))
 
+    def update_plot(self):
+        if self.data_plot is not None:
+            needs_redraw = False
+            for topic_name, rosdata in self._rosdata.items():
+                try:
+                    data_x, data_y = rosdata.next()
+                    if data_x or data_y:
+                        self.data_plot.update_values(topic_name, data_x,
+                                                     data_y, sort_data=False)
+                        needs_redraw = True
+                except RosPlotException as e:
+                    qWarning('PlotWidget.update_plot(): ' +
+                             'error in rosplot: {}'.format(e))
+            if needs_redraw:
+                self.data_plot.redraw()
+
     def add_topic(self, topic_name_x, topic_name_y):
         topics_changed = False
         if len(get_plot_fields(topic_name_x)[0]) != \
