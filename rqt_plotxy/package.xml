@@ -1,7 +1,7 @@
 <package>
   <name>rqt_plotxy</name>
   <version>0.3.13</version>
-  <description>rqt_plotxy provides a GUI plugin visualizing numeric values in a 2D plot.</description>
+  <description>rqt_plotxy provides a GUI plugin for visualizing numeric values of a topic with respect to another.</description>
   <maintainer email="rafael.bailon-ruiz@laas.fr">Rafael Bailón-Ruiz</maintainer>
 
   <license>BSD</license>
@@ -24,6 +24,7 @@
   <run_depend>rqt_gui</run_depend>
   <run_depend>rqt_gui_py</run_depend>
   <run_depend>rqt_py_common</run_depend>
+  <run_depend>rqt_plot</run_depend>
 
   <export>
     <architecture_independent/>

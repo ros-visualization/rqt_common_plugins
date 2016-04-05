@@ -2,5 +2,5 @@
 \mainpage
 \htmlinclude manifest.html
 
-\b rqt_plotxy provides a GUI plugin for visualizing numeric values in a 2D plot.
+\b rqt_plotxy provides a GUI plugin for visualizing numeric values of a topic with respect to another.
 */
