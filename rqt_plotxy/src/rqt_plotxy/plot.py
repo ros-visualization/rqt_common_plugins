@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Copyright (c) 2011, Dorian Scholz, TU Darmstadt
-# Copyright (c) 2016, Rafael Bailon-Ruiz
+# Copyright (c) 2016, Rafael Bailon-Ruiz, LAAS-CNRS
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -14,9 +14,9 @@
 #     copyright notice, this list of conditions and the following
 #     disclaimer in the documentation and/or other materials provided
 #     with the distribution.
-#   * Neither the name of the TU Darmstadt nor the names of its
-#     contributors may be used to endorse or promote products derived
-#     from this software without specific prior written permission.
+#   * Neither the name of the TU Darmstadt nor LAAS-CNRS nor the names
+#     of its contributors may be used to endorse or promote products
+#     derived from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -39,20 +39,23 @@ from rqt_gui_py.plugin import Plugin
 
 from rqt_py_common.ini_helper import pack, unpack
 
-from .plot_widget import PlotWidget
+from .plot_widget_xy import PlotWidgetXY
 
 from .data_plot import DataPlot
 
-class Plot(Plugin):
+class PlotXY(Plugin):
 
     def __init__(self, context):
-        super(Plot, self).__init__(context)
-        self.setObjectName('Plot')
+        super(PlotXY, self).__init__(context)
+        self.setObjectName('PlotXY')
 
         self._context = context
 
-        self._args = self._parse_args(context.argv())
-        self._widget = PlotWidget(initial_topics=self._args.topics, start_paused=self._args.start_paused)
+        parser = argparse.ArgumentParser(prog='rqt_plotxy', add_help=False)
+        Plot.add_arguments(parser)
+        self._args = parser.parse_args(argv)
+
+        self._widget = PlotWidgetXY(initial_topics=self._args.topics, start_paused=self._args.start_paused)
         self._data_plot = DataPlot(self._widget)
 
         # disable autoscaling of X, and set a sane default range
@@ -65,48 +68,6 @@ class Plot(Plugin):
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
         context.add_widget(self._widget)
 
-    def _parse_args(self, argv):
-        parser = argparse.ArgumentParser(prog='rqt_plotxy', add_help=False)
-        Plot.add_arguments(parser)
-        args = parser.parse_args(argv)
-
-        # Ignore 'topics' argument
-        if not hasattr(args, 'topics'):
-            args.topics = []
-            return args
-
-        # convert topic arguments into topic names
-        topic_list = []
-        for t in args.topics:
-            # c_topics is the list of topics to plot
-            c_topics = []
-            # compute combined topic list, t == '/foo/bar1,/baz/bar2'
-            for sub_t in [x for x in t.split(',') if x]:
-                # check for shorthand '/foo/field1:field2:field3'
-                if ':' in sub_t:
-                    base = sub_t[:sub_t.find(':')]
-                    # the first prefix includes a field name, so save then strip it off
-                    c_topics.append(base)
-                    if not '/' in base:
-                        parser.error("%s must contain a topic and field name" % sub_t)
-                    base = base[:base.rfind('/')]
-
-                    # compute the rest of the field names
-                    fields = sub_t.split(':')[1:]
-                    c_topics.extend(["%s/%s" % (base, f) for f in fields if f])
-                else:
-                    c_topics.append(sub_t)
-            # #1053: resolve command-line topic names
-            import rosgraph
-            c_topics = [rosgraph.names.script_resolve_name('rqt_plotxy', n) for n in c_topics]
-            if type(c_topics) == list:
-                topic_list.extend(c_topics)
-            else:
-                topic_list.append(c_topics)
-        args.topics = topic_list
-
-        return args
-
     @staticmethod
     def add_arguments(parser):
         group = parser.add_argument_group('Options for rqt_plotxy plugin')
@@ -114,7 +75,6 @@ class Plot(Plugin):
             help='Start in paused state')
         group.add_argument('-e', '--empty', action='store_true', dest='start_empty',
             help='Start without restoring previous topics')
-        #group.add_argument('topics', nargs='*', default=[], help='Topics to plot')
 
     def _update_title(self):
         self._widget.setWindowTitle(self._data_plot.getTitle())
