@@ -48,6 +48,8 @@
 #include <QString>
 #include <QSize>
 #include <QWidget>
+#include <QAction>
+#include <QImage>
 
 #include <vector>
 
@@ -83,10 +85,12 @@ protected:
   virtual QSet<QString> getTopics(const QSet<QString>& message_types, const QSet<QString>& message_sub_types, const QList<QString>& transports);
 
   virtual void selectTopic(const QString& topic);
+  virtual void selectOverlayTopic(const QString& topic);
 
 protected slots:
 
   virtual void onTopicChanged(int index);
+  virtual void onOverlayChanged(int index);
 
   virtual void onZoom1(bool checked);
 
@@ -99,18 +103,23 @@ protected slots:
   virtual void onMouseLeft(int x, int y);
 
   virtual void onPubTopicChanged();
+  virtual void set_controls_visiblity(bool show);
 
 protected:
 
   virtual void callbackImage(const sensor_msgs::Image::ConstPtr& msg);
+  virtual void callbackOverlay(const sensor_msgs::Image::ConstPtr& msg);
 
   Ui::ImageViewWidget ui_;
 
   QWidget* widget_;
 
   image_transport::Subscriber subscriber_;
+  image_transport::Subscriber overlay_subscriber_;
 
   cv::Mat conversion_mat_;
+
+  QImage overlayImage;
 
 private:
 
@@ -119,6 +128,7 @@ private:
 
   bool pub_topic_custom_;
 
+  QAction *tools_hide_action;
 };
 
 }

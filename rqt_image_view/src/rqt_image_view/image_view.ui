@@ -9,139 +9,146 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>425</width>
-    <height>300</height>
+    <width>799</width>
+    <height>409</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Image View</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0,0,1">
-     <item>
-      <widget class="QComboBox" name="topics_combo_box">
-       <property name="sizeAdjustPolicy">
-        <enum>QComboBox::AdjustToContents</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="refresh_topics_push_button"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="zoom_1_push_button">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="dynamic_range_check_box">
-       <property name="toolTip">
-        <string>Dynamic depth range</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QDoubleSpinBox" name="max_range_double_spin_box">
-       <property name="toolTip">
-        <string>Max depth</string>
-       </property>
-       <property name="suffix">
-        <string>m</string>
-       </property>
-       <property name="minimum">
-        <double>0.010000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>100.000000000000000</double>
-       </property>
-       <property name="value">
-        <double>10.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="save_as_image_push_button">
-       <property name="toolTip">
-        <string>Save as image</string>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>16</width>
-         <height>16</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="QCheckBox" name="publish_click_location_check_box">
-       <property name="toolTip">
-        <string>Publish click location</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="publish_click_location_topic_line_edit">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="toolTip">
-        <string>Click location topic (leave empty for auto-naming)</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="smooth_image_check_box">
-       <property name="text">
-        <string>Smooth scaling</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
+    <widget class="QWidget" name="controlsWidget" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0,0,0,0,0,0,1">
+      <item>
+       <widget class="QComboBox" name="topics_combo_box">
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToContents</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="refresh_topics_push_button">
+        <property name="icon">
+         <iconset theme="view-refresh">
+          <normaloff/>
+         </iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="zoom_1_push_button">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="icon">
+         <iconset theme="zoom-original">
+          <normaloff/>
+         </iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="dynamic_range_check_box">
+        <property name="toolTip">
+         <string>Dynamic depth range</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="max_range_double_spin_box">
+        <property name="toolTip">
+         <string>Max depth</string>
+        </property>
+        <property name="suffix">
+         <string>m</string>
+        </property>
+        <property name="minimum">
+         <double>0.010000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>100.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>10.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="save_as_image_push_button">
+        <property name="toolTip">
+         <string>Save as image</string>
+        </property>
+        <property name="icon">
+         <iconset theme="image-x-generic">
+          <normaloff/>
+         </iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>16</width>
+          <height>16</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="overlay_combo_box"/>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="display_latency_check_box">
+        <property name="toolTip">
+         <string>If checked a bar will be displayed on the top of the image which lenght is corresponds to the time difference between the displaying of the image and the timestamp in the header of the image</string>
+        </property>
+        <property name="text">
+         <string>Display latency</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="max_latency_label">
+        <property name="text">
+         <string>Max:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="full_scale_latency_spin_box">
+        <property name="toolTip">
+         <string>If the latency is greater than the value set here the display bar will be shown in the whole width of the image.</string>
+        </property>
+        <property name="suffix">
+         <string> ms</string>
+        </property>
+        <property name="maximum">
+         <number>99999</number>
+        </property>
+        <property name="value">
+         <number>1000</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0">
@@ -161,6 +168,9 @@
          <width>80</width>
          <height>60</height>
         </size>
+       </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::ActionsContextMenu</enum>
        </property>
        <property name="frameShape">
         <enum>QFrame::Box</enum>
@@ -212,5 +222,38 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>display_latency_check_box</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>max_latency_label</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>482</x>
+     <y>32</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>539</x>
+     <y>31</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>display_latency_check_box</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>full_scale_latency_spin_box</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>409</x>
+     <y>31</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>594</x>
+     <y>26</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
