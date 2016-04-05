@@ -327,7 +327,7 @@ class DataPlot(QWidget):
         if self._data_plot_widget:
             self._data_plot_widget.remove_curve(curve_id)
 
-    def update_values(self, curve_id, values_x, values_y):
+    def update_values(self, curve_id, values_x, values_y, sort_data=True):
         """Append new data to an existing curve
         
         `values_x` and `values_y` will be appended to the existing data for
