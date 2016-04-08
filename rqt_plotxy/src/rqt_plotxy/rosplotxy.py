@@ -53,7 +53,7 @@ class ROSDataXY(object):
     Subscriber to two ROS topics that buffers incoming data.
     """
 
-    def __init__(self, topics, start_time, precision_digits=3):
+    def __init__(self, topics, start_time, precision_digits=5):
         self.ros_data_x = rosplot.ROSData(topics[0], start_time)
         self.ros_data_y = rosplot.ROSData(topics[1], start_time)
 
