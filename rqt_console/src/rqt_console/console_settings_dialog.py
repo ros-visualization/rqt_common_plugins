@@ -33,7 +33,7 @@
 import os
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QDialog
+from python_qt_binding.QtWidgets import QDialog
 
 from rqt_logger_level.logger_level_widget import LoggerLevelWidget
 from rqt_logger_level.logger_level_service_caller import LoggerLevelServiceCaller

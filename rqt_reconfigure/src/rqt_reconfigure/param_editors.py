@@ -37,8 +37,8 @@ import os
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Signal
-from python_qt_binding.QtGui import (QDoubleValidator, QIntValidator, QLabel,
-                                     QMenu, QWidget)
+from python_qt_binding.QtGui import QDoubleValidator, QIntValidator
+from python_qt_binding.QtWidgets import QLabel, QMenu, QWidget
 from decimal import Decimal
 import rospkg
 import rospy

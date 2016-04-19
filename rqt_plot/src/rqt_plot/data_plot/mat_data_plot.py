@@ -43,7 +43,8 @@ if QT_BINDING == 'pyside':
         raise ImportError('A PySide version newer than 1.1.0 is required.')
 
 from python_qt_binding.QtCore import Slot, Qt, qWarning, Signal
-from python_qt_binding.QtGui import QWidget, QVBoxLayout, QSizePolicy, QColor
+from python_qt_binding.QtGui import QColor
+from python_qt_binding.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
 
 import operator
 import matplotlib

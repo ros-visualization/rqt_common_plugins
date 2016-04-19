@@ -35,7 +35,10 @@
 from __future__ import division
 
 from python_qt_binding.QtCore import Qt, Signal
-from python_qt_binding.QtGui import QSortFilterProxyModel
+try:
+    from python_qt_binding.QtCore import QSortFilterProxyModel  # Qt 5
+except ImportError:
+    from python_qt_binding.QtGui import QSortFilterProxyModel  # Qt 4
 import rospy
 
 from rqt_reconfigure.treenode_qstditem import TreenodeQstdItem

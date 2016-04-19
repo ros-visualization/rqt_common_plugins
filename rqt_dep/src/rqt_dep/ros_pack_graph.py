@@ -38,7 +38,8 @@ import rospkg
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import QFile, QIODevice, Qt, Signal, Slot, QAbstractListModel
-from python_qt_binding.QtGui import QFileDialog, QGraphicsScene, QIcon, QImage, QPainter, QWidget, QCompleter
+from python_qt_binding.QtGui import  QIcon, QImage, QPainter
+from python_qt_binding.QtWidgets import QFileDialog, QGraphicsScene, QWidget, QCompleter
 from python_qt_binding.QtSvg import QSvgGenerator
 
 import rosservice

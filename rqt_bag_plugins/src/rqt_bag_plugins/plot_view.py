@@ -71,7 +71,8 @@ from rqt_bag import MessageView
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, qWarning, Signal
-from python_qt_binding.QtGui import QWidget, QPushButton, QTreeWidget, QTreeWidgetItem, QSizePolicy, QDoubleValidator, QIcon
+from python_qt_binding.QtGui import QDoubleValidator, QIcon
+from python_qt_binding.QtWidgets import QWidget, QPushButton, QTreeWidget, QTreeWidgetItem, QSizePolicy
 
 from rqt_plot.data_plot import DataPlot
 

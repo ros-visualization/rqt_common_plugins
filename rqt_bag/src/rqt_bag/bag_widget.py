@@ -38,7 +38,8 @@ import rospkg
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, qWarning, Signal
-from python_qt_binding.QtGui import QFileDialog, QGraphicsView, QIcon, QWidget
+from python_qt_binding.QtGui import QIcon
+from python_qt_binding.QtWidgets import QFileDialog, QGraphicsView, QWidget
 
 import rosbag
 import bag_helper

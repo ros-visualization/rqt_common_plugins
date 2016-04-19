@@ -33,7 +33,7 @@
 # Author: Isaac Saito
 
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QStyledItemDelegate
+from python_qt_binding.QtWidgets import QStyledItemDelegate
 import rospkg
 
 from rqt_launch.node_widget import NodeWidget

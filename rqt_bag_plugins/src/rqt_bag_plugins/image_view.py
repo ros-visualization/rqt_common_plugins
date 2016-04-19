@@ -41,7 +41,8 @@ from PIL.ImageQt import ImageQt
 from rqt_bag import TopicMessageView
 import image_helper
 
-from python_qt_binding.QtGui import QGraphicsScene, QGraphicsView, QPixmap
+from python_qt_binding.QtGui import QPixmap
+from python_qt_binding.QtWidgets import QGraphicsScene, QGraphicsView
 
 
 class ImageView(TopicMessageView):

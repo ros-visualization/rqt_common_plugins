@@ -38,7 +38,7 @@ from collections import OrderedDict
 import dynamic_reconfigure.client
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, Signal
-from python_qt_binding.QtGui import QVBoxLayout, QWidget, QWidgetItem
+from python_qt_binding.QtWidgets import QVBoxLayout, QWidget, QWidgetItem
 from rqt_py_common.layout_util import LayoutUtil
 import rospy
 

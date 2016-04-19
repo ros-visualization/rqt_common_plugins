@@ -33,7 +33,7 @@
 import rosgraph
 
 from python_qt_binding.QtCore import Qt, Signal
-from python_qt_binding.QtGui import QWidget, QHBoxLayout, QVBoxLayout, QCheckBox, QScrollArea, QPushButton
+from python_qt_binding.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QCheckBox, QScrollArea, QPushButton
 
 class TopicSelection(QWidget):
 

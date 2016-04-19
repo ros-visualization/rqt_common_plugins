@@ -38,7 +38,8 @@ import time
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, Slot, qWarning
-from python_qt_binding.QtGui import QIcon, QMenu, QTreeWidgetItem, QWidget
+from python_qt_binding.QtGui import QIcon
+from python_qt_binding.QtWidgets import QMenu, QTreeWidgetItem, QWidget
 
 import rospkg
 import rospy

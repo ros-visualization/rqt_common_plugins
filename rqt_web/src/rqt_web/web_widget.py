@@ -35,8 +35,9 @@ import rospkg
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, QUrl
-from python_qt_binding.QtGui import QCompleter, QIcon, QWidget
+from python_qt_binding.QtGui import QIcon
 from python_qt_binding.QtWebKit import QWebPage, QWebView
+from python_qt_binding.QtWidgets import QCompleter, QWidget
 
 
 class WebWidget(QWidget):
