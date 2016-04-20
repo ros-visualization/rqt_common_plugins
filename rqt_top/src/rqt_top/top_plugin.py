@@ -163,7 +163,7 @@ class Top(Plugin):
             if twi.text(0) == self._selected_node:
                 twi.setSelected(True)
 
-        self._table_widget.setItemHidden(twi, len(self.name_filter.findall(info['node_name'])) == 0)
+        twi.setHidden(len(self.name_filter.findall(info['node_name'])) == 0)
 
     def update_table(self):
         self._table_widget.clear()
