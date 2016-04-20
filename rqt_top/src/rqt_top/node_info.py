@@ -65,8 +65,14 @@ class NodeInfo(object):
     def get_all_node_fields(self, fields):
         processes = self.get_all_node_info()
         infos = []
+        psutil_v2_api = int(psutil.__version__.split('.')[0]) >= 2
         for name, p in processes:
-            infos.append(self.as_dict(p, fields + ['cmdline', 'get_memory_info']))
+            all_fields = fields + ['cmdline', 'get_memory_info']
+            if psutil_v2_api:
+                all_fields = [
+                    f[4:] if f.startswith('get_') else f
+                    for f in all_fields]
+            infos.append(self.as_dict(p, all_fields))
             infos[-1]['node_name'] = name
         return infos
         
