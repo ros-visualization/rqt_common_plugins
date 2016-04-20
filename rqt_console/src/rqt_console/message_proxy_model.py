@@ -115,7 +115,7 @@ class MessageProxyModel(QSortFilterProxyModel):
             self.invalidateFilter()
         else:
             self.invalidateFilter()
-            self.dataChanged.emit(self.index(0, 0), self.index(self.rowCount() - 1, self.columnCount() - 1))
+            self.dataChanged.emit(self.index(0, 0), self.index(self.rowCount() - 1, self.columnCount() - 1), [])
 
     def add_exclude_filter(self, newfilter):
         self._exclude_filters.append(newfilter)
