@@ -39,31 +39,48 @@ if QT_BINDING == 'pyside':
 
         def parse_version(s):
             return [int(x) for x in re.sub(r'(\.0+)*$', '', s).split('.')]
-    if parse_version(QT_BINDING_VERSION) <= parse_version('1.1.2'):
+    qt_binding_version = QT_BINDING_VERSION.replace('~', '-')
+    if parse_version(qt_binding_version) <= parse_version('1.1.2'):
         raise ImportError('A PySide version newer than 1.1.0 is required.')
 
-from python_qt_binding.QtCore import Slot, Qt, qWarning, Signal
+from python_qt_binding.QtCore import Slot, Qt, qVersion, qWarning, Signal
 from python_qt_binding.QtGui import QColor
 from python_qt_binding.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
 
 import operator
 import matplotlib
-if matplotlib.__version__ < '1.1.0':
-    raise ImportError('A newer matplotlib is required (at least 1.1.0)')
+if qVersion().startswith('5.'):
+    if matplotlib.__version__ < '1.4.0':
+        raise ImportError('A newer matplotlib is required (at least 1.4.0 for Qt 5)')
+    try:
+        matplotlib.use('Qt5Agg')
+        from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+    except ImportError:
+        # work around bug in dateutil
+        import sys
+        import thread
+        sys.modules['_thread'] = thread
+        from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+elif qVersion().startswith('4.'):
+    if matplotlib.__version__ < '1.1.0':
+        raise ImportError('A newer matplotlib is required (at least 1.1.0 for Qt 4)')
+    try:
+        matplotlib.use('Qt4Agg')
+        from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+    except ImportError:
+        # work around bug in dateutil
+        import sys
+        import thread
+        sys.modules['_thread'] = thread
+        from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+    try:
+        from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
+    except ImportError:
+        from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+else:
+    raise NotImplementedError('Unsupport Qt version: %s' % qVersion())
 
-try:
-    matplotlib.use('Qt4Agg')
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-except ImportError:
-    # work around bug in dateutil
-    import sys
-    import thread
-    sys.modules['_thread'] = thread
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-try:
-    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
-except ImportError:
-    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
 import numpy
