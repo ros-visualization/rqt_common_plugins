@@ -36,7 +36,17 @@ import rospkg
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, QUrl
 from python_qt_binding.QtGui import QIcon
-from python_qt_binding.QtWebKit import QWebPage, QWebView
+try:
+    # Qt 5.6 and higher
+    from python_qt_binding.QtWebEngine import QWebEnginePage as QWebPage
+    from python_qt_binding.QtWebEngine import QWebEngineView as QWebView
+except ImportError:
+    try:
+        # Qt 5.0 - 5.5
+        from python_qt_binding.QtWebKitWidgets import QWebPage, QWebView
+    except ImportError:
+        # Qt 4
+        from python_qt_binding.QtWebKit import QWebPage, QWebView
 from python_qt_binding.QtWidgets import QCompleter, QWidget
 
 
