@@ -38,7 +38,7 @@ from python_qt_binding.QtCore import qWarning
 
 class ListenerEvent(QEvent):
     def __init__(self, data):
-        super(ListenerEvent, self).__init__(1024)  # userdefined event constant
+        super(ListenerEvent, self).__init__(QEvent.User)
         self.data = data
 
 
