@@ -31,14 +31,16 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from python_qt_binding import QT_BINDING, QT_BINDING_VERSION
-if QT_BINDING == 'pyside':
-    try:
-        from pkg_resources import parse_version
-    except:
-        import re
 
-        def parse_version(s):
-            return [int(x) for x in re.sub(r'(\.0+)*$', '', s).split('.')]
+try:
+    from pkg_resources import parse_version
+except:
+    import re
+
+    def parse_version(s):
+        return [int(x) for x in re.sub(r'(\.0+)*$', '', s).split('.')]
+
+if QT_BINDING == 'pyside':
     qt_binding_version = QT_BINDING_VERSION.replace('~', '-')
     if parse_version(qt_binding_version) <= parse_version('1.1.2'):
         raise ImportError('A PySide version newer than 1.1.0 is required.')
@@ -50,7 +52,10 @@ from python_qt_binding.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
 import operator
 import matplotlib
 if qVersion().startswith('5.'):
-    if matplotlib.__version__ < '1.4.0':
+    if QT_BINDING == 'pyside':
+        if parse_version(matplotlib.__version__) < parse_version('2.1.0'):
+            raise ImportError('A newer matplotlib is required (at least 2.1.0 for PySide 2)')
+    if parse_version(matplotlib.__version__) < parse_version('1.4.0'):
         raise ImportError('A newer matplotlib is required (at least 1.4.0 for Qt 5)')
     try:
         matplotlib.use('Qt5Agg')
@@ -63,7 +68,7 @@ if qVersion().startswith('5.'):
         from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
     from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 elif qVersion().startswith('4.'):
-    if matplotlib.__version__ < '1.1.0':
+    if parse_version(matplotlib.__version__) < parse_version('1.1.0'):
         raise ImportError('A newer matplotlib is required (at least 1.1.0 for Qt 4)')
     try:
         matplotlib.use('Qt4Agg')
