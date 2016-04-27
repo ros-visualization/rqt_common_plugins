@@ -80,6 +80,8 @@ signals:
 
   void delayed_update();
 
+  void mouseLeft(int x, int y);
+
 protected:
 
   void setAspectRatio(unsigned short width, unsigned short height);
@@ -89,6 +91,8 @@ protected:
 private:
 
   static int greatestCommonDivisor(int a, int b);
+
+  void mousePressEvent(QMouseEvent * mouseEvent);
 
   QSize aspect_ratio_;
 
