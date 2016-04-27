@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Support Qt 5 (in Kinetic and higher) as well as Qt 4 (in Jade and earlier) (`#359 <https://github.com/ros-visualization/rqt_common_plugins/pull/359>`_)
+* fix publishing wrong topic after scrolling (`#362 <https://github.com/ros-visualization/rqt_common_plugins/pull/362>`_)
+
 0.3.13 (2016-03-08)
 -------------------
 * RQT_BAG: Ensure monotonic clock publishing.

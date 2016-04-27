@@ -2,6 +2,11 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Support Qt 5 (in Kinetic and higher) as well as Qt 4 (in Jade and earlier) (`#359 <https://github.com/ros-visualization/rqt_common_plugins/pull/359>`_)
+* support matplotplot 1.5 (`#358 <https://github.com/ros-visualization/rqt_common_plugins/pull/358>`_)
+
 0.3.13 (2016-03-08)
 -------------------
 * Added missing include
