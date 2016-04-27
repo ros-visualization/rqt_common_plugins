@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-from python_qt_binding.QtGui import QLabel, QStyle
+from python_qt_binding.QtWidgets import QLabel, QStyle
 import rospy
 
 

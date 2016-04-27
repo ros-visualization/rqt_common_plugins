@@ -35,23 +35,24 @@ import numpy
 
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
 from python_qt_binding import QT_BINDING
-from python_qt_binding.QtCore import Qt, qWarning, Signal
-from python_qt_binding.QtGui import QColor, QWidget, QHBoxLayout
+from python_qt_binding.QtCore import Qt, qVersion, qWarning, Signal
+from python_qt_binding.QtGui import QColor
+from python_qt_binding.QtWidgets import QWidget, QHBoxLayout
 from rqt_py_common.ini_helper import pack, unpack
 
 try:
     from pyqtgraph_data_plot import PyQtGraphDataPlot
-except ImportError:
+except ImportError as e:
     PyQtGraphDataPlot = None
 
 try:
     from mat_data_plot import MatDataPlot
-except ImportError:
+except ImportError as e:
     MatDataPlot = None
 
 try:
     from qwt_data_plot import QwtDataPlot
-except ImportError:
+except ImportError as e:
     QwtDataPlot = None
 
 # separate class for DataPlot exceptions, just so that users can differentiate
@@ -137,8 +138,15 @@ class DataPlot(QWidget):
 
         enabled_plot_types = [pt for pt in self.plot_types if pt['enabled']]
         if not enabled_plot_types:
-            version_info = ' and PySide > 1.1.0' if QT_BINDING == 'pyside' else ''
-            raise RuntimeError('No usable plot type found. Install at least one of: PyQtGraph, MatPlotLib (at least 1.1.0%s) or Python-Qwt5.' % version_info)
+            if qVersion().startswith('4.'):
+                version_info = '1.1.0'
+            else:
+                # minimum matplotlib version for Qt 5
+                version_info = '1.4.0'
+            if QT_BINDING == 'pyside':
+                version_info += ' and PySide %s' % \
+                    ('> 1.1.0' if qVersion().startswith('4.') else '>= 2.0.0')
+            raise RuntimeError('No usable plot type found. Install at least one of: PyQtGraph, MatPlotLib (at least %s) or Python-Qwt5.' % version_info)
 
         self._switch_data_plot_widget(self._plot_index)
 

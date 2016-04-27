@@ -31,7 +31,11 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from python_qt_binding.QtCore import Qt, qWarning
-from python_qt_binding.QtGui import QBrush, QColor, QSortFilterProxyModel
+try:
+    from python_qt_binding.QtCore import QSortFilterProxyModel  # Qt 5
+except ImportError:
+    from python_qt_binding.QtGui import QSortFilterProxyModel  # Qt 4
+from python_qt_binding.QtGui import QBrush, QColor
 
 from .filters.filter_collection import FilterCollection
 from .message import Message
@@ -111,7 +115,7 @@ class MessageProxyModel(QSortFilterProxyModel):
             self.invalidateFilter()
         else:
             self.invalidateFilter()
-            self.dataChanged.emit(self.index(0, 0), self.index(self.rowCount() - 1, self.columnCount() - 1))
+            self.dataChanged.emit(self.index(0, 0), self.index(self.rowCount() - 1, self.columnCount() - 1), [])
 
     def add_exclude_filter(self, newfilter):
         self._exclude_filters.append(newfilter)

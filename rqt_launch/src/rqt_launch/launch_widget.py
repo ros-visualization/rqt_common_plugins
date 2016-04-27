@@ -37,8 +37,8 @@ import sys
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import QModelIndex, Signal
-from python_qt_binding.QtGui import QDialog, QStandardItem, \
-                                    QStandardItemModel
+from python_qt_binding.QtGui import QStandardItem, QStandardItemModel
+from python_qt_binding.QtWidgets import QDialog
 from rosgraph import rosenv
 import roslaunch
 from roslaunch.core import RLException

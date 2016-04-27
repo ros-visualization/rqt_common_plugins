@@ -30,12 +30,15 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from python_qt_binding.QtCore import qVersion
 from qt_gui.plugin import Plugin
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
 
 from shell_widget import ShellWidget
 
 try:
+    if qVersion().startswith('5.'):
+        raise ImportError('embedding is not support with Qt 5')
     from xterm_widget import XTermWidget, is_xterm_available
     _has_xterm = is_xterm_available()
 except ImportError:
@@ -43,6 +46,8 @@ except ImportError:
     _has_xterm = False
 
 try:
+    if qVersion().startswith('5.'):
+        raise ImportError('spyderlib does not support Qt 5 yet')
     from spyder_shell_widget import SpyderShellWidget
     _has_spyderlib = True
 except ImportError:
@@ -59,13 +64,13 @@ class Shell(Plugin):
         {
             'title': 'XTerm',
             'widget_class': XTermWidget,
-            'description': 'Fully functional embedded XTerm (needs xterm and only works on X11).',
+            'description': 'Fully functional embedded XTerm (needs xterm, only works on X11 with Qt 4).',
             'enabled': _has_xterm,
         },
         {
             'title': 'SpyderShell',
             'widget_class': SpyderShellWidget,
-            'description': 'Advanced shell (needs spyderlib).',
+            'description': 'Advanced shell (needs spyderlib, only works with Qt 4).',
             'enabled': _has_spyderlib,
         },
         {

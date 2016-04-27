@@ -35,7 +35,7 @@ from __future__ import division
 import math
 import sys
 
-from python_qt_binding.QtCore import QEvent, QSize, QPointF, Qt, SIGNAL, Signal, Slot, qWarning
+from python_qt_binding.QtCore import QEvent, QSize, QPointF, Qt, Signal, Slot, qWarning
 from python_qt_binding.QtGui import QColor, QPen, QBrush, QVector2D
 import Qwt
 
@@ -112,7 +112,8 @@ class QwtDataPlot(Qwt.QwtPlot):
         return False
 
     def log(self, level, message):
-        self.emit(SIGNAL('logMessage'), level, message)
+        # self.emit(SIGNAL('logMessage'), level, message)
+        pass
 
     def resizeEvent(self, event):
         Qwt.QwtPlot.resizeEvent(self, event)

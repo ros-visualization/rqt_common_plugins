@@ -30,7 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from python_qt_binding.QtGui import QVBoxLayout, QMenu, QWidget, QDockWidget
+from python_qt_binding.QtWidgets import QVBoxLayout, QMenu, QWidget, QDockWidget
 
 class TopicPopupWidget(QWidget):
     def __init__(self, popup_name, timeline, viewer_type, topic):

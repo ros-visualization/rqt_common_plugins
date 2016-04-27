@@ -35,7 +35,8 @@
 import os
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QIcon, QLineEdit, QWidget
+from python_qt_binding.QtGui import QIcon
+from python_qt_binding.QtWidgets import QLineEdit, QWidget
 import rospy
 
 from rqt_launch.name_surrogate import NamesSurrogate

@@ -35,7 +35,8 @@ import rospkg
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QPalette, QWidget
+from python_qt_binding.QtGui import QPalette
+from python_qt_binding.QtWidgets import QWidget
 
 from rqt_py_common.ini_helper import pack, unpack
 
