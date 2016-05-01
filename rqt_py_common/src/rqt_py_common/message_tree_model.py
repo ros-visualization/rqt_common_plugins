@@ -29,6 +29,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import rospy
+from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtGui import QStandardItem, QStandardItemModel
 from .data_items import ReadonlyItem
 
@@ -39,7 +40,37 @@ class MessageTreeModel(QStandardItemModel):
         # FIXME: why is this not working? should be the same as the following line...
         #super(MessageTreeModel, self).__init__(parent)
         QStandardItemModel.__init__(self, parent)
-
+        
+    def flags(self, index):
+        # FIXME hardcoded column number
+        flags = QStandardItemModel.flags(self, index) 
+        if (index.column() == 3 and 
+            index.model().data(index.model().index(index.row(), index.column() - 2, index.parent()), Qt.DisplayRole) == "bool"):
+            flags = flags | Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled
+        return flags
+    
+    def data(self, index, role):
+        # FIXME hardcoded column number
+        if (index.column() == 3 and 
+            index.model().data(index.model().index(index.row(), index.column() - 2, index.parent()), Qt.DisplayRole) == "bool"): 
+            if (role == Qt.CheckStateRole):
+                value = index.model().data(index.model().index(index.row(), index.column(), index.parent()), Qt.DisplayRole)
+                if (value == "True"):
+                    return Qt.Checked
+                else:
+                    return Qt.Unchecked
+        return QStandardItemModel.data(self, index, role)
+    
+    def setData(self, index, value, role):
+        if (index.column() == 3 and 
+            index.model().data(index.model().index(index.row(), index.column() - 2, index.parent()), Qt.DisplayRole) == "bool"): 
+            if (role == Qt.CheckStateRole):
+                stringVal = "False"
+                if (value == Qt.Checked):
+                    stringVal = "True"
+                return QStandardItemModel.setData(self, index, stringVal, Qt.EditRole)
+        return QStandardItemModel.setData(self, index, value, role)
+    
     def add_message(self, message_instance, message_name='', message_type='', message_path=''):
         if message_instance is None:
             return
