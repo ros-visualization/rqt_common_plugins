@@ -39,7 +39,7 @@ class MessageTreeModel(QStandardItemModel):
         # FIXME: why is this not working? should be the same as the following line...
         #super(MessageTreeModel, self).__init__(parent)
         QStandardItemModel.__init__(self, parent)
-    
+
     def add_message(self, message_instance, message_name='', message_type='', message_path=''):
         if message_instance is None:
             return
