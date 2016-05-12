@@ -214,7 +214,11 @@ class QwtDataPlot(Qwt.QwtPlot):
         # y position of pointer in graph coordinates
         canvas_y = event.y() - self.canvas().y()
 
-        zoom_factor = max(-0.6, min(0.6, (event.delta() / 120) / 6.0))
+        try:
+            delta = event.angleDelta().y()
+        except AttributeError:
+            delta = event.delta()
+        zoom_factor = max(-0.6, min(0.6, (delta / 120) / 6.0))
         delta_y = (self.canvas().height() / 2.0) - canvas_y
         self.move_canvas(0, zoom_factor * delta_y * 1.0225)
 

@@ -64,7 +64,10 @@ class InteractiveGraphicsView(QGraphicsView):
 
     def wheelEvent(self, wheel_event):
         if wheel_event.modifiers() == Qt.NoModifier:
-            delta = wheel_event.delta()
+            try:
+                delta = wheel_event.angleDelta().y()
+            except AttributeError:
+                delta = wheel_event.delta()
             delta = max(min(delta, 480), -480)
             mouse_before_scale_in_scene = self.mapToScene(wheel_event.pos())
 
