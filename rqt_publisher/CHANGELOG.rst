@@ -2,6 +2,19 @@
 Changelog for package rqt_publisher
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.1 (2016-05-16)
+------------------
+
+0.4.0 (2016-04-27)
+------------------
+* Support Qt 5 (in Kinetic and higher) as well as Qt 4 (in Jade and earlier) (`#359 <https://github.com/ros-visualization/rqt_common_plugins/pull/359>`_)
+
+0.3.13 (2016-03-08)
+-------------------
+* fixed rqt_publisher plugin to fill message slots for individual fields of primitive arrays
+* use proper icon names for add/remove
+* Contributors: Robert Haschke, Vincent Rabaud
+
 0.3.12 (2015-07-24)
 -------------------
 

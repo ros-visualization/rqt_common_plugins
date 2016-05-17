@@ -51,6 +51,13 @@ NODE_TOPIC_ALL_GRAPH = 'node_topic_all'
 
 QUIET_NAMES = ['/diag_agg', '/runtime_logger', '/pr2_dashboard', '/rviz', '/rosout', '/cpu_monitor', '/monitor', '/hd_monitor', '/rxloggerlevel', '/clock', '/rqt', '/statistics']
 
+def _conv(n):
+    """Convert a node name to a valid dot name, which can't contain the leading space"""
+    if n.startswith(' '):
+        return 't_' + n[1:]
+    else:
+        return 'n_' + n
+
 def matches_any(name, patternlist):
     if patternlist is None or len(patternlist) == 0:
         return False
@@ -197,18 +204,19 @@ class RosGraphDotcodeGenerator:
             [stat_label, penwidth, color] = self._calc_statistic_info(sub, topic, pub)
             if stat_label is not None:
                 temp_label = edge.label + "\\n" + stat_label
-                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=temp_label, url='topic:%s' % edge.label, penwidth=penwidth, color=color)
+                dotcode_factory.add_edge_to_graph(dotgraph, _conv(edge.start), _conv(edge.end), label=temp_label, url='topic:%s' % edge.label, penwidth=penwidth, color=color)
             else:
-                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label, url='topic:%s' % edge.label)
+                dotcode_factory.add_edge_to_graph(dotgraph, _conv(edge.start), _conv(edge.end), label=edge.label, url='topic:%s' % edge.label)
         else:
             sub = edge.end.strip()
             topic = edge.start.strip()
             [stat_label, penwidth, color] = self._calc_statistic_info(sub, topic)
             if stat_label is not None:
                 temp_label = edge.label + "\\n" + stat_label
-                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=temp_label, penwidth=penwidth, color=color)
+                dotcode_factory.add_edge_to_graph(dotgraph, _conv(edge.start), _conv(edge.end), label=temp_label, penwidth=penwidth, color=color)
             else:
-                dotcode_factory.add_edge_to_graph(dotgraph, edge.start, edge.end, label=edge.label)
+                dotcode_factory.add_edge_to_graph(dotgraph, _conv(edge.start), _conv(edge.end), label=edge.label)
+
 
     def _add_node(self, node, rosgraphinst, dotcode_factory, dotgraph, quiet):
         if node in rosgraphinst.bad_nodes:
@@ -217,26 +225,29 @@ class RosGraphDotcodeGenerator:
             bn = rosgraphinst.bad_nodes[node]
             if bn.type == rosgraph.impl.graph.BadNode.DEAD:
                 dotcode_factory.add_node_to_graph(dotgraph,
-                                                  nodename=node,
+                                                  nodename=_conv(node),
+                                                  nodelabel=node,
                                                   shape="doublecircle",
                                                   url=node,
                                                   color="red")
             else:
                 dotcode_factory.add_node_to_graph(dotgraph,
-                                                  nodename=node,
+                                                  nodename=_conv(node),
+                                                  nodelabel=node,
                                                   shape="doublecircle",
                                                   url=node,
                                                   color="orange")
         else:
             dotcode_factory.add_node_to_graph(dotgraph,
-                                              nodename=node,
+                                              nodename=_conv(node),
+                                              nodelabel=node,
                                               shape='ellipse',
                                               url=node)
 
     def _add_topic_node(self, node, dotcode_factory, dotgraph, quiet):
         label = rosgraph.impl.graph.node_topic(node)
         dotcode_factory.add_node_to_graph(dotgraph,
-                                          nodename=label,
+                                          nodename=_conv(node),
                                           nodelabel=label,
                                           shape='box',
                                           url="topic:%s" % label)
@@ -511,9 +522,9 @@ class RosGraphDotcodeGenerator:
 
         for (action_prefix, node_connections) in action_nodes.items():
             for out_edge in node_connections.get('outgoing', []):
-                dotcode_factory.add_edge_to_graph(dotgraph, action_prefix[1:] + ACTION_TOPICS_SUFFIX, out_edge.end)
+                dotcode_factory.add_edge_to_graph(dotgraph, _conv(action_prefix + ACTION_TOPICS_SUFFIX), _conv(out_edge.end))
             for in_edge in node_connections.get('incoming', []):
-                dotcode_factory.add_edge_to_graph(dotgraph, in_edge.start, action_prefix[1:] + ACTION_TOPICS_SUFFIX)
+                dotcode_factory.add_edge_to_graph(dotgraph, _conv(in_edge.start), _conv(action_prefix + ACTION_TOPICS_SUFFIX))
         return dotgraph
 
     def generate_dotcode(self,

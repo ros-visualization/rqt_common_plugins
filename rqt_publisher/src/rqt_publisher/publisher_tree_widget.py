@@ -31,7 +31,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from python_qt_binding.QtCore import Signal, Slot
-from python_qt_binding.QtGui import QAction, QIcon
+from python_qt_binding.QtGui import QIcon
+from python_qt_binding.QtWidgets import QAction
 
 from .publisher_tree_model import PublisherTreeModel
 from rqt_py_common.message_tree_widget import MessageTreeWidget
@@ -45,7 +46,7 @@ class PublisherTreeWidget(MessageTreeWidget):
     def __init__(self, parent=None):
         super(PublisherTreeWidget, self).__init__(parent)
         self.setModel(PublisherTreeModel(self))
-        self._action_remove_publisher = QAction(QIcon.fromTheme('remove'), 'Remove Selected', self)
+        self._action_remove_publisher = QAction(QIcon.fromTheme('list-remove'), 'Remove Selected', self)
         self._action_remove_publisher.triggered[bool].connect(self._handle_action_remove_publisher)
         self._action_publish_once = QAction(QIcon.fromTheme('media-playback-start'), 'Publish Selected Once', self)
         self._action_publish_once.triggered[bool].connect(self._handle_action_publish_once)

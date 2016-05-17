@@ -1,6 +1,6 @@
 <package>
   <name>rqt_image_view</name>
-  <version>0.3.12</version>
+  <version>0.4.1</version>
   <description>rqt_image_view provides a GUI plugin for displaying images using image_transport.</description>
   <maintainer email="ablasdel@gmail.com">Aaron Blasdel</maintainer>
 
@@ -15,11 +15,13 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>cv_bridge</build_depend>
+  <build_depend>geometry_msgs</build_depend>
   <build_depend>image_transport</build_depend>
   <build_depend>rqt_gui</build_depend>
   <build_depend>rqt_gui_cpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <run_depend>cv_bridge</run_depend>
+  <run_depend>geometry_msgs</run_depend>
   <run_depend>image_transport</run_depend>
   <run_depend>rqt_gui</run_depend>
   <run_depend>rqt_gui_cpp</run_depend>

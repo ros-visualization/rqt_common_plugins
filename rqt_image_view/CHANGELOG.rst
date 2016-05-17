@@ -2,6 +2,21 @@
 Changelog for package rqt_image_view
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.1 (2016-05-16)
+------------------
+* add the possibility to publish mouse events (`#368 <https://github.com/ros-visualization/rqt_common_plugins/issues/368>`_)
+
+0.4.0 (2016-04-27)
+------------------
+* Support Qt 5 (in Kinetic and higher) as well as Qt 4 (in Jade and earlier) (`#359 <https://github.com/ros-visualization/rqt_common_plugins/pull/359>`_)
+
+0.3.13 (2016-03-08)
+-------------------
+* use proper icon for images
+* add optional topic argument to rqt_image_view
+* fix width of save-as-image button
+* Contributors: Dirk Thomas, Vincent Rabaud
+
 0.3.12 (2015-07-24)
 -------------------
 * Added button to save current image to file

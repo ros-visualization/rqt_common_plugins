@@ -2,6 +2,23 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.1 (2016-05-16)
+------------------
+* fix mouse wheel delta in Qt 5 (`#376 <https://github.com/ros-visualization/rqt_common_plugins/issues/376>`_)
+
+0.4.0 (2016-04-27)
+------------------
+* Support Qt 5 (in Kinetic and higher) as well as Qt 4 (in Jade and earlier) (`#359 <https://github.com/ros-visualization/rqt_common_plugins/pull/359>`_)
+* fix publishing wrong topic after scrolling (`#362 <https://github.com/ros-visualization/rqt_common_plugins/pull/362>`_)
+
+0.3.13 (2016-03-08)
+-------------------
+* RQT_BAG: Ensure monotonic clock publishing.
+  Due to parallelism issues, a message can be published
+  with a simulated timestamp in the past. This lead to
+  undesired behaviors when using TF for example.
+* Contributors: lsouchet
+
 0.3.12 (2015-07-24)
 -------------------
 * Added step-by-step playback capability

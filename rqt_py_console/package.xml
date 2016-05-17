@@ -1,6 +1,6 @@
 <package>
   <name>rqt_py_console</name>
-  <version>0.3.12</version>
+  <version>0.4.1</version>
   <description>rqt_py_console is a Python GUI plugin providing an interactive Python console.</description>
   <maintainer email="scholz@sim.tu-darmstadt.de">Dorian Scholz</maintainer>
 
@@ -14,6 +14,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <run_depend version_gte="0.2.19">python_qt_binding</run_depend>
   <run_depend>python-rospkg</run_depend>
   <run_depend>qt_gui</run_depend>
   <run_depend>qt_gui_py_common</run_depend>

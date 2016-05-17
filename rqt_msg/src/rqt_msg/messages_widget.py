@@ -34,8 +34,9 @@ import os
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import (QAction, QIcon, QMenu, QMessageBox,
-                                     QTreeView, QWidget)
+from python_qt_binding.QtGui import QIcon
+from python_qt_binding.QtWidgets import (QAction, QMenu, QMessageBox,
+                                         QTreeView, QWidget)
 import roslib
 import rosmsg
 import rospkg

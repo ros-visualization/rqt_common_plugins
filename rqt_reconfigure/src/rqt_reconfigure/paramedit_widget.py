@@ -38,7 +38,7 @@ from collections import OrderedDict
 import dynamic_reconfigure.client
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, Signal
-from python_qt_binding.QtGui import QVBoxLayout, QWidget, QWidgetItem
+from python_qt_binding.QtWidgets import QVBoxLayout, QWidget, QWidgetItem
 from rqt_py_common.layout_util import LayoutUtil
 import rospy
 
@@ -109,9 +109,10 @@ class ParameditWidget(QWidget):
             #    self.vlayout.addWidget(v)
 
         # Add color to alternate the rim of the widget.
-        LayoutUtil.alternate_color(self._dynreconf_clients.itervalues(),
-                                   [self.palette().background().color().lighter(125),
-                                    self.palette().background().color().darker(125)])
+        LayoutUtil.alternate_color(
+            self._dynreconf_clients.itervalues(),
+            [self.palette().window().color().lighter(125),
+             self.palette().window().color().darker(125)])
 
     def close(self):
         for dc in self._dynreconf_clients:

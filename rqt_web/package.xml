@@ -1,6 +1,6 @@
 <package>
   <name>rqt_web</name>
-  <version>0.3.12</version>
+  <version>0.4.1</version>
   <description>rqt_web is a simple web content viewer for rqt. Users can show web content in Qt-based window by specifying its URL. </description>
   <maintainer email="ablasdel@gmail.com">Aaron Blasdel</maintainer>
   
@@ -14,6 +14,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <run_depend version_gte="0.2.19">python_qt_binding</run_depend>
   <run_depend>python-rospkg</run_depend>
   <run_depend>qt_gui</run_depend>
   <run_depend>rospy</run_depend>

@@ -1,6 +1,7 @@
+#!/usr/bin/env python
 # Software License Agreement (BSD License)
 #
-# Copyright (c) 2012, Willow Garage, Inc.
+# Copyright (c) 2015, Robert Haschke
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,21 +31,24 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import os
+import unittest
 
-from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QDialog
+class TestMessageTreeModel(unittest.TestCase):
+    def test_path_names(self):
+        from rqt_py_common.message_tree_model import MessageTreeModel
+        from rqt_py_common.msg import Val, ArrayVal
+        m = MessageTreeModel()
+        m.add_message(ArrayVal())
+        root = m.item(0).child(0)
+        self.assertEqual(root._path, '/vals')
+        for i in range(0,5):
+            child = root.child(i)
+            self.assertEqual(child._path, '/vals[%s]' % i)
+            child = child.child(0)
+            self.assertEqual(child._path, '/vals[%s]/floats' % i)
+            for j in range(0,5):
+                self.assertEqual(child.child(j)._path, '/vals[%s]/floats[%s]' % (i,j))
 
 
-class TextBrowseDialog(QDialog):
-    """
-    Simple text brower Dialog that sets its text from the passed in text.
-    """
-    def __init__(self, text, rospack):
-        """
-        :param text: value to set the text of the widget to, ''str''
-        """
-        super(TextBrowseDialog, self).__init__()
-        ui_file = os.path.join(rospack.get_path('rqt_console'), 'resource', 'text_browse_dialog.ui')
-        loadUi(ui_file, self)
-        self.text_browser.setText(text)
+if __name__ == '__main__':
+    unittest.main()

@@ -36,7 +36,8 @@ import roslib
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, QTimer, qWarning, Slot
-from python_qt_binding.QtGui import QAction, QIcon, QMenu, QWidget
+from python_qt_binding.QtGui import QIcon
+from python_qt_binding.QtWidgets import QAction, QMenu, QWidget
 
 import rospy
 
@@ -120,8 +121,8 @@ class PlotWidget(QWidget):
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_plot'), 'resource', 'plot.ui')
         loadUi(ui_file, self)
-        self.subscribe_topic_button.setIcon(QIcon.fromTheme('add'))
-        self.remove_topic_button.setIcon(QIcon.fromTheme('remove'))
+        self.subscribe_topic_button.setIcon(QIcon.fromTheme('list-add'))
+        self.remove_topic_button.setIcon(QIcon.fromTheme('list-remove'))
         self.pause_button.setIcon(QIcon.fromTheme('media-playback-pause'))
         self.clear_button.setIcon(QIcon.fromTheme('edit-clear'))
         self.data_plot = None

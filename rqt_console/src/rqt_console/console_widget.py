@@ -33,7 +33,8 @@
 import os
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QApplication, QCursor, QFileDialog, QHeaderView,QIcon, QMenu, QMessageBox, QTableView, QWidget
+from python_qt_binding.QtGui import QCursor, QIcon
+from python_qt_binding.QtWidgets import QApplication, QFileDialog, QHeaderView, QMenu, QMessageBox, QTableView, QWidget
 from python_qt_binding.QtCore import QRegExp, Qt, qWarning
 
 import time

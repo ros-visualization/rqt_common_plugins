@@ -2,6 +2,20 @@
 Changelog for package rqt_graph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.1 (2016-05-16)
+------------------
+* fix mouse wheel delta in Qt 5 (`#376 <https://github.com/ros-visualization/rqt_common_plugins/issues/376>`_)
+
+0.4.0 (2016-04-27)
+------------------
+* Support Qt 5 (in Kinetic and higher) as well as Qt 4 (in Jade and earlier) (`#359 <https://github.com/ros-visualization/rqt_common_plugins/pull/359>`_)
+
+0.3.13 (2016-03-08)
+-------------------
+* Remove repeated prefices from buttons
+* Prefix all node and topic names with `n\_` and `t\_` respectively, to allow dot to distinguish them
+* Contributors: Eric Wieser
+
 0.3.12 (2015-07-24)
 -------------------
 

@@ -35,9 +35,10 @@
 import time
 
 from python_qt_binding.QtCore import QSize, Qt, Signal, QMargins
-from python_qt_binding.QtGui import (QFont, QFormLayout, QHBoxLayout, QIcon,
-                                     QGroupBox, QLabel, QPushButton,
-                                     QTabWidget, QVBoxLayout, QWidget)
+from python_qt_binding.QtGui import QFont, QIcon
+from python_qt_binding.QtWidgets import (QFormLayout, QHBoxLayout,
+                                         QGroupBox, QLabel, QPushButton,
+                                         QTabWidget, QVBoxLayout, QWidget)
 import rospy
 
 # *Editor classes that are not explicitly used within this .py file still need

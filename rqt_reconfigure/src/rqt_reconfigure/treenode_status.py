@@ -33,7 +33,10 @@
 # Author: Isaac Saito
 
 
-from python_qt_binding.QtGui import QModelIndex
+try:
+    from python_qt_binding.QtCore import QModelIndex  # Qt 5
+except ImportError:
+    from python_qt_binding.QtGui import QModelIndex  # Qt 4
 
 
 class TreenodeStatus(QModelIndex):

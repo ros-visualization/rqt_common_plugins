@@ -37,7 +37,7 @@ import codecs
 import math
 
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QApplication, QAbstractItemView, QSizePolicy, QTreeWidget, QTreeWidgetItem
+from python_qt_binding.QtWidgets import QApplication, QAbstractItemView, QSizePolicy, QTreeWidget, QTreeWidgetItem, QWidget
 from .topic_message_view import TopicMessageView
 
 
@@ -113,7 +113,7 @@ class MessageTree(QTreeWidget):
                     else:
                         item.setExpanded(False)
         self._msg = msg
-        self.update()
+        QWidget.update(self)
 
     # Keyboard handler
     def on_key_press(self, event):

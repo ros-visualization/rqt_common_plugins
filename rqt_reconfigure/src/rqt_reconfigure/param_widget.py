@@ -38,8 +38,8 @@ import rospkg
 import sys
 
 from python_qt_binding.QtCore import Signal, QMargins
-from python_qt_binding.QtGui import (QLabel, QHBoxLayout, QSplitter,
-                                     QVBoxLayout, QWidget, QItemSelectionModel)
+from python_qt_binding.QtWidgets import (QLabel, QHBoxLayout, QSplitter,
+                                         QVBoxLayout, QWidget)
 
 from rqt_reconfigure.node_selector_widget import NodeSelectorWidget
 from rqt_reconfigure.paramedit_widget import ParameditWidget

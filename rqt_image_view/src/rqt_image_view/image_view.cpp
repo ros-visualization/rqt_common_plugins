@@ -75,13 +75,35 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
 
   connect(ui_.dynamic_range_check_box, SIGNAL(toggled(bool)), this, SLOT(onDynamicRange(bool)));
 
-  ui_.save_as_image_push_button->setIcon(QIcon::fromTheme("image"));
+  ui_.save_as_image_push_button->setIcon(QIcon::fromTheme("image-x-generic"));
   connect(ui_.save_as_image_push_button, SIGNAL(pressed()), this, SLOT(saveImage()));
+
+  // set topic name if passed in as argument
+  const QStringList& argv = context.argv();
+  if (!argv.empty()) {
+    arg_topic_name = argv[0];
+    // add topic name to list if not yet in
+    int index = ui_.topics_combo_box->findText(arg_topic_name);
+    if (index == -1) {
+      QString label(arg_topic_name);
+      label.replace(" ", "/");
+      ui_.topics_combo_box->addItem(label, QVariant(arg_topic_name));
+      ui_.topics_combo_box->setCurrentIndex(ui_.topics_combo_box->findText(arg_topic_name));
+    }
+  }
+  pub_topic_custom_ = false;
+
+  QRegExp rx("([a-zA-Z/][a-zA-Z0-9_/]*)?"); //see http://www.ros.org/wiki/ROS/Concepts#Names.Valid_Names (but also accept an empty field)
+  ui_.publish_click_location_topic_line_edit->setValidator(new QRegExpValidator(rx, this));
+  connect(ui_.publish_click_location_check_box, SIGNAL(toggled(bool)), this, SLOT(onMousePublish(bool)));
+  connect(ui_.image_frame, SIGNAL(mouseLeft(int, int)), this, SLOT(onMouseLeft(int, int)));
+  connect(ui_.publish_click_location_topic_line_edit, SIGNAL(editingFinished()), this, SLOT(onPubTopicChanged()));
 }
 
 void ImageView::shutdownPlugin()
 {
   subscriber_.shutdown();
+  pub_mouse_left_.shutdown();
 }
 
 void ImageView::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
@@ -92,6 +114,8 @@ void ImageView::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::
   instance_settings.setValue("zoom1", ui_.zoom_1_push_button->isChecked());
   instance_settings.setValue("dynamic_range", ui_.dynamic_range_check_box->isChecked());
   instance_settings.setValue("max_range", ui_.max_range_double_spin_box->value());
+  instance_settings.setValue("publish_click_location", ui_.publish_click_location_check_box->isChecked());
+  instance_settings.setValue("mouse_pub_topic", ui_.publish_click_location_topic_line_edit->text());
 }
 
 void ImageView::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings)
@@ -106,8 +130,22 @@ void ImageView::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, con
   ui_.max_range_double_spin_box->setValue(max_range);
 
   QString topic = instance_settings.value("topic", "").toString();
-  //qDebug("ImageView::restoreSettings() topic '%s'", topic.toStdString().c_str());
-  selectTopic(topic);
+  // don't overwrite topic name passed as command line argument
+  if (!arg_topic_name.isEmpty())
+  {
+    arg_topic_name = "";
+  }
+  else
+  {
+    //qDebug("ImageView::restoreSettings() topic '%s'", topic.toStdString().c_str());
+    selectTopic(topic);
+  }
+
+  bool publish_click_location = instance_settings.value("publish_click_location", false).toBool();
+  ui_.publish_click_location_check_box->setChecked(publish_click_location);
+
+  QString pub_topic = instance_settings.value("mouse_pub_topic", "").toString();
+  ui_.publish_click_location_topic_line_edit->setText(pub_topic);
 }
 
 void ImageView::updateTopicList()
@@ -239,6 +277,8 @@ void ImageView::onTopicChanged(int index)
       QMessageBox::warning(widget_, tr("Loading image transport plugin failed"), e.what());
     }
   }
+
+  onMousePublish(ui_.publish_click_location_check_box->isChecked());
 }
 
 void ImageView::onZoom1(bool checked)
@@ -278,6 +318,49 @@ void ImageView::saveImage()
   }
 
   img.save(file_name);
+}
+
+void ImageView::onMousePublish(bool checked)
+{
+  std::string topicName;
+  if(pub_topic_custom_)
+  {
+    topicName = ui_.publish_click_location_topic_line_edit->text().toStdString();
+  } else {
+    if(!subscriber_.getTopic().empty())
+    {
+      topicName = subscriber_.getTopic()+"_mouse_left";
+    } else {
+      topicName = "mouse_left";
+    }
+    ui_.publish_click_location_topic_line_edit->setText(QString::fromStdString(topicName));
+  }
+
+  if(checked)
+  {
+    pub_mouse_left_ = getNodeHandle().advertise<geometry_msgs::Point>(topicName, 1000);
+  } else {
+    pub_mouse_left_.shutdown();
+  }
+}
+
+void ImageView::onMouseLeft(int x, int y)
+{
+  if(ui_.publish_click_location_check_box->isChecked() && !ui_.image_frame->getImage().isNull())
+  {
+    geometry_msgs::Point clickLocation;
+    // Publish click location in pixel coordinates
+    clickLocation.x = round((double)x/(double)ui_.image_frame->width()*(double)ui_.image_frame->getImage().width());
+    clickLocation.y = round((double)y/(double)ui_.image_frame->height()*(double)ui_.image_frame->getImage().height());
+    clickLocation.z = 0;
+    pub_mouse_left_.publish(clickLocation);
+  }
+}
+
+void ImageView::onPubTopicChanged()
+{
+  pub_topic_custom_ = !(ui_.publish_click_location_topic_line_edit->text().isEmpty());
+  onMousePublish(ui_.publish_click_location_check_box->isChecked());
 }
 
 void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)
