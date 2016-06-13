@@ -127,7 +127,7 @@ class ImageTimelineRenderer(TimelineRenderer):
             if width == 1:
                 break
 
-        painter.setPen(QPen(QBrush(Qt.black)))
+        painter.setPen(QPen(Qt.black))
         painter.setBrush(QBrush(Qt.transparent))
         if width == 1:
             painter.drawRect(x, y, thumbnail_x - x, height - thumbnail_gap - 1)
