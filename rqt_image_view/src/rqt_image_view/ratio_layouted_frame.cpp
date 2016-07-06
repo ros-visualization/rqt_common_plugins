@@ -139,7 +139,13 @@ void RatioLayoutedFrame::paintEvent(QPaintEvent* event)
     // TODO: check if full draw is really necessary
     //QPaintEvent* paint_event = dynamic_cast<QPaintEvent*>(event);
     //painter.drawImage(paint_event->rect(), qimage_);
-    painter.drawImage(contentsRect(), qimage_);
+    if (contentsRect().width() == qimage_.width()) {
+      painter.drawImage(contentsRect(), qimage_);
+    } else {
+      QImage image = qimage_.scaled(contentsRect().width(), contentsRect().height(),
+                                    Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      painter.drawImage(contentsRect(), image);
+    }
   } else {
     // default image with gradient
     QLinearGradient gradient(0, 0, frameRect().width(), frameRect().height());
