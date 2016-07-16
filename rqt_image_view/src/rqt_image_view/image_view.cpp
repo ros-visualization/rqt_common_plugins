@@ -90,6 +90,13 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
       ui_.topics_combo_box->addItem(label, QVariant(arg_topic_name));
       ui_.topics_combo_box->setCurrentIndex(ui_.topics_combo_box->findText(arg_topic_name));
     }
+    else
+    {
+      onTopicChanged(index);
+      QStringList parts = ui_.topics_combo_box->itemData(index).toString().split(" ");
+      QString topic = parts.first();
+      selectTopic(topic);
+    }
   }
   pub_topic_custom_ = false;
 
