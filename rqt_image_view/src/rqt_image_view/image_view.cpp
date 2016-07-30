@@ -84,7 +84,7 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
     arg_topic_name = argv[0];
     // add topic name to list if not yet in
     int index = ui_.topics_combo_box->findText(arg_topic_name);
-    if (index == -1) {
+    if (index != -1) {
       QString label(arg_topic_name);
       label.replace(" ", "/");
       ui_.topics_combo_box->addItem(label, QVariant(arg_topic_name));
