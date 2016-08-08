@@ -94,6 +94,7 @@ class ConsoleWidget(QWidget):
         self._columnwidth = (60, 100, 70, 100, 100, 100, 100)
         for idx, width in enumerate(self._columnwidth):
             self.table_view.horizontalHeader().resizeSection(idx, width)
+        self.table_view.horizontalHeader().setResizeMode(1, QHeaderView.Stretch)
 
         def update_sort_indicator(logical_index, order):
             if logical_index == 0:
