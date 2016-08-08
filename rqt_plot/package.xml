@@ -16,6 +16,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>python-matplotlib</run_depend>
+  <run_depend>python-numpy</run_depend>
   <run_depend>python-rospkg</run_depend>
   <run_depend version_gte="0.2.19">python_qt_binding</run_depend>
   <run_depend version_gte="0.2.25">qt_gui_py_common</run_depend>
