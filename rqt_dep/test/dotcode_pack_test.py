@@ -55,8 +55,8 @@ class DotcodeGeneratorTest(unittest.TestCase):
                 gen = RosPackageGraphDotcodeGenerator(rospack, rosstack)
                 graph = gen.generate_dotcode(factoryMock)
 
-                rospack.list.assert_called()
-                rosstack.list.assert_called()
+                rospack.list.assert_any_call()
+                rosstack.list.assert_any_call()
                 factoryMock.get_graph.assert_called_with(simplify=True, rank='same', ranksep=0.2, rankdir='TB')
                 factoryMock.create_dot.assert_called_with(graphMock)
 
