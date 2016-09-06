@@ -30,9 +30,12 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from python_qt_binding.QtCore import Slot, Qt, qWarning, Signal
+from python_qt_binding.QtCore import Slot, Qt, qVersion, qWarning, Signal
 from python_qt_binding.QtGui import QColor
 from python_qt_binding.QtWidgets import QVBoxLayout, QWidget
+
+if qVersion().startswith('5.'):
+    raise ImportError('PyQtGraph does not support Qt 5 at the moment')
 
 from pyqtgraph import PlotWidget, mkPen, mkBrush
 import numpy
