@@ -180,6 +180,8 @@ class MessagesWidget(QWidget):
         menu.addAction(text_action)
         raw_action = QAction(self.tr('View Raw'), menu)
         menu.addAction(raw_action)
+        remove_action = QAction(self.tr('Remove message'), menu)
+        menu.addAction(remove_action)
 
         action = menu.exec_(event.globalPos())
 
@@ -209,8 +211,9 @@ class MessagesWidget(QWidget):
                 self._browsers.append(TextBrowseDialog(browsetext,
                                                        self._rospack))
                 self._browsers[-1].show()
-        else:
-            return
+
+        if action == remove_action:
+            self._messages_tree.model().removeRow(selected[0].row())
 
     def cleanup_browsers_on_close(self):
         for browser in self._browsers:
