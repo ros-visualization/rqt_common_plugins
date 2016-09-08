@@ -231,41 +231,48 @@ class PlotWidget(QWidget):
             x[path] = []
             y[path] = []
 
-        msgdata = self.load_data()
-
-        for entry in msgdata:
-            # detect if we're cancelled and return early
-            if not self.resampling_active:
+        # bag object is not thread-safe; lock it while we resample
+        with self.timeline._bag_lock:
+            try:
+                msgdata = self.load_data()
+            except ValueError:
+                # bag is closed or invalid; we're done here
+                self.resampling_active = False
                 return
 
-            for path in self.resample_fields:
-                # this resampling method is very unstable, because it picks
-                # representative points rather than explicitly representing
-                # the minimum and maximum values present within a sample
-                # If the data has spikes, this is particularly bad because they
-                # will be missed entirely at some resolutions and offsets
-                if x[path]==[] or (entry[2]-self.start_stamp).to_sec()-x[path][-1] >= self.timestep:
-                    y_value = entry[1]
-                    for field in path.split('.'):
-                        index = None
-                        if field.endswith(']'):
-                            field = field[:-1]
-                            field, _, index = field.rpartition('[')
-                        y_value = getattr(y_value, field)
-                        if index:
-                            index = int(index)
-                            y_value = y_value[index]
-                    y[path].append(y_value)
-                    x[path].append((entry[2]-self.start_stamp).to_sec())
+            for entry in msgdata:
+                # detect if we're cancelled and return early
+                if not self.resampling_active:
+                    return
 
-            # TODO: incremental plot updates would go here...
-            #       we should probably do incremental updates based on time;
-            #       that is, push new data to the plot maybe every .5 or .1
-            #       seconds
-            #       time is a more useful metric than, say, messages loaded or
-            #       percentage, because it will give a reasonable refresh rate
-            #       without overloading the computer
-            # if we had a progress bar, we could emit a signal to update it here
+                for path in self.resample_fields:
+                    # this resampling method is very unstable, because it picks
+                    # representative points rather than explicitly representing
+                    # the minimum and maximum values present within a sample
+                    # If the data has spikes, this is particularly bad because they
+                    # will be missed entirely at some resolutions and offsets
+                    if x[path]==[] or (entry[2]-self.start_stamp).to_sec()-x[path][-1] >= self.timestep:
+                        y_value = entry[1]
+                        for field in path.split('.'):
+                            index = None
+                            if field.endswith(']'):
+                                field = field[:-1]
+                                field, _, index = field.rpartition('[')
+                            y_value = getattr(y_value, field)
+                            if index:
+                                index = int(index)
+                                y_value = y_value[index]
+                        y[path].append(y_value)
+                        x[path].append((entry[2]-self.start_stamp).to_sec())
+
+                # TODO: incremental plot updates would go here...
+                #       we should probably do incremental updates based on time;
+                #       that is, push new data to the plot maybe every .5 or .1
+                #       seconds
+                #       time is a more useful metric than, say, messages loaded or
+                #       percentage, because it will give a reasonable refresh rate
+                #       without overloading the computer
+                # if we had a progress bar, we could emit a signal to update it here
 
         # update the plot with final resampled data
         for path in self.resample_fields:
