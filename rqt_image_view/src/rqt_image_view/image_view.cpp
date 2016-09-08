@@ -88,7 +88,7 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
       QString label(arg_topic_name);
       label.replace(" ", "/");
       ui_.topics_combo_box->addItem(label, QVariant(arg_topic_name));
-      index = ui_.topics_combo_box->findText(arg_topic_name)
+      index = ui_.topics_combo_box->findText(arg_topic_name);
     }
     ui_.topics_combo_box->setCurrentIndex(index);
   }
