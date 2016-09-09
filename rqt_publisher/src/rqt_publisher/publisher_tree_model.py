@@ -128,29 +128,34 @@ class PublisherTreeModel(MessageTreeModel):
         return row
 
     def flags(self, index):
-        flags = QStandardItemModel.flags(self, index) 
-        if (index.column() == self._column_index['expression'] and 
-            index.model().data(index.model().index(index.row(), self._column_index['type'], index.parent()), Qt.DisplayRole) == "bool"):
-            flags = flags | Qt.ItemIsUserCheckable | Qt.ItemIsEditable | Qt.ItemIsEnabled
+        flags = super(PublisherTreeModel, self).flags(index)
+        if (
+            index.column() == self._column_index['expression'] and
+            index.model().data(index.model().index(index.row(), self._column_index['type'], index.parent()), Qt.DisplayRole) == 'bool'
+        ):
+            flags |= Qt.ItemIsUserCheckable
         return flags
-    
+
     def data(self, index, role):
-        if (index.column() == self._column_index['expression'] and 
-            index.model().data(index.model().index(index.row(), self._column_index['type'], index.parent()), Qt.DisplayRole) == "bool"): 
-            if (role == Qt.CheckStateRole):
+        if (
+            index.column() == self._column_index['expression'] and
+            index.model().data(index.model().index(index.row(), self._column_index['type'], index.parent()), Qt.DisplayRole) == 'bool'
+        ):
+            if role == Qt.CheckStateRole:
                 value = index.model().data(index.model().index(index.row(), index.column(), index.parent()), Qt.DisplayRole)
-                if (value == "True"):
+                if value == 'True':
                     return Qt.Checked
-                else:
+                if value == 'False':
                     return Qt.Unchecked
-        return QStandardItemModel.data(self, index, role)
-    
+                return Qt.PartiallyChecked
+        return super(PublisherTreeModel, self).data(index, role)
+
     def setData(self, index, value, role):
-        if (index.column() == index.column() == self._column_index['expression'] and 
-            index.model().data(index.model().index(index.row(), self._column_index['type'], index.parent()), Qt.DisplayRole) == "bool"): 
-            if (role == Qt.CheckStateRole):
-                stringVal = "False"
-                if (value == Qt.Checked):
-                    stringVal = "True"
-                return QStandardItemModel.setData(self, index, stringVal, Qt.EditRole)
+        if (
+            index.column() == index.column() == self._column_index['expression'] and
+            index.model().data(index.model().index(index.row(), self._column_index['type'], index.parent()), Qt.DisplayRole) == 'bool'
+        ):
+            if role == Qt.CheckStateRole:
+                value = str(value == Qt.Checked)
+                return QStandardItemModel.setData(self, index, value, Qt.EditRole)
         return QStandardItemModel.setData(self, index, value, role)
