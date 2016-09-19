@@ -2,6 +2,9 @@
 Changelog for package rqt_graph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.4.1 (2016-05-16)
 ------------------
 * fix mouse wheel delta in Qt 5 (`#376 <https://github.com/ros-visualization/rqt_common_plugins/issues/376>`_)

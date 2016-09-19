@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add "From nodes" button to record mode (`#348 <https://github.com/ros-visualization/rqt_common_plugins/issues/348>`_)
+* show file size of bag file in the status bar (`#347 <https://github.com/ros-visualization/rqt_common_plugins/pull/347>`_)
+
 0.4.1 (2016-05-16)
 ------------------
 * fix mouse wheel delta in Qt 5 (`#376 <https://github.com/ros-visualization/rqt_common_plugins/issues/376>`_)

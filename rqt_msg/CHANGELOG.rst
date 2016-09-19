@@ -2,6 +2,10 @@
 Changelog for package rqt_msg
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add remove action to context menu in message type browser (`#400 <https://github.com/ros-visualization/rqt_common_plugins/pull/400>`_)
+
 0.4.1 (2016-05-16)
 ------------------
 

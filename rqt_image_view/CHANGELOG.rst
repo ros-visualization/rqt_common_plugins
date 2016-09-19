@@ -2,6 +2,10 @@
 Changelog for package rqt_image_view
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* select existing topic (`#391 <https://github.com/ros-visualization/rqt_common_plugins/pull/391>`_)
+
 0.4.1 (2016-05-16)
 ------------------
 * add the possibility to publish mouse events (`#368 <https://github.com/ros-visualization/rqt_common_plugins/issues/368>`_)

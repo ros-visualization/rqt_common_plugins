@@ -2,6 +2,11 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix crash when toggling thumbnail (`#380 <https://github.com/ros-visualization/rqt_common_plugins/issues/380>`_)
+* lock bag when reading for plotting (`#382 <https://github.com/ros-visualization/rqt_common_plugins/pull/382>`_)
+
 0.4.1 (2016-05-16)
 ------------------
 

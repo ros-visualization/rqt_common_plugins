@@ -2,6 +2,10 @@
 Changelog for package rqt_publisher
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* use checkbox for boolean types (`#372 <https://github.com/ros-visualization/rqt_common_plugins/issues/372>`_)
+
 0.4.1 (2016-05-16)
 ------------------
 
