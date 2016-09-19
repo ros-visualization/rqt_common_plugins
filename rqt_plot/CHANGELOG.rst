@@ -2,8 +2,8 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.2 (2016-09-19)
+------------------
 * add keyword arg to make sort optional (`#360 <https://github.com/ros-visualization/rqt_common_plugins/pull/360>`_)
 * disable PyQtGraph backend when Qt 5 is being used (`#399 <https://github.com/ros-visualization/rqt_common_plugins/pull/399>`_)
 * add missing dependency on numpy (`#396 <https://github.com/ros-visualization/rqt_common_plugins/issues/396>`_)

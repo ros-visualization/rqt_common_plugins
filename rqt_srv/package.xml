@@ -1,6 +1,6 @@
 <package>
   <name>rqt_srv</name>
-  <version>0.4.1</version>
+  <version>0.4.2</version>
   <description>A Python GUI plugin for introspecting available ROS message types.
   Note that the srvs available through this plugin is the ones that are stored 
   on your machine, not on the ROS core your rqt instance connects to.</description>

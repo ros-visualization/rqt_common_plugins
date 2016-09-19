@@ -2,8 +2,8 @@
 Changelog for package rqt_image_view
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.2 (2016-09-19)
+------------------
 * select existing topic (`#391 <https://github.com/ros-visualization/rqt_common_plugins/pull/391>`_)
 
 0.4.1 (2016-05-16)
