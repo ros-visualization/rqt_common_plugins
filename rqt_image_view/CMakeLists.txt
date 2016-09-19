@@ -27,7 +27,7 @@ set(rqt_image_view_UIS
 
 set(rqt_image_view_INCLUDE_DIRECTORIES
   include
-  ${CMAKE_CURRENT_BINARY_DIR}
+  "${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION}"
 )
 
 catkin_package(
@@ -39,11 +39,18 @@ catkin_python_setup()
 
 if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
   qt5_wrap_cpp(rqt_image_view_MOCS ${rqt_image_view_HDRS})
-  qt5_wrap_ui(rqt_image_view_UIS_H ${rqt_image_view_UIS})
 else()
   qt4_wrap_cpp(rqt_image_view_MOCS ${rqt_image_view_HDRS})
+endif()
+# ensure generated header files are being created in the devel space
+set(_cmake_current_binary_dir "${CMAKE_CURRENT_BINARY_DIR}")
+set(CMAKE_CURRENT_BINARY_DIR "${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION}")
+if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
+  qt5_wrap_ui(rqt_image_view_UIS_H ${rqt_image_view_UIS})
+else()
   qt4_wrap_ui(rqt_image_view_UIS_H ${rqt_image_view_UIS})
 endif()
+set(CMAKE_CURRENT_BINARY_DIR "${_cmake_current_binary_dir}")
 
 include_directories(${rqt_image_view_INCLUDE_DIRECTORIES} ${catkin_INCLUDE_DIRS})
 add_library(${PROJECT_NAME} ${rqt_image_view_SRCS} ${rqt_image_view_MOCS} ${rqt_image_view_UIS_H})
