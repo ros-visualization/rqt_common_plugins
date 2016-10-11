@@ -102,9 +102,11 @@ class ServiceCallerWidget(QWidget):
                 #qDebug('ServiceCaller.on_refresh_services_button_clicked(): found service %s using class %s' % (service_name, self._services[service_name]))
             except (rosservice.ROSServiceException, rosservice.ROSServiceIOException) as e:
                 qWarning('ServiceCaller.on_refresh_services_button_clicked(): could not get class of service %s:\n%s' % (service_name, e))
+            except Exception as e:
+                qWarning('ServiceCaller.on_refresh_services_button_clicked(): failed to load class of service %s:\n%s' % (service_name, e))
 
         self.service_combo_box.clear()
-        self.service_combo_box.addItems(sorted(service_names))
+        self.service_combo_box.addItems(sorted(self._services.keys()))
 
     @Slot(str)
     def on_service_combo_box_currentIndexChanged(self, service_name):
