@@ -42,7 +42,10 @@ class XTermWidget(QX11EmbedContainer):
     xterm_cmd = '/usr/bin/xterm'
     close_signal = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, script_path=None):
+        # possible use os to do better justice to script path??
+        if script_path:
+            xterm_cmd += " -e $SHELL -c 'source %s; $SHELL'" % os.path.abspath(script_path)
         super(XTermWidget, self).__init__(parent)
         self.setObjectName('XTermWidget')
         self._process = QProcess(self)
