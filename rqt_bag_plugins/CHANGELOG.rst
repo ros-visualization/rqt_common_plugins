@@ -2,6 +2,9 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.4.2 (2016-09-19)
 ------------------
 * fix crash when toggling thumbnail (`#380 <https://github.com/ros-visualization/rqt_common_plugins/issues/380>`_)

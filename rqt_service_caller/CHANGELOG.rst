@@ -2,6 +2,10 @@
 Changelog for package rqt_service_caller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* catch all exceptions thrown when loading services classes and only show services that loaded without exception
+
 0.4.2 (2016-09-19)
 ------------------
 

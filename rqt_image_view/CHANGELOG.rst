@@ -2,6 +2,10 @@
 Changelog for package rqt_image_view
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* generate UI headers in devel space to avoid CMake warning (`#401 <https://github.com/ros-visualization/rqt_common_plugins/pull/401>`_)
+
 0.4.2 (2016-09-19)
 ------------------
 * select existing topic (`#391 <https://github.com/ros-visualization/rqt_common_plugins/pull/391>`_)
