@@ -17,6 +17,7 @@
   <run_depend version_gte="0.2.19">python_qt_binding</run_depend>
   <run_depend>roslib</run_depend>
   <run_depend>rospy</run_depend>
+  <run_depend>rqt_common_plugins</run_depend>
   <run_depend>rqt_gui</run_depend>
   <run_depend>rqt_gui_py</run_depend>
   <run_depend>rqt_logger_level</run_depend>
