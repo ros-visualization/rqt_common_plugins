@@ -29,6 +29,13 @@
       <widget class="QComboBox" name="_combobox_launchfile_name"/>
      </item>
      <item>
+      <widget class="QPushButton" name="_pushbutton_load_params">
+       <property name="text">
+        <string>&amp;LOAD PARAMS</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="_pushbutton_start_all">
        <property name="text">
         <string>S&amp;TART ALL</string>
