@@ -46,7 +46,8 @@ from rqt_py_common import topic_helpers
 from . rosplot import ROSData, RosPlotException
 
 def get_plot_fields(topic_name):
-    topic_type, real_topic, _ = topic_helpers.get_topic_type(topic_name)
+    tn = topic_name.split('[')[0]
+    topic_type, real_topic, _ = topic_helpers.get_topic_type(tn)
     if topic_type is None:
         message = "topic %s does not exist" % ( topic_name )
         return [], message
