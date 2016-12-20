@@ -287,14 +287,14 @@ class DoubleEditor(EditorWidget):
             self._min = float(config['min'])
             self._min_val_label.setText(str(self._min))
         else:
-            self._min = -1e10000
+            self._min = -1e100
             self._min_val_label.setText('-inf')
 
         if config['max'] != float('inf'):
             self._max = float(config['max'])
             self._max_val_label.setText(str(self._max))
         else:
-            self._max = 1e10000
+            self._max = 1e100
             self._max_val_label.setText('inf')
 
         if config['min'] != -float('inf') and config['max'] != float('inf'):
