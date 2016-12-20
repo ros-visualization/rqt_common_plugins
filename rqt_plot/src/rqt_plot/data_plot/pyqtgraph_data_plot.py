@@ -35,7 +35,17 @@ from python_qt_binding.QtGui import QColor
 from python_qt_binding.QtWidgets import QVBoxLayout, QWidget
 
 if qVersion().startswith('5.'):
-    raise ImportError('PyQtGraph does not support Qt 5 at the moment')
+    try:
+        from pkg_resources import parse_version
+    except:
+        import re
+
+        def parse_version(s):
+            return [int(x) for x in re.sub(r'(\.0+)*$', '', s).split('.')]
+
+    from pyqtgraph import __version__ as pyqtgraph_version
+    if parse_version(pyqtgraph_version) < parse_version('0.10.0'):
+        raise ImportError('A newer PyQtGraph version is required (at least 0.10 for Qt 5)')
 
 from pyqtgraph import PlotWidget, mkPen, mkBrush
 import numpy
