@@ -176,7 +176,8 @@ class BagTimeline(QGraphicsScene):
             self._timeline_frame.index_cache_cv.notify()
 
     def file_size(self):
-        return sum(b.size for b in self._bags)
+        with self._bag_lock:
+            return sum(b.size for b in self._bags)
 
     #TODO Rethink API and if these need to be visible
     def _get_start_stamp(self):
