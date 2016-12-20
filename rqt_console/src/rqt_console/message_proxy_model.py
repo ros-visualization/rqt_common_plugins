@@ -30,7 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from python_qt_binding.QtCore import Qt, qWarning
+from python_qt_binding.QtCore import Qt, qVersion, qWarning
 try:
     from python_qt_binding.QtCore import QSortFilterProxyModel  # Qt 5
 except ImportError:
@@ -115,7 +115,10 @@ class MessageProxyModel(QSortFilterProxyModel):
             self.invalidateFilter()
         else:
             self.invalidateFilter()
-            self.dataChanged.emit(self.index(0, 0), self.index(self.rowCount() - 1, self.columnCount() - 1), [])
+            if qVersion().startswith('4.'):
+                self.dataChanged.emit(self.index(0, 0), self.index(self.rowCount() - 1, self.columnCount() - 1))
+            else:
+                self.dataChanged.emit(self.index(0, 0), self.index(self.rowCount() - 1, self.columnCount() - 1), [])
 
     def add_exclude_filter(self, newfilter):
         self._exclude_filters.append(newfilter)
