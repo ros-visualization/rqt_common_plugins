@@ -34,9 +34,15 @@
 
 import rospy
 
+from python_qt_binding.QtCore import QMargins
+from python_qt_binding.QtGui import QIcon
+from python_qt_binding.QtWidgets import (QFileDialog, QHBoxLayout,
+                                         QPushButton, QWidget)
 from .param_editors import EditorWidget
 from .param_groups import GroupWidget, find_cfg
 from .param_updater import ParamUpdater
+
+import yaml
 
 
 class DynreconfClientWidget(GroupWidget):
@@ -55,6 +61,23 @@ class DynreconfClientWidget(GroupWidget):
         rospy.logdebug('DynreconfClientWidget.group_desc=%s', group_desc)
         super(DynreconfClientWidget, self).__init__(ParamUpdater(reconf),
                                                     group_desc, node_name)
+
+        # Save and load buttons
+        self.button_widget = QWidget(self)
+        self.button_header = QHBoxLayout(self.button_widget)
+        self.button_header.setContentsMargins(QMargins(0, 0, 0, 0))
+
+        self.load_button = QPushButton()
+        self.save_button = QPushButton()
+
+        self.load_button.setIcon(QIcon.fromTheme('document-open'))
+        self.save_button.setIcon(QIcon.fromTheme('document-save'))
+
+        self.load_button.clicked[bool].connect(self._handle_load_clicked)
+        self.save_button.clicked[bool].connect(self._handle_save_clicked)
+
+        self.button_header.addWidget(self.save_button)
+        self.button_header.addWidget(self.load_button)
 
         self.setMinimumWidth(150)
 
@@ -89,6 +112,33 @@ class DynreconfClientWidget(GroupWidget):
                     rospy.logdebug('GROUP widget.param_name=%s',
                                    widget.param_name)
                     widget.update_group(cfg)
+
+    def _handle_load_clicked(self):
+        filename = QFileDialog.getOpenFileName(
+                self, self.tr('Load from File'), '.',
+                self.tr('YAML file {.yaml} (*.yaml)'))
+        if filename[0] != '':
+            self.load_param(filename[0])
+
+    def _handle_save_clicked(self):
+        filename = QFileDialog.getSaveFileName(
+                self, self.tr('Save parameters to file...'), '.',
+                self.tr('YAML files {.yaml} (*.yaml)'))
+        if filename[0] != '':
+            self.save_param(filename[0])
+
+    def save_param(self, filename):
+        configuration = self.reconf.get_configuration()
+        if configuration is not None:
+            with file(filename, 'w') as f:
+                yaml.dump(configuration, f)
+
+    def load_param(self, filename):
+        with file(filename, 'r') as f:
+            configuration = {}
+            for doc in yaml.load_all(f.read()):
+                configuration.update(doc)
+        self.reconf.update_configuration(configuration)
 
     def close(self):
         self.reconf.close()
