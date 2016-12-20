@@ -60,6 +60,9 @@ class LaunchMain(object):
     def set_node_controllers(self, node_controllers):
         self._node_controllers = node_controllers
 
+    def load_params(self):
+        self._main_launch_widget.load_parameters()
+
     def start_all(self):
         '''
         Checks nodes that's set (via self.set_node_controllers) one by one and

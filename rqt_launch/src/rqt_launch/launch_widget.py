@@ -92,6 +92,7 @@ class LaunchWidget(QDialog):
         # NodeController used in controller class for launch operation.
         self._node_controllers = []
 
+        self._pushbutton_load_params.clicked.connect(self._parent.load_params)
         self._pushbutton_start_all.clicked.connect(self._parent.start_all)
         self._pushbutton_stop_all.clicked.connect(self._parent.stop_all)
         # Bind package selection with .launch file selection.
@@ -250,6 +251,18 @@ class LaunchWidget(QDialog):
 
         self._combobox_launchfile_name.clear()
         self._combobox_launchfile_name.addItems(self._launchfile_instances)
+
+    def load_parameters(self):
+        '''Loads all global parameters into roscore.'''
+        run_id = self._run_id if self._run_id is not None \
+                 else roslaunch.rlutil.get_or_generate_uuid(None, True)
+        runner = roslaunch.ROSLaunchRunner(run_id, self._config)
+        runner._load_parameters()
+
+        msg = 'Loaded %d parameters to parameter server.' \
+              % len(self._config.params)
+        self.sig_sysmsg.emit(msg)
+        rospy.logdebug(msg)
 
     def save_settings(self, plugin_settings, instance_settings):
         # instance_settings.set_value('splitter', self._splitter.saveState())
