@@ -82,6 +82,10 @@ signals:
 
   void mouseLeft(int x, int y);
 
+protected slots:
+
+  void onSmoothImageChanged(bool checked);
+
 protected:
 
   void setAspectRatio(unsigned short width, unsigned short height);
@@ -99,6 +103,7 @@ private:
   QImage qimage_;
   mutable QMutex qimage_mutex_;
 
+  bool smoothImage_;
 };
 
 }

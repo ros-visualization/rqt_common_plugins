@@ -40,6 +40,7 @@ namespace rqt_image_view {
 RatioLayoutedFrame::RatioLayoutedFrame(QWidget* parent, Qt::WindowFlags flags)
   : QFrame()
   , aspect_ratio_(4, 3)
+  , smoothImage_(false)
 {
   connect(this, SIGNAL(delayed_update()), this, SLOT(update()), Qt::QueuedConnection);
 }
@@ -139,7 +140,17 @@ void RatioLayoutedFrame::paintEvent(QPaintEvent* event)
     // TODO: check if full draw is really necessary
     //QPaintEvent* paint_event = dynamic_cast<QPaintEvent*>(event);
     //painter.drawImage(paint_event->rect(), qimage_);
-    painter.drawImage(contentsRect(), qimage_);
+    if (!smoothImage_) {
+      painter.drawImage(contentsRect(), qimage_);
+    } else {
+      if (contentsRect().width() == qimage_.width()) {
+        painter.drawImage(contentsRect(), qimage_);
+      } else {
+        QImage image = qimage_.scaled(contentsRect().width(), contentsRect().height(),
+                                      Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        painter.drawImage(contentsRect(), image);
+      }
+    }
   } else {
     // default image with gradient
     QLinearGradient gradient(0, 0, frameRect().width(), frameRect().height());
@@ -168,4 +179,9 @@ void RatioLayoutedFrame::mousePressEvent(QMouseEvent * mouseEvent)
   }
   QFrame::mousePressEvent(mouseEvent);
 }
+
+void RatioLayoutedFrame::onSmoothImageChanged(bool checked) {
+  smoothImage_ = checked;
+}
+
 }
