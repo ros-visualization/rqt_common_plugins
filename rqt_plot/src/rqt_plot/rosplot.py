@@ -42,6 +42,7 @@ import rosgraph
 import roslib.message
 import roslib.names
 import rospy
+from std_msgs.msg import Bool
 
 
 class RosPlotException(Exception):
@@ -154,6 +155,9 @@ class ROSData(object):
         val = msg
         try:
             if not self.field_evals:
+                if isinstance(val, Bool):
+                    # extract boolean field from bool messages
+                    val = val.data
                 return float(val)
             for f in self.field_evals:
                 val = f(val)
