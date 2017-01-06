@@ -42,7 +42,7 @@ import rosgraph
 import roslib.message
 import roslib.names
 import rospy
-
+import std_msgs.msg
 
 class RosPlotException(Exception):
     pass
@@ -154,6 +154,10 @@ class ROSData(object):
         val = msg
         try:
             if not self.field_evals:
+                if type(val)==std_msgs.msg.Bool:
+                    val = val.data
+                if type(val)==bool:
+                    return 1.0 if val else 0.0
                 return float(val)
             for f in self.field_evals:
                 val = f(val)
