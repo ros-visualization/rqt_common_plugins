@@ -34,7 +34,11 @@
 Recorder subscribes to ROS messages and writes them to a bag file.
 """
 
-import Queue
+from __future__ import print_function
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
 import re
 import threading
 import time
@@ -78,7 +82,7 @@ class Recorder(object):
         self._limited_topics = set()
         self._failed_topics = set()
         self._last_update = time.time()
-        self._write_queue = Queue.Queue()
+        self._write_queue = Queue()
         self._paused = False
         self._stop_condition = threading.Condition()
         self._stop_flag = False
@@ -159,16 +163,16 @@ class Recorder(object):
                         self._message_count[topic] = 0
 
                         self._subscriber_helpers[topic] = _SubscriberHelper(self, topic, pytype)
-                    except Exception, ex:
-                        print >> sys.stderr, 'Error subscribing to %s (ignoring): %s' % (topic, str(ex))
+                    except Exception as ex:
+                        print('Error subscribing to %s (ignoring): %s' % (topic, str(ex)), file=sys.stderr)
                         self._failed_topics.add(topic)
 
                 # Wait a while
                 self._stop_condition.acquire()
                 self._stop_condition.wait(self._master_check_interval)
 
-        except Exception, ex:
-            print >> sys.stderr, 'Error recording to bag: %s' % str(ex)
+        except Exception as ex:
+            print('Error recording to bag: %s' % str(ex), file=sys.stderr)
 
         # Unsubscribe from all topics
         for topic in list(self._subscriber_helpers.keys()):
@@ -177,8 +181,8 @@ class Recorder(object):
         # Close the bag file so that the index gets written
         try:
             self._bag.close()
-        except Exception, ex:
-            print >> sys.stderr, 'Error closing bag [%s]: %s' % (self._bag.filename, str(ex))
+        except Exception as ex:
+            print('Error closing bag [%s]: %s' % (self._bag.filename, str(ex)))
 
     def _should_subscribe_to(self, topic):
         if self._all:
@@ -232,8 +236,8 @@ class Recorder(object):
                 for listener in self._listeners:
                     listener(topic, m, t)
 
-        except Exception, ex:
-            print >> sys.stderr, 'Error write to bag: %s' % str(ex)
+        except Exception as ex:
+            print('Error write to bag: %s' % str(ex), file=sys.stderr)
 
 
 class _SubscriberHelper(object):

@@ -203,7 +203,7 @@ class MessagesWidget(QWidget):
 
                 else:
                     raise
-            except rosmsg.ROSMsgException, e:
+            except rosmsg.ROSMsgException as e:
                 QMessageBox.warning(self, self.tr('Warning'),
                                     self.tr('The selected item component ' +
                                             'does not have text to view.'))

@@ -221,7 +221,7 @@ class RosPackageGraphDotcodeGenerator:
                     packages_in_stacks.append(package_name)
                     self._generate_package(dotcode_factory, g, package_name)
 
-        for package_name, attributes in self.packages.iteritems():
+        for package_name, attributes in self.packages.items():
             if package_name not in packages_in_stacks:
                 self._generate_package(dotcode_factory, graph, package_name, attributes)
         for name1, name2 in self.edges.keys():

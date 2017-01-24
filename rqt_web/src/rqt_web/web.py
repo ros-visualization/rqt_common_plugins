@@ -32,7 +32,7 @@
 
 from qt_gui.plugin import Plugin
 
-from web_widget import WebWidget
+from rqt_web.web_widget import WebWidget
 
 
 class Web(Plugin):

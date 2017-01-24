@@ -197,7 +197,7 @@ class NodeSelectorWidget(QWidget):
 
         # Determine if it's terminal treenode.
         found_node = False
-        for nodeitem in self._nodeitems.itervalues():
+        for nodeitem in self._nodeitems.values():
             name_nodeitem = nodeitem.data(Qt.DisplayRole)
             name_rosnode_leaf = rosnode_name_selected[
                        rosnode_name_selected.rfind(RqtRosGraph.DELIM_GRN) + 1:]

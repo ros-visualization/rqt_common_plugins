@@ -30,8 +30,12 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import print_function
 import array
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 import sys
 
 from PIL import Image
@@ -82,8 +86,8 @@ def imgmsg_to_pil(img_msg, rgba=True):
 
         return pil_img
 
-    except Exception, ex:
-        print >> sys.stderr, 'Can\'t convert image: %s' % ex
+    except Exception as ex:
+        print('Can\'t convert image: %s' % ex, file=sys.stderr)
         return None
 
 

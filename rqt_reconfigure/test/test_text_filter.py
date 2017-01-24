@@ -58,7 +58,7 @@ class MyTest(unittest.TestCase):
     def test_test_message(self):
         """Testing test_message method."""
         result_regex = self._filter.test_message(self._filtered_text)
-        print 'result_regex={}'.format(result_regex)
+        print('result_regex={}'.format(result_regex))
         self.assertEqual(result_regex,
                          True  # Both _query_text & filtered_text overlaps.
                          )

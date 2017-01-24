@@ -50,6 +50,14 @@ except ImportError:
 from python_qt_binding.QtWidgets import QCompleter, QWidget
 
 
+def is_string(s):
+    """Check if the argument is a string which works for both Python 2 and 3."""
+    try:
+        return isinstance(s, basestring)
+    except NameError:
+        return isinstance(s, str)
+
+
 class WebWidget(QWidget):
     def __init__(self, url=None):
         """
@@ -180,6 +188,6 @@ class WebWidget(QWidget):
         """
         if data is None or data == '':
             data = []
-        elif isinstance(data, basestring):
+        elif is_string(data):
             data = [data]
         return data

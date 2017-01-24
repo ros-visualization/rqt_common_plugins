@@ -47,5 +47,5 @@ class ShellTextEdit(ConsoleTextEdit):
             out, err = self._pipe.communicate()
             self._stdout.write(out)
             self._stderr.write(err)
-        except Exception, e:
+        except Exception as e:
             self._stderr.write(str(e) + '\n')

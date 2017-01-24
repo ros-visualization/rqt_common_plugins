@@ -54,7 +54,7 @@ class XTermWidget(QX11EmbedContainer):
         args = ['-into', str(self.winId())]
         self._process.start(self.xterm_cmd, args)
         if self._process.error() == QProcess.FailedToStart:
-            print "failed to execute '%s'" % self.xterm_cmd
+            print("failed to execute '%s'" % self.xterm_cmd)
 
     def shutdown(self):
         self._process.kill()

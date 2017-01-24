@@ -34,7 +34,7 @@ from python_qt_binding.QtCore import qVersion
 from qt_gui.plugin import Plugin
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
 
-from shell_widget import ShellWidget
+from rqt_shell.shell_widget import ShellWidget
 
 try:
     if qVersion().startswith('5.'):

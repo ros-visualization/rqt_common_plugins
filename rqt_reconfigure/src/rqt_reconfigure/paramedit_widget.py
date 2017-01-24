@@ -104,13 +104,13 @@ class ParameditWidget(QWidget):
             #LayoutUtil.clear_layout(self.vlayout)
 
             # Re-add the rest of existing items to layout.
-            #for k, v in self._dynreconf_clients.iteritems():
+            #for k, v in self._dynreconf_clients.items():
             #    rospy.loginfo('added to layout k={} v={}'.format(k, v))
             #    self.vlayout.addWidget(v)
 
         # Add color to alternate the rim of the widget.
         LayoutUtil.alternate_color(
-            self._dynreconf_clients.itervalues(),
+            self._dynreconf_clients.values(),
             [self.palette().window().color().lighter(125),
              self.palette().window().color().darker(125)])
 
