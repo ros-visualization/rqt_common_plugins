@@ -265,7 +265,7 @@ class CollapseGroup(BoxGroup):
 
         for child in self.box.children():
             if child.isWidgetType():
-                self.box.toggled.connect(child.setShown)
+                self.box.toggled.connect(child.setVisible)
 
         self.box.setChecked(self.state)
 
@@ -276,8 +276,8 @@ class CollapseGroup(BoxGroup):
 class HideGroup(BoxGroup):
     def __init__(self, updater, config, nodename):
         super(HideGroup, self).__init__(updater, config, nodename)
-        self.box.setShown(self.state)
-        self.sig_node_state_change.connect(self.box.setShown)
+        self.box.setVisible(self.state)
+        self.sig_node_state_change.connect(self.box.setVisible)
 
 
 class TabGroup(GroupWidget):
