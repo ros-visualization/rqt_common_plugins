@@ -118,35 +118,38 @@ class TopicWidget(QWidget):
         """
         refresh tree view items
         """
+        try:
+            if self._selected_topics is None:
+                topic_list = rospy.get_published_topics()
+                if topic_list is None:
+                    rospy.logerr('Not even a single published topic found. Check network configuration')
+                    return
+            else:  # Topics to show are specified.
+                topic_list = self._selected_topics
+                topic_specifiers_server_all = None
+                topic_specifiers_required = None
 
-        if self._selected_topics is None:
-            topic_list = rospy.get_published_topics()
-            if topic_list is None:
-                rospy.logerr('Not even a single published topic found. Check network configuration')
-                return
-        else:  # Topics to show are specified.
-            topic_list = self._selected_topics
-            topic_specifiers_server_all = None
-            topic_specifiers_required = None
+                rospy.logdebug('refresh_topics) self._selected_topics=%s' % (topic_list,))
 
-            rospy.logdebug('refresh_topics) self._selected_topics=%s' % (topic_list,))
+                if self._select_topic_type == self.SELECT_BY_NAME:
+                    topic_specifiers_server_all = [name for name, type in rospy.get_published_topics()]
+                    topic_specifiers_required = [name for name, type in topic_list]
+                elif self._select_topic_type == self.SELECT_BY_MSGTYPE:
+                    # The topics that are required (by whoever uses this class).
+                    topic_specifiers_required = [type for name, type in topic_list]
 
-            if self._select_topic_type == self.SELECT_BY_NAME:
-                topic_specifiers_server_all = [name for name, type in rospy.get_published_topics()]
-                topic_specifiers_required = [name for name, type in topic_list]
-            elif self._select_topic_type == self.SELECT_BY_MSGTYPE:
-                # The topics that are required (by whoever uses this class).
-                topic_specifiers_required = [type for name, type in topic_list]
+                    # The required topics that match with published topics.
+                    topics_match = [(name, type) for name, type in rospy.get_published_topics() if type in topic_specifiers_required]
+                    topic_list = topics_match
+                    rospy.logdebug('selected & published topic types=%s' % (topic_list,))
 
-                # The required topics that match with published topics.
-                topics_match = [(name, type) for name, type in rospy.get_published_topics() if type in topic_specifiers_required]
-                topic_list = topics_match
-                rospy.logdebug('selected & published topic types=%s' % (topic_list,))
-
-            rospy.logdebug('server_all=%s\nrequired=%s\ntlist=%s' % (topic_specifiers_server_all, topic_specifiers_required, topic_list))
-            if len(topic_list) == 0:
-                rospy.logerr('None of the following required topics are found.\n(NAME, TYPE): %s' % (self._selected_topics,))
-                return
+                rospy.logdebug('server_all=%s\nrequired=%s\ntlist=%s' % (topic_specifiers_server_all, topic_specifiers_required, topic_list))
+                if len(topic_list) == 0:
+                    rospy.logerr('None of the following required topics are found.\n(NAME, TYPE): %s' % (self._selected_topics,))
+                    return
+        except IOError as e:
+            rospy.logerr("Communication with rosmaster failed: {0}".format(e.strerror))
+            return
 
         if self._current_topic_list != topic_list:
             self._current_topic_list = topic_list
