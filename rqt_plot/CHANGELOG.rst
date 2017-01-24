@@ -2,8 +2,8 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.4 (2017-01-24)
+------------------
 * automatically use the value field from std_msgs.Bool messages (`#420 <https://github.com/ros-visualization/rqt_common_plugins/pull/420>`_)
 * use Python 3 compatible syntax (`#421 <https://github.com/ros-visualization/rqt_common_plugins/pull/421>`_)
 * reenable PyQtGraph when version >= 0.10 (`#407 <https://github.com/ros-visualization/rqt_common_plugins/issues/407>`_)
