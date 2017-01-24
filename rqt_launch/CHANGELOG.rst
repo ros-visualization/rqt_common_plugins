@@ -2,6 +2,10 @@
 Changelog for package rqt_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add button to load all params in a launch config onto parameter server (`#341 <https://github.com/ros-visualization/rqt_common_plugins/issues/341>`_)
+
 0.4.3 (2016-11-02)
 ------------------
 

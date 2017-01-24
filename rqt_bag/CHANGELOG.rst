@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* use Python 3 compatible syntax (`#421 <https://github.com/ros-visualization/rqt_common_plugins/pull/421>`_)
+* fix race condition reading bag files (`#412 <https://github.com/ros-visualization/rqt_common_plugins/pull/412>`_)
+
 0.4.3 (2016-11-02)
 ------------------
 

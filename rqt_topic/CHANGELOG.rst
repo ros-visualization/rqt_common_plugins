@@ -2,6 +2,11 @@
 Changelog for package rqt_topic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* use Python 3 compatible syntax (`#421 <https://github.com/ros-visualization/rqt_common_plugins/pull/421>`_)
+* catch unhandled exceptions when rosmaster disappears while widget is running (`#419 <https://github.com/ros-visualization/rqt_common_plugins/pull/419>`_)
+
 0.4.3 (2016-11-02)
 ------------------
 

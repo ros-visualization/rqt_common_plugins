@@ -2,6 +2,10 @@
 Changelog for package rqt_image_view
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add checkbox for optional smooth image scaling (`#385 <https://github.com/ros-visualization/rqt_common_plugins/issues/385>`_)
+
 0.4.3 (2016-11-02)
 ------------------
 * generate UI headers in devel space to avoid CMake warning (`#401 <https://github.com/ros-visualization/rqt_common_plugins/pull/401>`_)

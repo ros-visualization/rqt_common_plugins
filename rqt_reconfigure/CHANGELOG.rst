@@ -2,6 +2,12 @@
 Changelog for package rqt_reconfigure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* replace setShown with setVisible (`#418 <https://github.com/ros-visualization/rqt_common_plugins/issues/418>`_)
+* use Python 3 compatible syntax (`#421 <https://github.com/ros-visualization/rqt_common_plugins/pull/421>`_)
+* add buttons to 'save' to and 'load' from file (`#406 <https://github.com/ros-visualization/rqt_common_plugins/pull/406>`_)
+
 0.4.3 (2016-11-02)
 ------------------
 
