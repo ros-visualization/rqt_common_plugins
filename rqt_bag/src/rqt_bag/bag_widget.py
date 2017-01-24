@@ -42,7 +42,7 @@ from python_qt_binding.QtGui import QIcon
 from python_qt_binding.QtWidgets import QFileDialog, QGraphicsView, QWidget
 
 import rosbag
-import bag_helper
+import rqt_bag.bag_helper
 from .bag_timeline import BagTimeline
 from .topic_selection import TopicSelection
 

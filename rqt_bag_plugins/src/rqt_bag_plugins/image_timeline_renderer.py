@@ -30,6 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import print_function
 import rospy
 
 # HACK workaround for upstream pillow issue python-pillow/Pillow#400
@@ -45,7 +46,7 @@ from PIL.ImageQt import ImageQt
 
 from rqt_bag import TimelineCache, TimelineRenderer
 
-import image_helper
+import rqt_bag_plugins.image_helper
 
 from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtGui import QBrush, QPen, QPixmap
@@ -161,12 +162,12 @@ class ImageTimelineRenderer(TimelineRenderer):
         # Convert from ROS image to PIL image
         try:
             pil_image = image_helper.imgmsg_to_pil(msg)
-        except Exception, ex:
-            print >> sys.stderr, 'Error loading image on topic %s: %s' % (topic, str(ex))
+        except Exception as ex:
+            print('Error loading image on topic %s: %s' % (topic, str(ex)), file=sys.stderr)
             pil_image = None
 
         if not pil_image:
-            print >> sys.stderr, 'Disabling renderer on %s' % topic
+            print('Disabling renderer on %s' % topic, file=sys.stderr)
             self.timeline.set_renderer_active(topic, False)
             return None, None
 
@@ -179,7 +180,7 @@ class ImageTimelineRenderer(TimelineRenderer):
 
             return msg_stamp, thumbnail
 
-        except Exception, ex:
-            print >> sys.stderr, 'Error loading image on topic %s: %s' % (topic, str(ex))
+        except Exception as ex:
+            print('Error loading image on topic %s: %s' % (topic, str(ex)), file=sys.stderr)
             raise
             return None, None

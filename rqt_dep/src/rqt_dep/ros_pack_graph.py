@@ -321,7 +321,7 @@ class RosPackGraph(Plugin):
                         try:
                             service_type = rosservice.get_service_type(service_name)
                             tool_tip += '\n  %s [%s]' % (service_name, service_type)
-                        except rosservice.ROSServiceIOException, e:
+                        except rosservice.ROSServiceIOException as e:
                             tool_tip += '\n  %s' % (e)
                 return tool_tip
             elif item_type == 'topic':
@@ -334,9 +334,9 @@ class RosPackGraph(Plugin):
         for item in self._scene.items():
             self._scene.removeItem(item)
         self._scene.clear()
-        for node_item in self._nodes.itervalues():
+        for node_item in self._nodes.values():
             self._scene.addItem(node_item)
-        for edge_items in self._edges.itervalues():
+        for edge_items in self._edges.values():
             for edge_item in edge_items:
                 edge_item.add_to_scene(self._scene)
 

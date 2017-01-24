@@ -33,7 +33,7 @@
 from python_qt_binding.QtWidgets import QVBoxLayout, QWidget
 from qt_gui.plugin import Plugin
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
-from py_console_widget import PyConsoleWidget
+from rqt_py_console.py_console_widget import PyConsoleWidget
 
 try:
     from spyder_console_widget import SpyderConsoleWidget

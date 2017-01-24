@@ -41,17 +41,17 @@ from python_qt_binding.QtWidgets import QWidget, QHBoxLayout
 from rqt_py_common.ini_helper import pack, unpack
 
 try:
-    from pyqtgraph_data_plot import PyQtGraphDataPlot
+    from .pyqtgraph_data_plot import PyQtGraphDataPlot
 except ImportError as e:
     PyQtGraphDataPlot = None
 
 try:
-    from mat_data_plot import MatDataPlot
+    from .mat_data_plot import MatDataPlot
 except ImportError as e:
     MatDataPlot = None
 
 try:
-    from qwt_data_plot import QwtDataPlot
+    from .qwt_data_plot import QwtDataPlot
 except ImportError as e:
     QwtDataPlot = None
 

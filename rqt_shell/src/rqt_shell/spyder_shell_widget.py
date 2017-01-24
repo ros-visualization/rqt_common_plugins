@@ -37,6 +37,14 @@ from spyderlib.widgets.externalshell.baseshell import ExternalShellBase
 from spyderlib.widgets.shell import TerminalWidget
 
 
+def is_string(s):
+    """Check if the argument is a string which works for both Python 2 and 3."""
+    try:
+        return isinstance(s, basestring)
+    except NameError:
+        return isinstance(s, str)
+
+
 class SpyderShellWidget(ExternalShellBase):
     """Spyder Shell Widget: execute a shell in a separate process using spyderlib's ExternalShellBase"""
     SHELL_CLASS = TerminalWidget
@@ -75,7 +83,13 @@ class SpyderShellWidget(ExternalShellBase):
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.MergedChannels)
 
-        env = [unicode(key_val_pair) for key_val_pair in self.process.systemEnvironment()]
+        env = []
+        for key_val_pair in self.process.systemEnvironment():
+            try:
+                value = unicode(key_val_pair)
+            except NameError:
+                value = str(key_val_pair)
+            env.append(value)
         env.append('TERM=xterm')
         env.append('COLORTERM=gnome-terminal')
         self.process.setEnvironment(env)
@@ -110,8 +124,11 @@ class SpyderShellWidget(ExternalShellBase):
         self.write_output()
 
     def send_to_process(self, text):
-        if not isinstance(text, basestring):
-            text = unicode(text)
+        if not is_string(text):
+            try:
+                text = unicode(text)
+            except NameError:
+                text = str(text)
         if not text.endswith('\n'):
             text += '\n'
         self.process.write(QTextCodec.codecForLocale().fromUnicode(text))

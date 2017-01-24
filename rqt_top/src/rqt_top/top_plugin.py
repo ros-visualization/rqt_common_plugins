@@ -156,7 +156,7 @@ class Top(Plugin):
             twi.setText(col, self.FORMAT_STRS[col] % val)
         self._table_widget.insertTopLevelItem(row, twi)
 
-        for col, (key, func) in self.TOOLTIPS.iteritems():
+        for col, (key, func) in self.TOOLTIPS.items():
             twi.setToolTip(col, func(info[key]))
 
         with self._selected_node_lock:

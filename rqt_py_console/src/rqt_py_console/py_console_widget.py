@@ -35,7 +35,7 @@ import rospkg
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QWidget
-import py_console_text_edit
+from rqt_py_console.py_console_text_edit import PyConsoleTextEdit
 
 
 class PyConsoleWidget(QWidget):
@@ -43,7 +43,7 @@ class PyConsoleWidget(QWidget):
         super(PyConsoleWidget, self).__init__()
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_py_console'), 'resource', 'py_console_widget.ui')
-        loadUi(ui_file, self, {'PyConsoleTextEdit': py_console_text_edit.PyConsoleTextEdit})
+        loadUi(ui_file, self, {'PyConsoleTextEdit': PyConsoleTextEdit})
         self.setObjectName('PyConsoleWidget')
 
         my_locals = {

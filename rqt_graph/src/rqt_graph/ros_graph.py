@@ -292,9 +292,9 @@ class RosGraph(Plugin):
                                                             highlight_level=highlight_level,
                                                             same_label_siblings=True)
 
-        for node_item in nodes.itervalues():
+        for node_item in nodes.values():
             self._scene.addItem(node_item)
-        for edge_items in edges.itervalues():
+        for edge_items in edges.values():
             for edge_item in edge_items:
                 edge_item.add_to_scene(self._scene)
 

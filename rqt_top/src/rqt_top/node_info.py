@@ -27,7 +27,12 @@
 
 import rosnode
 import rospy
-import xmlrpclib
+try:
+    from xmlrpc.client import ServerProxy
+    from socket import error
+except ImportError:
+    from xmlrpclib import ServerProxy
+    from xmlrpclib.socket import error
 import psutil
 
 ID = '/NODEINFO'
@@ -38,7 +43,7 @@ class NodeInfo(object):
     def get_node_info(self, node_name, skip_cache=False):
         node_api = rosnode.get_api_uri(rospy.get_master(), node_name, skip_cache=skip_cache)
         try:
-            code, msg, pid = xmlrpclib.ServerProxy(node_api[2]).getPid(ID)
+            code, msg, pid = ServerProxy(node_api[2]).getPid(ID)
             if node_name in self.nodes:
                 return self.nodes[node_name]
             else:
@@ -48,7 +53,7 @@ class NodeInfo(object):
                     return p
                 except:
                     return False
-        except xmlrpclib.socket.error:
+        except error:
             if not skip_cache:
                 return self.get_node_info(node_name, skip_cache=True)
             else:

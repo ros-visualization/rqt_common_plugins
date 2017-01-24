@@ -127,7 +127,7 @@ class ROSData(object):
                 else:
                     self.buff_x.append(rospy.get_time() - self.start_time)
                 #self.axes[index].plot(datax, buff_y)
-            except AttributeError, e:
+            except AttributeError as e:
                 self.error = RosPlotException("Invalid topic spec [%s]: %s" % (self.name, str(e)))
         finally:
             self.lock.release()
@@ -197,5 +197,5 @@ def generate_field_evals(fields):
             else:
                 evals.append(_field_eval(f))
         return evals
-    except Exception, e:
+    except Exception as e:
         raise RosPlotException("cannot parse field reference [%s]: %s" % (fields, str(e)))

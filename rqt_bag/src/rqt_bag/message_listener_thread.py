@@ -76,7 +76,7 @@ class MessageListenerThread(threading.Thread):
             try:
                 event = ListenerEvent(bag_msg_data)
                 QCoreApplication.postEvent(self.listener, event)
-            except Exception, ex:
+            except Exception as ex:
                 qWarning('Error notifying listener %s: %s' % (type(self.listener), str(ex)))
 
     def stop(self):
