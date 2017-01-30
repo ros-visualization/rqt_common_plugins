@@ -10,10 +10,6 @@ class NodeController(object):
     a node on both ROS & GUI sides.
     '''
 
-    # these values need to synch with member variables.
-    # Eg. self.gui isn't legal.
-    __slots__ = ['_proxy', '_gui']
-
     def __init__(self, proxy, gui):
         '''
         @type proxy: rqt_launch.NodeProxy
