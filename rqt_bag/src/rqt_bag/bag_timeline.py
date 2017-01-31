@@ -39,7 +39,7 @@ import threading
 from python_qt_binding.QtCore import Qt, QTimer, qWarning, Signal
 from python_qt_binding.QtWidgets import QGraphicsScene, QMessageBox
 
-import rqt_bag.bag_helper
+from rqt_bag import bag_helper
 
 from .timeline_frame import TimelineFrame
 from .message_listener_thread import MessageListenerThread

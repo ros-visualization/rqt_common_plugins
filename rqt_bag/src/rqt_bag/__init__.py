@@ -30,7 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import rqt_bag.bag_helper
+from rqt_bag import bag_helper
 from rqt_bag.plugins.message_view       import MessageView
 from rqt_bag.plugins.topic_message_view import TopicMessageView
 from rqt_bag.plugins.timeline_renderer  import TimelineRenderer
