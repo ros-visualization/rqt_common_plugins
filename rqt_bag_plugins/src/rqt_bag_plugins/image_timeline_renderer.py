@@ -46,7 +46,7 @@ from PIL.ImageQt import ImageQt
 
 from rqt_bag import TimelineCache, TimelineRenderer
 
-import rqt_bag_plugins.image_helper
+from rqt_bag_plugins import image_helper
 
 from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtGui import QBrush, QPen, QPixmap
