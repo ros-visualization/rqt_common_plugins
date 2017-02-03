@@ -2,6 +2,9 @@
 Changelog for package rqt_reconfigure
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.4.4 (2017-01-24)
 ------------------
 * replace setShown with setVisible (`#418 <https://github.com/ros-visualization/rqt_common_plugins/issues/418>`_)

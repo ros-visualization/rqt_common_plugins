@@ -2,6 +2,9 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.4.4 (2017-01-24)
 ------------------
 * automatically use the value field from std_msgs.Bool messages (`#420 <https://github.com/ros-visualization/rqt_common_plugins/pull/420>`_)

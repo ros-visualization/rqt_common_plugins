@@ -2,6 +2,10 @@
 Changelog for package rqt_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* remove __slots_\_ declaration preventing the plugin to load (`#423 <https://github.com/ros-visualization/rqt_common_plugins/pull/423>`_)
+
 0.4.4 (2017-01-24)
 ------------------
 * add button to load all params in a launch config onto parameter server (`#341 <https://github.com/ros-visualization/rqt_common_plugins/issues/341>`_)

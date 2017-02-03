@@ -2,6 +2,10 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix Python 2 regression from version 0.4.4 (`#426 <https://github.com/ros-visualization/rqt_common_plugins/issues/426>`_)
+
 0.4.4 (2017-01-24)
 ------------------
 * use Python 3 compatible syntax (`#421 <https://github.com/ros-visualization/rqt_common_plugins/pull/421>`_)

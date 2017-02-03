@@ -2,6 +2,9 @@
 Changelog for package rqt_console
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.4.4 (2017-01-24)
 ------------------
 * fix regression with Qt 4 (`#414 <https://github.com/ros-visualization/rqt_common_plugins/issues/414>`_)

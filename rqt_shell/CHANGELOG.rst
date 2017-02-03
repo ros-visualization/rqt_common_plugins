@@ -2,6 +2,10 @@
 Changelog for package rqt_shell
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add command line option --init-script (`#296 <https://github.com/ros-visualization/rqt_common_plugins/issues/296>`_)
+
 0.4.4 (2017-01-24)
 ------------------
 * use Python 3 compatible syntax (`#421 <https://github.com/ros-visualization/rqt_common_plugins/pull/421>`_)
