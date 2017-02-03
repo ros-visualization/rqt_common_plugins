@@ -37,7 +37,7 @@ from qt_gui_py_common.console_text_edit import ConsoleTextEdit
 
 class ShellTextEdit(ConsoleTextEdit):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, script_path=None):
         super(ShellTextEdit, self).__init__(parent)
         self._add_prompt()
 

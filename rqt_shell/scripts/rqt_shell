@@ -3,6 +3,8 @@
 import sys
 
 from rqt_gui.main import Main
+from rqt_shell.shell import Shell
 
-main = Main()
-sys.exit(main.main(sys.argv, standalone='rqt_shell.shell.Shell'))
+plugin = 'rqt_shell.shell.Shell'
+main = Main(filename=plugin)
+sys.exit(main.main(standalone=plugin, plugin_argument_provider=Shell.add_arguments))

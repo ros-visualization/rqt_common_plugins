@@ -30,6 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import argparse
 from python_qt_binding.QtCore import qVersion
 from qt_gui.plugin import Plugin
 from qt_gui_py_common.simple_settings_dialog import SimpleSettingsDialog
@@ -44,7 +45,6 @@ try:
 except ImportError:
     XTermWidget = None
     _has_xterm = False
-
 try:
     if qVersion().startswith('5.'):
         raise ImportError('spyderlib does not support Qt 5 yet')
@@ -85,8 +85,22 @@ class Shell(Plugin):
         super(Shell, self).__init__(context)
         self._context = context
         self.setObjectName('Shell')
+        self._args = self._parse_args(context.argv())
 
         self._widget = None
+
+    def _parse_args(self, argv):
+        parser = argparse.ArgumentParser(prog='rqt_shell')
+        Shell.add_arguments(parser)
+        return parser.parse_args(argv)
+
+    @staticmethod
+    def add_arguments(parser):
+        group = parser.add_argument_group('Options for rqt_shell plugin')
+        group.add_argument('-i', '--init-script',
+                help="Executes this script before staring a $SHELL subshell.  \
+                Doesn't work for SimpleShell. \
+                Always export any variables you intend on using in $SHELL")
 
     def _switch_shell_widget(self):
         # check for available shell type
@@ -100,7 +114,7 @@ class Shell(Plugin):
             self._context.remove_widget(self._widget)
             self._widget.close()
 
-        self._widget = selected_shell['widget_class']()
+        self._widget = selected_shell['widget_class'](script_path=self._args.init_script)
         self._widget.setWindowTitle(selected_shell['title'])
         if self._context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % self._context.serial_number()))

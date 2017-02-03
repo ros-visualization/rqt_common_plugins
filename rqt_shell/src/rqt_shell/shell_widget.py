@@ -39,7 +39,7 @@ from rqt_shell.shell_text_edit import ShellTextEdit
 
 
 class ShellWidget(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, script_path=None):
         super(ShellWidget, self).__init__(parent=parent)
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_shell'), 'resource', 'shell_widget.ui')

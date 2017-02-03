@@ -36,6 +36,8 @@ from python_qt_binding.QtCore import QProcess, SIGNAL, QTextCodec, Signal
 from spyderlib.widgets.externalshell.baseshell import ExternalShellBase
 from spyderlib.widgets.shell import TerminalWidget
 
+import os
+
 
 def is_string(s):
     """Check if the argument is a string which works for both Python 2 and 3."""
@@ -50,7 +52,7 @@ class SpyderShellWidget(ExternalShellBase):
     SHELL_CLASS = TerminalWidget
     close_signal = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, script_path=None):
         ExternalShellBase.__init__(self, parent=parent, fname=None, wdir='.',
                                    history_filename='.history',
                                    light_background=True,
@@ -72,12 +74,12 @@ class SpyderShellWidget(ExternalShellBase):
         self.is_ipython_kernel = False
         self.connection_file = None
 
-        self.create_process()
+        self.create_process(script_path=script_path)
 
     def get_icon(self):
         return QIcon()
 
-    def create_process(self):
+    def create_process(self, script_path=None):
         self.shell.clear()
 
         self.process = QProcess(self)
@@ -102,7 +104,12 @@ class SpyderShellWidget(ExternalShellBase):
         self.process.finished.connect(self.finished)
         self.process.finished.connect(self.close_signal)
 
-        self.process.start('/bin/bash', ['-i'])
+        if script_path:
+            options = [
+                "-c 'source %s; /bin/bash -i'" % os.path.abspath(script_path)])
+        else:
+            options = ['-i']
+        self.process.start('/bin/bash', options)
 
         running = self.process.waitForStarted()
         self.set_running_state(running)
