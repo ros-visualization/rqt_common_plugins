@@ -75,7 +75,7 @@ def get_plot_fields(topic_name):
 
         field_class = topic_helpers.get_type_class(slot_type)
 
-    if field_class in (int, float):
+    if field_class in (int, float, bool):
         if is_array:
             if array_size is not None:
                 message = "topic %s is fixed-size numeric array" % ( topic_name )
