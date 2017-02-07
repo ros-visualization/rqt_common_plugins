@@ -107,6 +107,7 @@ class TopicInfo(ROSTopicHz):
             self.last_message = message
 
     def get_bw(self):
+        '''Update bandwidth'''
         if len(self.timestamps) < 2:
             return None, None, None, None
         current_time = rospy.get_time()
@@ -117,8 +118,10 @@ class TopicInfo(ROSTopicHz):
             total = sum(self.sizes)
             bytes_per_s = total / (current_time - self.timestamps[0])
             mean_size = total / len(self.timestamps)
-            max_size = max(self.sizes)
-            min_size = min(self.sizes)
+            max_size = min_size = None
+            if self.sizes:
+                max_size = max(self.sizes)
+                min_size = min(self.sizes)
             return bytes_per_s, mean_size, min_size, max_size
 
     def get_hz(self):
