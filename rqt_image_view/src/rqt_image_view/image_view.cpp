@@ -436,7 +436,7 @@ void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)
   }
 }
 
-void rqt_image_view::ImageView::set_controls_visiblity(bool hide)
+void ImageView::set_controls_visiblity(bool hide)
 {
   ui_.controlsWidget->setVisible(!hide);
 }
