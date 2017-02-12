@@ -85,12 +85,10 @@ protected:
   virtual QSet<QString> getTopics(const QSet<QString>& message_types, const QSet<QString>& message_sub_types, const QList<QString>& transports);
 
   virtual void selectTopic(const QString& topic);
-  virtual void selectOverlayTopic(const QString& topic);
 
 protected slots:
 
   virtual void onTopicChanged(int index);
-  virtual void onOverlayChanged(int index);
 
   virtual void onZoom1(bool checked);
 
@@ -108,18 +106,15 @@ protected slots:
 protected:
 
   virtual void callbackImage(const sensor_msgs::Image::ConstPtr& msg);
-  virtual void callbackOverlay(const sensor_msgs::Image::ConstPtr& msg);
 
   Ui::ImageViewWidget ui_;
 
   QWidget* widget_;
 
   image_transport::Subscriber subscriber_;
-  image_transport::Subscriber overlay_subscriber_;
 
   cv::Mat conversion_mat_;
 
-  QImage overlayImage;
 
 private:
 

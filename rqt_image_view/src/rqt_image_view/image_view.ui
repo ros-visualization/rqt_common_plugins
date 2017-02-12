@@ -19,7 +19,7 @@
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0">
    <item>
     <widget class="QWidget" name="controlsWidget" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0,0,0,0,0,0,1">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0,0,0,0,0,1">
       <item>
        <widget class="QComboBox" name="topics_combo_box">
         <property name="sizeAdjustPolicy">
@@ -99,40 +99,21 @@
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="overlay_combo_box"/>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="display_latency_check_box">
-        <property name="toolTip">
-         <string>If checked a bar will be displayed on the top of the image which lenght is corresponds to the time difference between the displaying of the image and the timestamp in the header of the image</string>
-        </property>
+       <widget class="QCheckBox" name="smooth_image_check_box">
         <property name="text">
-         <string>Display latency</string>
+         <string>Smooth image</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="max_latency_label">
+       <widget class="QCheckBox" name="publish_click_location_check_box">
         <property name="text">
-         <string>Max:</string>
+         <string>Publish click:</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QSpinBox" name="full_scale_latency_spin_box">
-        <property name="toolTip">
-         <string>If the latency is greater than the value set here the display bar will be shown in the whole width of the image.</string>
-        </property>
-        <property name="suffix">
-         <string> ms</string>
-        </property>
-        <property name="maximum">
-         <number>99999</number>
-        </property>
-        <property name="value">
-         <number>1000</number>
-        </property>
-       </widget>
+       <widget class="QLineEdit" name="publish_click_location_topic_line_edit"/>
       </item>
       <item>
        <spacer name="horizontalSpacer">
@@ -222,38 +203,5 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections>
-  <connection>
-   <sender>display_latency_check_box</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>max_latency_label</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>482</x>
-     <y>32</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>539</x>
-     <y>31</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>display_latency_check_box</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>full_scale_latency_spin_box</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>409</x>
-     <y>31</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>594</x>
-     <y>26</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>
