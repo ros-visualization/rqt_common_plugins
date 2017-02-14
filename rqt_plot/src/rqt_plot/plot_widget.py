@@ -75,16 +75,17 @@ def get_plot_fields(topic_name):
 
         field_class = topic_helpers.get_type_class(slot_type)
 
-    if field_class in (int, float):
+    if field_class in (int, float, bool):
+        topic_kind = 'boolean' if field_class == bool else 'numeric'
         if is_array:
             if array_size is not None:
-                message = "topic %s is fixed-size numeric array" % ( topic_name )
+                message = "topic %s is fixed-size %s array" % ( topic_name, topic_kind )
                 return [ "%s[%d]" % (topic_name, i) for i in range(array_size) ], message
             else:
-                message = "topic %s is variable-size numeric array" % ( topic_name )
+                message = "topic %s is variable-size %s array" % ( topic_name, topic_kind )
                 return [], message
         else:
-            message = "topic %s is numeric" % ( topic_name )
+            message = "topic %s is %s" % ( topic_name, topic_kind )
             return [ topic_name ], message
     else:
         if not roslib.msgs.is_valid_constant_type(slot_type):
