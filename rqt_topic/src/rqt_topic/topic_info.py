@@ -97,7 +97,7 @@ class TopicInfo(ROSTopicHz):
             # time consuming workaround...
             buff = StringIO()
             message.serialize(buff)
-            self.sizes.append(buff.len)
+            self.sizes.append(len(buff.getvalue()))
 
             if len(self.timestamps) > self.window_size - 1:
                 self.timestamps.pop(0)
