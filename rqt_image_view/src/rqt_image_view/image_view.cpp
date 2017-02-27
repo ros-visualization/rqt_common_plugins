@@ -102,7 +102,7 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   tools_hide_action = new QAction(tr("Hide toolbar"), this);
   tools_hide_action->setCheckable(true);
   ui_.image_frame->addAction(tools_hide_action);
-  connect(tools_hide_action, SIGNAL(toggled(bool)), this, SLOT(set_controls_visiblity(bool)));
+  connect(tools_hide_action, SIGNAL(toggled(bool)), this, SLOT(setControlsVisiblity(bool)));
 }
 
 void ImageView::shutdownPlugin()
@@ -436,7 +436,7 @@ void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)
   }
 }
 
-void rqt_image_view::ImageView::set_controls_visiblity(bool hide)
+void rqt_image_view::ImageView::setControlsVisiblity(bool hide)
 {
   ui_.controlsWidget->setVisible(!hide);
 }

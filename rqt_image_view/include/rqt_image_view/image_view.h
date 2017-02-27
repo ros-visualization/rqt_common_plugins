@@ -101,7 +101,7 @@ protected slots:
   virtual void onMouseLeft(int x, int y);
 
   virtual void onPubTopicChanged();
-  virtual void set_controls_visiblity(bool show);
+  virtual void setControlsVisiblity(bool show);
 
 protected:
 
