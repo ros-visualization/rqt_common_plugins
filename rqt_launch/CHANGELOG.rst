@@ -2,6 +2,9 @@
 Changelog for package rqt_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.4.5 (2017-02-03)
 ------------------
 * remove __slots_\_ declaration preventing the plugin to load (`#423 <https://github.com/ros-visualization/rqt_common_plugins/pull/423>`_)

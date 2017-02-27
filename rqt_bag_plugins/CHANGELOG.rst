@@ -2,6 +2,9 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.4.5 (2017-02-03)
 ------------------
 * fix Python 2 regression from version 0.4.4 (`#426 <https://github.com/ros-visualization/rqt_common_plugins/issues/426>`_)

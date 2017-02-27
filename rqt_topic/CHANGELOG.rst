@@ -2,6 +2,10 @@
 Changelog for package rqt_topic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* remove usage of undocumented cStringIO.StringIO len attribute (`#434 <https://github.com/ros-visualization/rqt_common_plugins/pull/434>`_)
+
 0.4.5 (2017-02-03)
 ------------------
 
