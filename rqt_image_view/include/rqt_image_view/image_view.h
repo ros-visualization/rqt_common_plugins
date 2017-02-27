@@ -123,7 +123,7 @@ private:
 
   bool pub_topic_custom_;
 
-  QAction *tools_hide_action;
+  QAction *tools_hide_action_;
 };
 
 }
