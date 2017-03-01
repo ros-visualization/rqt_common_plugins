@@ -2,9 +2,20 @@ cmake_minimum_required(VERSION 2.8.3)
 project(rqt_top)
 # Load catkin and all dependencies required for this package
 #find_package(catkin REQUIRED COMPONENTS python-psutil)
-find_package(catkin REQUIRED)
-catkin_package()
+find_package(catkin REQUIRED COMPONENTS message_generation)
+
 catkin_python_setup()
+add_message_files(
+  FILES
+  Process.msg
+  CPUUsage.msg
+)
+
+generate_messages()
+catkin_package(
+    CATKIN_DEPENDS message_runtime
+)
+
 
 install(FILES plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

@@ -34,6 +34,8 @@ from python_qt_binding.QtWidgets import QLabel, QTreeWidget, QTreeWidgetItem, QV
 from python_qt_binding.QtCore import Qt, QTimer
 
 from rqt_top.node_info import NodeInfo
+from rqt_top.msg import Process, CPUUsage
+import rospy
 import re
 from threading import RLock
 import textwrap
@@ -67,6 +69,7 @@ class Top(Plugin):
 
     def __init__(self, context):
         super(Top, self).__init__(context)
+        self.pub = rospy.Publisher('/cpu_usage', CPUUsage, queue_size=1)
         # Give QObjects reasonable names
         self.setObjectName('Top')
 
@@ -168,8 +171,12 @@ class Top(Plugin):
     def update_table(self):
         self._table_widget.clear()
         infos = self._node_info.get_all_node_fields(self.NODE_FIELDS)
+        usage = CPUUsage()
         for nx, info in enumerate(infos):
             self.update_one_item(nx, info)
+            p = Process(info['node_name'], ' '.join(info['cmdline']), info['pid'], info['cpu_percent'], info['memory_percent'], info['num_threads'])
+            usage.processes.append(p)
+        self.pub.publish(usage)
 
     def shutdown_plugin(self):
         self._update_timer.stop()
