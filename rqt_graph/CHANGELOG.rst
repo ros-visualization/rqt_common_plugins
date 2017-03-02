@@ -2,8 +2,8 @@
 Changelog for package rqt_graph
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.7 (2017-03-02)
+------------------
 * fix statistics are enabled, regression of 0.4.4 (`#428 <https://github.com/ros-visualization/rqt_common_plugins/issues/428>`_)
 
 0.4.6 (2017-02-27)
