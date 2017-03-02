@@ -172,7 +172,7 @@ class RosGraphDotcodeGenerator:
         if pub is None and sub in self.edges and topic in self.edges[sub]:
             conns = len(self.edges[sub][topic])
             if conns == 1:
-                pub = next(self.edges[sub][topic].keys())
+                pub = self.edges[sub][topic].keys()[0]
             else:
                 penwidth = self._calc_edge_penwidth(sub,topic)
                 color = self._calc_edge_color(sub,topic)
