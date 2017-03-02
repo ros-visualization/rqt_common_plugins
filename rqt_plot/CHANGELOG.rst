@@ -2,6 +2,9 @@
 Changelog for package rqt_plot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.4.6 (2017-02-27)
 ------------------
 * add support for plotting bool field values (`#427 <https://github.com/ros-visualization/rqt_common_plugins/issues/427>`_)
