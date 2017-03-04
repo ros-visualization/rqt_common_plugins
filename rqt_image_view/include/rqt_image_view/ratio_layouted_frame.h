@@ -70,6 +70,7 @@ public:
 
   void resizeToFitAspectRatio();
 
+  void setOuterLayout(QHBoxLayout* outer_layout);
   void setInnerFrameMinimumSize(const QSize& size);
 
   void setInnerFrameMaximumSize(const QSize& size);
@@ -98,6 +99,7 @@ private:
 
   void mousePressEvent(QMouseEvent * mouseEvent);
 
+  QHBoxLayout* outer_layout_;
   QSize aspect_ratio_;
 
   QImage qimage_;
