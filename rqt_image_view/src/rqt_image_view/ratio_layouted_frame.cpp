@@ -79,18 +79,20 @@ void RatioLayoutedFrame::resizeToFitAspectRatio()
   // reduce longer edge to aspect ration
   double width = outer_layout_->contentsRect().width() - 2;
   double height = outer_layout_->contentsRect().height() - 2;
-  if (width * aspect_ratio_.height() / height > aspect_ratio_.width())
+  const double layout_ar = width / height;
+  const double image_ar = double(aspect_ratio_.width()) / double(aspect_ratio_.height());
+  if (layout_ar > image_ar)
   {
     // too large width
-    width = height * aspect_ratio_.width() / aspect_ratio_.height();
-    rect.setWidth(int(width + 0.5));
+    width = height * image_ar;
   }
   else
   {
     // too large height
-    height = width * aspect_ratio_.height() / aspect_ratio_.width();
-    rect.setHeight(int(height + 0.5));
+    height = width / image_ar;
   }
+  rect.setWidth(int(width + 0.5));
+  rect.setHeight(int(height + 0.5));
 
   // resize taking the border line into account
   int border = lineWidth();
