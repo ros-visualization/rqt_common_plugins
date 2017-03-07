@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+  <name>rqt_yn_btn</name>
+  <version>0.3.12</version>
+  <description>rqt_yn_btn provides a GUI plugin to ask user for yes or no input.</description>
+
+  <maintainer email="www.kentaro.wada@gmail.com">Kentaro Wada</maintainer>
+  <author>Kentaro Wada</author>
+
+  <license>BSD</license>
+
+  <url type="repository">https://github.com/ros-visualization/rqt_common_plugins</url>
+  <url type="bugtracker">https://github.com/ros-visualization/rqt_common_plugins/issues</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export>
+    <architecture_independent/>
+    <rqt_gui plugin="${prefix}/plugin.xml"/>
+  </export>
+</package>
