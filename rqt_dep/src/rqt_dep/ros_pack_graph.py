@@ -156,6 +156,7 @@ class RosPackGraph(Plugin):
         self._widget.mark_check_box.clicked.connect(self._refresh_rospackgraph)
         self._widget.colorize_check_box.clicked.connect(self._refresh_rospackgraph)
         self._widget.hide_transitives_check_box.clicked.connect(self._refresh_rospackgraph)
+        self._widget.show_system_check_box.clicked.connect(self._refresh_rospackgraph)
 
         self._widget.refresh_graph_push_button.setIcon(QIcon.fromTheme('view-refresh'))
         self._widget.refresh_graph_push_button.pressed.connect(self._update_rospackgraph)
@@ -194,6 +195,7 @@ class RosPackGraph(Plugin):
         instance_settings.set_value('filter_line_edit_text', self._widget.filter_line_edit.text())
         instance_settings.set_value('with_stacks_state', self._widget.with_stacks_check_box.isChecked())
         instance_settings.set_value('hide_transitives_state', self._widget.hide_transitives_check_box.isChecked())
+        instance_settings.set_value('show_system_state', self._widget.show_system_check_box.isChecked())
         instance_settings.set_value('mark_state', self._widget.mark_check_box.isChecked())
         instance_settings.set_value('colorize_state', self._widget.colorize_check_box.isChecked())
         instance_settings.set_value('auto_fit_graph_check_box_state', self._widget.auto_fit_graph_check_box.isChecked())
@@ -215,6 +217,7 @@ class RosPackGraph(Plugin):
         self._widget.mark_check_box.setChecked(instance_settings.value('mark_state', True) in [True, 'true'])
         self._widget.colorize_check_box.setChecked(instance_settings.value('colorize_state', False) in [True, 'true'])
         self._widget.hide_transitives_check_box.setChecked(instance_settings.value('hide_transitives_state', False) in [True, 'true'])
+        self._widget.show_system_check_box.setChecked(instance_settings.value('show_system_state', False) in [True, 'true'])
         self._widget.auto_fit_graph_check_box.setChecked(instance_settings.value('auto_fit_graph_check_box_state', True) in [True, 'true'])
         self._widget.highlight_connections_check_box.setChecked(instance_settings.value('highlight_connections_check_box_state', True) in [True, 'true'])
         self.initialized = True
@@ -230,6 +233,7 @@ class RosPackGraph(Plugin):
         self._widget.mark_check_box.setEnabled(True)
         self._widget.colorize_check_box.setEnabled(True)
         self._widget.hide_transitives_check_box.setEnabled(True)
+        self._widget.show_system_check_box.setEnabled(True)
 
         self._refresh_rospackgraph(force_update=True)
 
@@ -240,6 +244,7 @@ class RosPackGraph(Plugin):
         self._options['with_stacks'] = self._widget.with_stacks_check_box.isChecked()
         self._options['mark_selected'] = self._widget.mark_check_box.isChecked()
         self._options['hide_transitives'] = self._widget.hide_transitives_check_box.isChecked()
+        self._options['show_system'] = self._widget.show_system_check_box.isChecked()
         # TODO: Allow different color themes
         self._options['colortheme'] = True if self._widget.colorize_check_box.isChecked() else None
         self._options['names'] = self._widget.filter_line_edit.text().split(',')
@@ -301,6 +306,7 @@ class RosPackGraph(Plugin):
                                                        mark_selected=self._options['mark_selected'],
                                                        colortheme=self._options['colortheme'],
                                                        hide_transitives=self._options['hide_transitives'],
+                                                       show_system=self._options['show_system'],
                                                        hide_wet=self._options['package_types'] == 1,
                                                        hide_dry=self._options['package_types'] == 2)
 
@@ -366,6 +372,7 @@ class RosPackGraph(Plugin):
         self._widget.mark_check_box.setEnabled(False)
         self._widget.colorize_check_box.setEnabled(False)
         self._widget.hide_transitives_check_box.setEnabled(False)
+        self._widget.show_system_check_box.setEnabled(False)
 
         self._update_graph(dotcode)
         self._redraw_graph_scene()
