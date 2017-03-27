@@ -29,10 +29,9 @@ import rosnode
 import rospy
 try:
     from xmlrpc.client import ServerProxy
-    from socket import error
 except ImportError:
     from xmlrpclib import ServerProxy
-    import xmlrpclib
+from socket import error as SocketError
 import psutil
 
 ID = '/NODEINFO'
@@ -53,7 +52,7 @@ class NodeInfo(object):
                     return p
                 except:
                     return False
-        except error:
+        except SocketError:
             if not skip_cache:
                 return self.get_node_info(node_name, skip_cache=True)
             else:
