@@ -32,7 +32,7 @@ try:
     from socket import error
 except ImportError:
     from xmlrpclib import ServerProxy
-    from xmlrpclib.socket import error
+    import xmlrpclib
 import psutil
 
 ID = '/NODEINFO'
