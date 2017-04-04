@@ -67,12 +67,15 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   ui_.topics_combo_box->setCurrentIndex(ui_.topics_combo_box->findText(""));
   connect(ui_.topics_combo_box, SIGNAL(currentIndexChanged(int)), this, SLOT(onTopicChanged(int)));
 
+  ui_.refresh_topics_push_button->setIcon(QIcon::fromTheme("view-refresh"));
   connect(ui_.refresh_topics_push_button, SIGNAL(pressed()), this, SLOT(updateTopicList()));
 
+  ui_.zoom_1_push_button->setIcon(QIcon::fromTheme("zoom-original"));
   connect(ui_.zoom_1_push_button, SIGNAL(toggled(bool)), this, SLOT(onZoom1(bool)));
 
   connect(ui_.dynamic_range_check_box, SIGNAL(toggled(bool)), this, SLOT(onDynamicRange(bool)));
 
+  ui_.save_as_image_push_button->setIcon(QIcon::fromTheme("image-x-generic"));
   connect(ui_.save_as_image_push_button, SIGNAL(pressed()), this, SLOT(saveImage()));
 
   // set topic name if passed in as argument
