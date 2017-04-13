@@ -220,23 +220,28 @@ class RosGraphDotcodeGenerator:
 
     def _add_node(self, node, rosgraphinst, dotcode_factory, dotgraph, quiet):
         if node in rosgraphinst.bad_nodes:
-            if quiet:
-                return ''
             bn = rosgraphinst.bad_nodes[node]
             if bn.type == rosgraph.impl.graph.BadNode.DEAD:
                 dotcode_factory.add_node_to_graph(dotgraph,
                                                   nodename=_conv(node),
                                                   nodelabel=node,
-                                                  shape="doublecircle",
-                                                  url=node,
-                                                  color="red")
+                                                  shape="ellipse",
+                                                  url=node + " (DEAD)",
+                                                  color="orange")
+            elif bn.type == rosgraph.impl.graph.BadNode.WONKY:
+                dotcode_factory.add_node_to_graph(dotgraph,
+                                                  nodename=_conv(node),
+                                                  nodelabel=node,
+                                                  shape="ellipse",
+                                                  url=node + " (WONKY)",
+                                                  color="yellow")
             else:
                 dotcode_factory.add_node_to_graph(dotgraph,
                                                   nodename=_conv(node),
                                                   nodelabel=node,
-                                                  shape="doublecircle",
-                                                  url=node,
-                                                  color="orange")
+                                                  shape="ellipse",
+                                                  url=node + " (UNKNOWN)",
+                                                  color="red")
         else:
             dotcode_factory.add_node_to_graph(dotgraph,
                                               nodename=_conv(node),
