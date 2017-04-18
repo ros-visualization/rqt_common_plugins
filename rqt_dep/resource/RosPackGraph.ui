@@ -177,6 +177,16 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="show_system_check_box">
+       <property name="toolTip">
+        <string>Show system dependencies</string>
+       </property>
+       <property name="text">
+        <string>System deps</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QCheckBox" name="colorize_check_box">
        <property name="toolTip">
         <string>Random colors for stacks</string>

@@ -77,6 +77,7 @@ class RosPackageGraphDotcodeGenerator:
                          descendants=True,
                          ancestors=True,
                          hide_transitives=True,
+                         show_system=False,
                          mark_selected=True,
                          colortheme=None,
                          rank='same',  # None, same, min, max, source, sink
@@ -89,6 +90,7 @@ class RosPackageGraphDotcodeGenerator:
         """
 
         :param hide_transitives: if true, then dependency of children to grandchildren will be hidden if parent has same dependency
+        :param show_system: if true, then system dependencies will be shown
         """
 
         # defaults
@@ -107,6 +109,7 @@ class RosPackageGraphDotcodeGenerator:
             "with_stacks": with_stacks,
             "depth": depth,
             "hide_transitives": hide_transitives,
+            "show_system": show_system,
             "selected_names": selected_names,
             "excludes": excludes,
             "ancestors": ancestors,
@@ -125,6 +128,7 @@ class RosPackageGraphDotcodeGenerator:
             self.with_stacks = with_stacks
             self.depth = depth
             self.hide_transitives = hide_transitives
+            self.show_system = show_system
             self.selected_names = selected_names
             self.excludes = excludes
             self.ancestors = ancestors
@@ -381,6 +385,14 @@ class RosPackageGraphDotcodeGenerator:
             except ResourceNotFound as e:
                 print('RosPackageGraphDotcodeGenerator.add_package_descendants_recursively(%s), parent: %s: ResourceNotFound:' % (package_name, parent), e)
                 depends = []
+            # get system dependencies without recursion
+            if self.show_system:
+                rosdeps = self.rospack.get_rosdeps(package_name, implicit=implicit)
+                for dep_name in [x for x in rosdeps if not matches_any(x, self.excludes)]:
+                    if not self.hide_transitives or not dep_name in expanded:
+                        self._add_edge(package_name, dep_name)
+                        self._add_package(dep_name, parent=package_name)
+                        expanded.append(dep_name)
             new_nodes = []
             for dep_name in [x for x in depends if not matches_any(x, self.excludes)]:
                 if not self.hide_transitives or not dep_name in expanded:
