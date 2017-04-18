@@ -82,15 +82,7 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   const QStringList& argv = context.argv();
   if (!argv.empty()) {
     arg_topic_name = argv[0];
-    // add topic name to list if not yet in
-    int index = ui_.topics_combo_box->findText(arg_topic_name);
-    if (index == -1) {
-      QString label(arg_topic_name);
-      label.replace(" ", "/");
-      ui_.topics_combo_box->addItem(label, QVariant(arg_topic_name));
-      index = ui_.topics_combo_box->findText(arg_topic_name);
-    }
-    ui_.topics_combo_box->setCurrentIndex(index);
+    selectTopic(arg_topic_name);
   }
   pub_topic_custom_ = false;
 
@@ -253,7 +245,11 @@ void ImageView::selectTopic(const QString& topic)
   int index = ui_.topics_combo_box->findText(topic);
   if (index == -1)
   {
-    index = ui_.topics_combo_box->findText("");
+    // add topic name to list if not yet in
+    QString label(topic);
+    label.replace(" ", "/");
+    ui_.topics_combo_box->addItem(label, QVariant(topic));
+    index = ui_.topics_combo_box->findText(topic);
   }
   ui_.topics_combo_box->setCurrentIndex(index);
 }
