@@ -70,6 +70,8 @@ public:
 
   void resizeToFitAspectRatio();
 
+  void setOuterLayout(QHBoxLayout* outer_layout);
+
   void setInnerFrameMinimumSize(const QSize& size);
 
   void setInnerFrameMaximumSize(const QSize& size);
@@ -97,6 +99,8 @@ private:
   static int greatestCommonDivisor(int a, int b);
 
   void mousePressEvent(QMouseEvent * mouseEvent);
+
+  QHBoxLayout* outer_layout_;
 
   QSize aspect_ratio_;
 

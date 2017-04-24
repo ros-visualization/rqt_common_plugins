@@ -86,6 +86,8 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   }
   pub_topic_custom_ = false;
 
+  ui_.image_frame->setOuterLayout(ui_.image_layout);
+
   QRegExp rx("([a-zA-Z/][a-zA-Z0-9_/]*)?"); //see http://www.ros.org/wiki/ROS/Concepts#Names.Valid_Names (but also accept an empty field)
   ui_.publish_click_location_topic_line_edit->setValidator(new QRegExpValidator(rx, this));
   connect(ui_.publish_click_location_check_box, SIGNAL(toggled(bool)), this, SLOT(onMousePublish(bool)));
