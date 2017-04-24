@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-  <arg name="bag" default="" doc="bag file to load"/>
-  <node name="rqt_bag" pkg="rqt_bag" type="rqt_bag"
-    args="$(arg bag)"/>
-</launch>
