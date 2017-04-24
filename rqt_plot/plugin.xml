@@ -14,4 +14,19 @@
       <statustip>A plugin for visualizing numeric values in a 2D plot using different plotting backends.</statustip>
     </qtgui>
   </class>
+  <class name="PlotHistogram" type="rqt_plot.plot_histogram.PlotHistogram" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      A plugin visualizing numeric vectors in a 2D plot as a histogram.
+    </description>
+    <qtgui>
+      <group>
+        <label>Visualization</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to visualization.</statustip>
+      </group>
+      <label>PlotHistogram</label>
+      <icon type="theme">utilities-system-monitor</icon>
+      <statustip>A plugin visualizing numeric vectors in a 2D plot as a histogram.</statustip>
+    </qtgui>
+  </class>
 </library>

@@ -88,6 +88,7 @@ def get_topic_type(topic):
         return None, None, None
 
 
+
 class ROSData(object):
     """
     Subscriber to ROS topic that buffers incoming data
@@ -166,6 +167,22 @@ class ROSData(object):
             self.error = RosPlotException("[%s] index error for: %s" % (self.name, str(val).replace('\n', ', ')))
         except TypeError:
             self.error = RosPlotException("[%s] value was not numeric: %s" % (self.name, val))
+
+
+class ROSArrayData(ROSData):
+
+    def _get_data(self, msg):
+        val = msg
+        try:
+            if not self.field_evals:
+                return map(float, val)
+            for f in self.field_evals:
+                val = f(val)
+            return map(float, val)
+        except IndexError:
+            self.error = RosPlotException("[%s] index error for: %s" % (self.name, str(val).replace('\n', ', ')))
+        except TypeError:
+            self.error = RosPlotException("[%s] value in array was not numeric: %s" % (self.name, val))
 
 
 def _array_eval(field_name, slot_num):
