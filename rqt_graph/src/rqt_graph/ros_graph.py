@@ -152,6 +152,7 @@ class RosGraph(Plugin):
         self._widget.dead_sinks_check_box.clicked.connect(self._refresh_rosgraph)
         self._widget.leaf_topics_check_box.clicked.connect(self._refresh_rosgraph)
         self._widget.quiet_check_box.clicked.connect(self._refresh_rosgraph)
+        self._widget.unreachable_check_box.clicked.connect(self._refresh_rosgraph)
 
         self._widget.refresh_graph_push_button.setIcon(QIcon.fromTheme('view-refresh'))
         self._widget.refresh_graph_push_button.pressed.connect(self._update_rosgraph)
@@ -185,6 +186,7 @@ class RosGraph(Plugin):
         instance_settings.set_value('dead_sinks_check_box_state', self._widget.dead_sinks_check_box.isChecked())
         instance_settings.set_value('leaf_topics_check_box_state', self._widget.leaf_topics_check_box.isChecked())
         instance_settings.set_value('quiet_check_box_state', self._widget.quiet_check_box.isChecked())
+        instance_settings.set_value('unreachable_check_box_state', self._widget.unreachable_check_box.isChecked())
         instance_settings.set_value('auto_fit_graph_check_box_state', self._widget.auto_fit_graph_check_box.isChecked())
         instance_settings.set_value('highlight_connections_check_box_state', self._widget.highlight_connections_check_box.isChecked())
 
@@ -197,6 +199,7 @@ class RosGraph(Plugin):
         self._widget.dead_sinks_check_box.setChecked(instance_settings.value('dead_sinks_check_box_state', True) in [True, 'true'])
         self._widget.leaf_topics_check_box.setChecked(instance_settings.value('leaf_topics_check_box_state', True) in [True, 'true'])
         self._widget.quiet_check_box.setChecked(instance_settings.value('quiet_check_box_state', True) in [True, 'true'])
+        self._widget.unreachable_check_box.setChecked(instance_settings.value('unreachable_check_box_state', True) in [True, 'true'])
         self._widget.auto_fit_graph_check_box.setChecked(instance_settings.value('auto_fit_graph_check_box_state', True) in [True, 'true'])
         self._widget.highlight_connections_check_box.setChecked(instance_settings.value('highlight_connections_check_box_state', True) in [True, 'true'])
         self.initialized = True
@@ -212,6 +215,7 @@ class RosGraph(Plugin):
         self._widget.dead_sinks_check_box.setEnabled(True)
         self._widget.leaf_topics_check_box.setEnabled(True)
         self._widget.quiet_check_box.setEnabled(True)
+        self._widget.unreachable_check_box.setEnabled(True)
 
         self._graph = rosgraph.impl.graph.Graph()
         self._graph.set_master_stale(5.0)
@@ -239,6 +243,7 @@ class RosGraph(Plugin):
         hide_dead_end_topics = self._widget.dead_sinks_check_box.isChecked()
         hide_single_connection_topics = self._widget.leaf_topics_check_box.isChecked()
         quiet = self._widget.quiet_check_box.isChecked()
+        unreachable = self._widget.unreachable_check_box.isChecked()
 
         return self.dotcode_generator.generate_dotcode(
             rosgraphinst=self._graph,
@@ -251,7 +256,8 @@ class RosGraph(Plugin):
             accumulate_actions=accumulate_actions,
             dotcode_factory=self.dotcode_factory,
             orientation=orientation,
-            quiet=quiet)
+            quiet=quiet,
+            unreachable=unreachable)
 
     def _update_graph_view(self, dotcode):
         if dotcode == self._current_dotcode:
@@ -324,6 +330,7 @@ class RosGraph(Plugin):
         self._widget.dead_sinks_check_box.setEnabled(False)
         self._widget.leaf_topics_check_box.setEnabled(False)
         self._widget.quiet_check_box.setEnabled(False)
+        self._widget.unreachable_check_box.setEnabled(False)
 
         self._update_graph_view(dotcode)
 
