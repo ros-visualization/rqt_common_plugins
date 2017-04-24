@@ -289,9 +289,6 @@ void ImageView::onZoom1(bool checked)
       return;
     }
     ui_.image_frame->setInnerFrameFixedSize(ui_.image_frame->getImage().size());
-    widget_->resize(ui_.image_frame->size());
-    widget_->setMinimumSize(widget_->sizeHint());
-    widget_->setMaximumSize(widget_->sizeHint());
   } else {
     ui_.image_frame->setInnerFrameMinimumSize(QSize(80, 60));
     ui_.image_frame->setMaximumSize(QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX));
