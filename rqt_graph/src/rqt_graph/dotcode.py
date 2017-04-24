@@ -218,8 +218,10 @@ class RosGraphDotcodeGenerator:
                 dotcode_factory.add_edge_to_graph(dotgraph, _conv(edge.start), _conv(edge.end), label=edge.label)
 
 
-    def _add_node(self, node, rosgraphinst, dotcode_factory, dotgraph, quiet):
+    def _add_node(self, node, rosgraphinst, dotcode_factory, dotgraph, unreachable):
         if node in rosgraphinst.bad_nodes:
+            if unreachable:
+                return ''
             bn = rosgraphinst.bad_nodes[node]
             if bn.type == rosgraph.impl.graph.BadNode.DEAD:
                 dotcode_factory.add_node_to_graph(dotgraph,
@@ -227,14 +229,14 @@ class RosGraphDotcodeGenerator:
                                                   nodelabel=node,
                                                   shape="ellipse",
                                                   url=node + " (DEAD)",
-                                                  color="orange")
+                                                  color="red")
             elif bn.type == rosgraph.impl.graph.BadNode.WONKY:
                 dotcode_factory.add_node_to_graph(dotgraph,
                                                   nodename=_conv(node),
                                                   nodelabel=node,
                                                   shape="ellipse",
                                                   url=node + " (WONKY)",
-                                                  color="yellow")
+                                                  color="orange")
             else:
                 dotcode_factory.add_node_to_graph(dotgraph,
                                                   nodename=_conv(node),
@@ -433,7 +435,8 @@ class RosGraphDotcodeGenerator:
                          ranksep=0.2,  # vertical distance between layers
                          rankdir='TB',  # direction of layout (TB top > bottom, LR left > right)
                          simplify=True,  # remove double edges
-                         quiet=False):
+                         quiet=False,
+                         unreachable=False):
         """
         See generate_dotcode
         """
@@ -518,9 +521,9 @@ class RosGraphDotcodeGenerator:
                     namespace = str(n).split('/')[1]
                     if namespace not in namespace_clusters:
                         namespace_clusters[namespace] = dotcode_factory.add_subgraph_to_graph(dotgraph, namespace, rank=rank, rankdir=orientation, simplify=simplify)
-                    self._add_node(n, rosgraphinst=rosgraphinst, dotcode_factory=dotcode_factory, dotgraph=namespace_clusters[namespace], quiet=quiet)
+                    self._add_node(n, rosgraphinst=rosgraphinst, dotcode_factory=dotcode_factory, dotgraph=namespace_clusters[namespace], unreachable=unreachable)
                 else:
-                    self._add_node(n, rosgraphinst=rosgraphinst, dotcode_factory=dotcode_factory, dotgraph=dotgraph, quiet=quiet)
+                    self._add_node(n, rosgraphinst=rosgraphinst, dotcode_factory=dotcode_factory, dotgraph=dotgraph, unreachable=unreachable)
 
         for e in edges:
             self._add_edge(e, dotcode_factory, dotgraph=dotgraph, is_topic=(graph_mode == NODE_NODE_GRAPH))
@@ -547,7 +550,8 @@ class RosGraphDotcodeGenerator:
                          ranksep=0.2,  # vertical distance between layers
                          rankdir='TB',  # direction of layout (TB top > bottom, LR left > right)
                          simplify=True,  # remove double edges
-                         quiet=False):
+                         quiet=False,
+                         unreachable=False):
         """
         @param rosgraphinst: RosGraph instance
         @param ns_filter: nodename filter
@@ -580,6 +584,7 @@ class RosGraphDotcodeGenerator:
                          ranksep=ranksep,
                          rankdir=rankdir,
                          simplify=simplify,
-                         quiet=quiet)
+                         quiet=quiet,
+                         unreachable=unreachable)
         dotcode = dotcode_factory.create_dot(dotgraph)
         return dotcode

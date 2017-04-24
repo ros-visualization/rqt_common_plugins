@@ -212,6 +212,16 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QCheckBox" name="unreachable_check_box">
+           <property name="toolTip">
+            <string>Hide unreachable nodes</string>
+           </property>
+           <property name="text">
+            <string>Unreachable</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
