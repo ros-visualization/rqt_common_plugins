@@ -48,6 +48,8 @@
 #include <QString>
 #include <QSize>
 #include <QWidget>
+#include <QAction>
+#include <QImage>
 
 #include <vector>
 
@@ -99,6 +101,7 @@ protected slots:
   virtual void onMouseLeft(int x, int y);
 
   virtual void onPubTopicChanged();
+  virtual void setControlsVisiblity(bool show);
 
 protected:
 
@@ -119,6 +122,7 @@ private:
 
   bool pub_topic_custom_;
 
+  QAction *tools_hide_action_;
 };
 
 }

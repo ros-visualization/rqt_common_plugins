@@ -93,6 +93,11 @@ void ImageView::initPlugin(qt_gui_cpp::PluginContext& context)
   connect(ui_.publish_click_location_topic_line_edit, SIGNAL(editingFinished()), this, SLOT(onPubTopicChanged()));
 
   connect(ui_.smooth_image_check_box, SIGNAL(toggled(bool)), ui_.image_frame, SLOT(onSmoothImageChanged(bool)));
+
+  tools_hide_action_ = new QAction(tr("Hide toolbar"), this);
+  tools_hide_action_->setCheckable(true);
+  ui_.image_frame->addAction(tools_hide_action_);
+  connect(tools_hide_action_, SIGNAL(toggled(bool)), this, SLOT(setControlsVisiblity(bool)));
 }
 
 void ImageView::shutdownPlugin()
@@ -111,6 +116,7 @@ void ImageView::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::
   instance_settings.setValue("max_range", ui_.max_range_double_spin_box->value());
   instance_settings.setValue("publish_click_location", ui_.publish_click_location_check_box->isChecked());
   instance_settings.setValue("mouse_pub_topic", ui_.publish_click_location_topic_line_edit->text());
+  instance_settings.setValue("controls_hidden", tools_hide_action_->isChecked());
 }
 
 void ImageView::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings)
@@ -141,6 +147,9 @@ void ImageView::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, con
 
   QString pub_topic = instance_settings.value("mouse_pub_topic", "").toString();
   ui_.publish_click_location_topic_line_edit->setText(pub_topic);
+
+  bool controls_hidden = instance_settings.value("controls_hidden", false).toBool();
+  tools_hide_action_->setChecked(controls_hidden);
 }
 
 void ImageView::updateTopicList()
@@ -424,6 +433,11 @@ void ImageView::callbackImage(const sensor_msgs::Image::ConstPtr& msg)
     ui_.zoom_1_push_button->setEnabled(true);
     onZoom1(ui_.zoom_1_push_button->isChecked());
   }
+}
+
+void rqt_image_view::ImageView::setControlsVisiblity(bool hide)
+{
+  ui_.controlsWidget->setVisible(!hide);
 }
 
 }
