@@ -54,10 +54,10 @@ install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 )
 
-install(PROGRAMS scripts/rqt_image_view
+catkin_install_python(PROGRAMS scripts/rqt_image_view
   DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 )
-install(PROGRAMS scripts/rqt_image_view
+catkin_install_python(PROGRAMS scripts/rqt_image_view
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
