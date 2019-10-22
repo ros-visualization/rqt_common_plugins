@@ -41,7 +41,6 @@
   <exec_depend>rqt_image_view</exec_depend>
   <exec_depend>rqt_launch</exec_depend>
   <exec_depend>rqt_logger_level</exec_depend>
-  <!-- <exec_depend>rqt_marble</exec_depend> --> <!-- 4/9/2013 Not ready. When ready to be released, <track>.ignored on Release Repository that is meant to ignore this package should also be modified. -->
   <exec_depend>rqt_msg</exec_depend>
   <exec_depend>rqt_plot</exec_depend>
   <exec_depend>rqt_publisher</exec_depend>
