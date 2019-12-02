@@ -2,6 +2,11 @@
 Changelog for package rqt_common_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* ROS 2 port, commenting out unavailable plugins (`#457 <https://github.com/ros-visualization/rqt_common_plugins/issues/457>`_)
+* convert to package format 2 (`#455 <https://github.com/ros-visualization/rqt_common_plugins/issues/455>`_)
+
 0.4.8 (2017-04-28)
 ------------------
 
