@@ -30,17 +30,17 @@
   <author>Aaron Blasdel</author>
   <author>Isaac Saito</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend>rqt_action</exec_depend>
-  <exec_depend>rqt_bag</exec_depend>
-  <exec_depend>rqt_bag_plugins</exec_depend>
+  <!-- <exec_depend>rqt_bag</exec_depend> -->
+  <!-- <exec_depend>rqt_bag_plugins</exec_depend> -->
   <exec_depend>rqt_console</exec_depend>
-  <exec_depend>rqt_dep</exec_depend>
+  <!-- <exec_depend>rqt_dep</exec_depend> -->
   <exec_depend>rqt_graph</exec_depend>
   <exec_depend>rqt_image_view</exec_depend>
-  <exec_depend>rqt_launch</exec_depend>
-  <exec_depend>rqt_logger_level</exec_depend>
+  <!-- <exec_depend>rqt_launch</exec_depend> -->
+  <!-- <exec_depend>rqt_logger_level</exec_depend> -->
   <exec_depend>rqt_msg</exec_depend>
   <exec_depend>rqt_plot</exec_depend>
   <exec_depend>rqt_publisher</exec_depend>
@@ -52,9 +52,9 @@
   <exec_depend>rqt_srv</exec_depend>
   <exec_depend>rqt_top</exec_depend>
   <exec_depend>rqt_topic</exec_depend>
-  <exec_depend>rqt_web</exec_depend>
+  <!-- <exec_depend>rqt_web</exec_depend> -->
 
   <export>
-    <metapackage/>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>
