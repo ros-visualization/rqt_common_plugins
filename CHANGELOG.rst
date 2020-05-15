@@ -2,6 +2,12 @@
 Changelog for package rqt_common_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.9 (2020-05-14)
+------------------
+* Bump CMake version to avoid CMP0048 warning (`#459 <https://github.com/ros-visualization/rqt_common_plugins/issues/459>`_)
+* convert to package format 2 (`#455 <https://github.com/ros-visualization/rqt_common_plugins/issues/455>`_)
+* Contributors: Alejandro Hernández Cordero, Mikael Arguedas
+
 0.4.8 (2017-04-28)
 ------------------
 
