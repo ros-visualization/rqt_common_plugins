@@ -2,6 +2,11 @@
 Changelog for package rqt_common_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add ``rqt_bag`` to the ``rqt_common_plugins`` metapackage (`#463 <https://github.com/ros-visualization/rqt_common_plugins/issues/463>`_)
+* Contributors: Michael Jeronimo
+
 1.0.0 (2019-12-02)
 ------------------
 * ROS 2 port, commenting out unavailable plugins (`#457 <https://github.com/ros-visualization/rqt_common_plugins/issues/457>`_)
