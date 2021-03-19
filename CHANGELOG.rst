@@ -2,8 +2,8 @@
 Changelog for package rqt_common_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2021-03-18)
+------------------
 * Add ``rqt_bag`` to the ``rqt_common_plugins`` metapackage (`#463 <https://github.com/ros-visualization/rqt_common_plugins/issues/463>`_)
 * Contributors: Michael Jeronimo
 
