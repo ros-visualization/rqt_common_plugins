@@ -2,6 +2,12 @@
 Changelog for package rqt_common_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Remove unreleased plugins from rqt_common_plugins. (`#465 <https://github.com/ros-visualization/rqt_common_plugins/issues/465>`_)
+* Update maintainers (`#464 <https://github.com/ros-visualization/rqt_common_plugins/issues/464>`_)
+* Contributors: Chris Lalancette, Ivan Santiago Paunovic
+
 1.1.0 (2021-03-18)
 ------------------
 * Add ``rqt_bag`` to the ``rqt_common_plugins`` metapackage (`#463 <https://github.com/ros-visualization/rqt_common_plugins/issues/463>`_)
