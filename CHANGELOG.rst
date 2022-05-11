@@ -2,8 +2,8 @@
 Changelog for package rqt_common_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.2.0 (2022-05-11)
+------------------
 * Remove unreleased plugins from rqt_common_plugins. (`#465 <https://github.com/ros-visualization/rqt_common_plugins/issues/465>`_)
 * Update maintainers (`#464 <https://github.com/ros-visualization/rqt_common_plugins/issues/464>`_)
 * Contributors: Chris Lalancette, Ivan Santiago Paunovic
