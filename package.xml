@@ -16,7 +16,8 @@
     </ul>
    <br />
   </description>
-  <maintainer email="ivanpauno@ekumenlabs.com">Ivan Paunovic</maintainer>
+
+  <maintainer email="geoff@openrobotics.org">Geoffrey Biggs</maintainer>
 
   <license>BSD</license>
 
@@ -24,11 +25,12 @@
   <url type="repository">https://github.com/ros-visualization/rqt_common_plugins</url>
   <url type="bugtracker">https://github.com/ros-visualization/rqt_common_plugins/issues</url>
 
+  <author>Aaron Blasdel</author>
   <author>Dirk Thomas</author>
   <author>Dorian Scholz</author>
-  <author>Thibault Kruse</author>
-  <author>Aaron Blasdel</author>
   <author>Isaac Saito</author>
+  <author email="ivanpauno@ekumenlabs.com">Ivan Paunovic</author>
+  <author>Thibault Kruse</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 
