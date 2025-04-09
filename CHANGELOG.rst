@@ -2,6 +2,12 @@
 Changelog for package rqt_common_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update Maintainers (`#466 <https://github.com/ros-visualization/rqt_common_plugins/issues/466>`_)
+* Update maintainers (`#462 <https://github.com/ros-visualization/rqt_common_plugins/issues/462>`_)
+* Contributors: Audrow Nash, Ivan Santiago Paunovic
+
 0.4.9 (2020-05-14)
 ------------------
 * Bump CMake version to avoid CMP0048 warning (`#459 <https://github.com/ros-visualization/rqt_common_plugins/issues/459>`_)
