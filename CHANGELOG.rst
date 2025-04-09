@@ -2,8 +2,8 @@
 Changelog for package rqt_common_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.10 (2025-04-09)
+-------------------
 * Update Maintainers (`#466 <https://github.com/ros-visualization/rqt_common_plugins/issues/466>`_)
 * Update maintainers (`#462 <https://github.com/ros-visualization/rqt_common_plugins/issues/462>`_)
 * Contributors: Audrow Nash, Ivan Santiago Paunovic
