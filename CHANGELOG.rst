@@ -2,6 +2,11 @@
 Changelog for package rqt_common_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Bump cmake_minimum_required to avoid deprecation (`#468 <https://github.com/ros-visualization/rqt_common_plugins/issues/468>`_)
+* Contributors: Arne Hitzmann, Shane Loretz
+
 0.4.10 (2025-04-09)
 -------------------
 * Update Maintainers (`#466 <https://github.com/ros-visualization/rqt_common_plugins/issues/466>`_)
